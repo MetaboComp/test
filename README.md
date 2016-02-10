@@ -3,6 +3,7 @@ Multivariate methods with Unbiased Variable selection in R
 
 ## General description
 This is a package dedicated to predictive multivariate modelling for metabolomics.
+- Types: Classification and regression
 - Model cores: PLS and Random Forest
 - Data structures: Paired and unpaired
 - Validation: rdCV (Westerhuis et al 2008, Filzmoser et al 2009)
@@ -29,4 +30,4 @@ Westerhuis et al 2008
 ## Version history
 version | date | comment
 :------ | :--- | :------
-0.0.900 | | Still on local git
+0.0.900 | 2016-02-10 | Started to work on wrapper for MV-methods. Switched from GitHub to GitLab
