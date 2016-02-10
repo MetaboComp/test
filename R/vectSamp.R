@@ -1,6 +1,7 @@
 #' Sampling of a vector
 #' 
 #' Random sampling of a vector into n groups
+#' Bug: Sampling is faulty when length(vect) < n
 #' @param vect A vector to be sampled into groups
 #' @param n Number of groups
 #' @param sampLen A vector with custom numer of samples per group. Is calculated if missing (best choice).

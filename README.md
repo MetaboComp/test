@@ -1,6 +1,10 @@
 # MUVR
 Multivariate methods with Unbiased Variable selection in R
 
+## Issues
+- fix vectSamp(vect,n), where length(vect)<n
+- code rfInner.R
+
 ## General description
 This is a package dedicated to predictive multivariate modelling for metabolomics.
 - Types: Classification and regression

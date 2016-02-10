@@ -2,13 +2,13 @@
 #' 
 #' Repeated double cross validation with tuning of variables in the inner loop.
 #' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.
-#' @param Y Response vector (Dependent variable)
+#' @param Y Response vector (Dependent variable). For PLS-DA, values should be -1 vs 1 for the two classes.
 #' @param ID Subject identifier (for sampling by subject; Assumption of independence if not specified)
 #' @param nRep Number of repetitions of double CV..
 #' @param nOuter Number of outer CV loop segments.
 #' @param nInner Number of inner CV loop segments.
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration.
-#' @param DA Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression)
+#' @param DA Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
 #' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'misClass' for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (defaults to ???)
@@ -32,7 +32,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   if (missing(method)) method='RF'
   if (missing(methParam)) {
     if (method=='PLS') {
-      methParam=list(nComp=ifelse(nVar<3,nVar,3))
+      methParam=list(compMax=ifelse(nVar<3,nVar,3),mode='regression')
     } else {
       methParam=NULL
     }
@@ -57,13 +57,12 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     cat('\nError: Must have same nSamp in X and Y.\n')
     return(NULL)
   }
-####################
-  ## Check if this works!!!
+  ## Sort sampling based in subjects and not index
   unik=!duplicated(ID)  # boolean of unique IDs
   unikID=ID[unik]  
   if (DA) {
-    unikY=Y[unik]
-    Ynames=unique(Y)  # Find groups
+    unikY=Y[unik]  # Counterintuitive, but needed for groupings by Ynames
+    Ynames=sort(unique(Y))  # Find groups
     groups=length(Ynames) # Number of groups
     groupID=list()  # Allocate list for indices of groups
     for (g in 1:groups) { 
@@ -91,167 +90,155 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     var=c(var,nVar)
     nVar=floor(varRatio*nVar)
   }
-  ## Perform repetition
+  ## Choose package/core algorithm according to chosen method
   packs=c(ifelse(method=='PLS','mixOmics','randomForest'),'pROC')
+  ## Start repetitions
   reps=foreach(r=1:nRep, .packages=packs, .export='vectSamp') %dopar% {
+    # r=1
+    # r=r+1
+    sink('log.txt',append=TRUE)
     if (pred) YPR=matrix(nrow=nrow(XP),ncol=nOuter)
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
     if (DA) {
       groupTest=list()  ## Allocate list for samples within group
       for (gT in 1:groups) { 
-        groupTest[[gT]]=vectSamp(groupInd[[gT]],n=nOuter)  # Draw random samples within group
+        groupTest[[gT]]=vectSamp(groupID[[gT]],n=nOuter)  # Draw random samples within group
       }
-      groupTest[[2]]=rev(groupTest[[2]])  ## Reverse order for 2nd group 
-      ## In the case of >2 groups another approach would be suitable
-      ## eg adding subsequent groups to allTest ordered by length
       allTest=groupTest[[1]] # Add 1st groups to 'Master' sample of all groups
       for (gT in 2:groups) {  # Add subsequent groups
+        allTest=allTest[order(sapply(allTest,length))]
         for (aT in 1:nOuter) {
           allTest[[aT]]=sort(c(allTest[[aT]],groupTest[[gT]][[aT]]))
         }
       }
     } else {
-      allTest=vectSamp(ind,n=nOuter)
+      allTest=vectSamp(unikID,n=nOuter)
     }
-    featOutMin=featOutMid=featOutMax=nCompOutMin=nCompOutMid=nCompOutMax=numeric(nOuter)
-    names(featOutMin)=names(featOutMid)=names(featOutMax)=names(nCompOutMin)=names(nCompOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
+    varOutMin=varOutMid=varOutMax=nCompOutMin=nCompOutMid=nCompOutMax=numeric(nOuter)
+    names(varOutMin)=names(varOutMid)=names(varOutMax)=names(nCompOutMin)=names(nCompOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
     VIPOutMin=VIPOutMid=VIPOutMax=matrix(data=nVar0,nrow=nVar0,ncol=nOuter)
     rownames(VIPOutMin)=rownames(VIPOutMid)=rownames(VIPOutMax)=colnames(X)
     colnames(VIPOutMin)=colnames(VIPOutMid)=colnames(VIPOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
-    for (i in 1:nOuter) {   # Create 'nSamp' models within repetition
+    ## Perform outer loop segments -> one "majority vote" MV model per segment
+    for (i in 1:nOuter) {   
       # i=1
-      cat('\n Segment ',i,' (features):',sep='') # Counter
-      testInd=allTest[[i]] # Draw out segment = holdout set BASED ON UNIK
-      TestIndex=numeric()  # BASED ON OBSERVATIONS
-      for (xt in 1:length(testInd)) {
-        # cat(sum(ID==unikID[testInd[xt]]))
-        TestIndex=c(TestIndex,which(ID==unikID[testInd[xt]]))
-      }
-      xTest=X[TestIndex,]
-      yTest=Y[TestIndex]
-      inInd=ind[-testInd]
-      InnerIndex=YIndex[-TestIndex]
-      yUnikIn=unikY[inInd]  
-      ###
-      
-      # cat('\n',head(testInd))   # Trouble shooting
-      # cat('\n',head(yTrain))
-      # cat('\n',as.numeric(xTrain[1,1:5]))
+      # i=i+1
+      cat('\n Segment ',i,' (variables):',sep='') # Counter
+      ## Draw out test set
+      testID=allTest[[i]] # Draw out segment = holdout set BASED ON UNIQUE ID
+      testIndex=ID%in%testID # Logical for samples included
+      xTest=X[testIndex,]
+      yTest=Y[testIndex]
+      inID=unikID[!unikID%in%testID]  # IDs not in test set
+      inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
+      ## Allocate variables for later use
       missIn=aucIn=rmsepIn=nCompIn=matrix(nrow=nInner,ncol=cnt)
       rownames(rmsepIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
-      colnames(rmsepIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=feat
+      colnames(rmsepIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=var
       VIPInner=array(data=nVar0,dim=c(nVar0,cnt,nInner))
       rownames(VIPInner)=colnames(X)
-      colnames(VIPInner)=feat
+      colnames(VIPInner)=var
       dimnames(VIPInner)[[3]]=paste(rep('inSeg',nInner),1:nInner,sep='')
-      nVar=nVar0
-      # inSamp=vectSamp(inInd,n=nInner)  # Draw random samples within current 2CV segment
-      incFeat=colnames(X)
-      for (count in 1:cnt) {  # Build models with successively fewer feature. Quality metric = number of missclassifications for Validation set
+      # Restart variables
+      incVar=colnames(X)
+      ## Perform steps with successively fewer features
+      for (count in 1:cnt) {  # Build models with successively fewer variables. Quality metric = number of missclassifications for Validation set
         # count=1 # for testing
         # count=count+1
-        nVar=feat[count]
+        nVar=var[count]
         cat(nVar)
-        # if (resampInner==TRUE) inSamp=vectSamp(inInd,n=nInner)  # Resample inner segments for each feature elimination step
-        comp=ifelse(nVar<comps,nVar,comps)
+        # if (resampInner==TRUE) inSamp=vectSamp(inInd,n=nInner)  # Resample inner segments for each variable elimination step
+        if (method=='PLS') comp=ifelse(nVar<methParam$compMax,nVar,methParam$compMax)
         if (DA==T) {
-          groupIndVal=list()
+          groupIDVal=list()
           for (g in 1:groups) { 
-            groupIndVal[[g]]=inInd[yUnikIn==Ynames[g]]  # Find indices per group
+            groupIDVal[[g]]=inID[inY==Ynames[g]]  # Find indices per group
           }
           groupVal=list()  ## Allocate list for samples within group
           for (gV in 1:groups) { 
-            groupVal[[gV]]=vectSamp(groupIndVal[[gV]],n=nInner)  # Draw random samples within group
+            groupVal[[gV]]=vectSamp(groupIDVal[[gV]],n=nInner)  # Draw random samples within group
           }
-          groupVal[[2]]=rev(groupVal[[2]])  ## Reverse order for 2nd group 
-          ## In the case of >2 groups another approach would be suitable
-          ## eg adding subsequent groups to allVal ordered by length
           allVal=groupVal[[1]] # Add 1st groups to 'Master' sample of all groups
           for (gV in 2:groups) {  # Add subsequent groups
+            allVal=allVal[order(sapply(allVal,length))]
             for (aV in 1:nInner) {
               allVal[[aV]]=sort(c(allVal[[aV]],groupVal[[gV]][[aV]]))
             }
           }
         } else {
-          allVal=vectSamp(inInd,n=nInner)
+          allVal=vectSamp(inID,n=nInner)
         }
+        ## Inner CV loop
         for (j in 1:nInner) {
-          # j=1 # for testing
+          # j=1 
           # j=j+1
           cat('.') # Counter
-          valInd=allVal[[j]] # Draw out segment = validation set
-          ValIndex=numeric()  # BASED ON OBSERVATIONS
-          for (xv in 1:length(valInd)) {
-            # cat(sum(ID==unikID[valInd[xv]]))
-            ValIndex=c(ValIndex,which(ID==unikID[valInd[xv]]))
+          valID=allVal[[j]] # Draw out segment = validation set
+          valIndex=ID%in%valID
+          xVal=X[valIndex,]
+          xVal=subset(xVal,select=incVar)
+          yVal=Y[valIndex]
+          trainID=inID[!inID%in%valID]
+          trainIndex=ID%in%trainID # Define Training segment
+          xTrain=X[trainIndex,]
+          xTrain=subset(xTrain,select=incVar)
+          yTrain=Y[trainIndex]
+          # sum(trainIndex,valIndex,testIndex)
+          # trainIndex|valIndex|testIndex
+          ## Make inner model
+          if (method=='PLS') {
+            inMod=plsInner(xTrain,yTrain,xVal,yVal,fitness,comp,methParam$mode)
+            nCompIn[j,count]=inMod$nComp
+          } else {
+            inReturn=rfInner(xTrain,yTrain,xVal,yVal,fitness,methParam)
           }
-          xVal=X[ValIndex,]
-          xVal=subset(xVal,select=incFeat)
-          yVal=Y[ValIndex]
-          trainInd=InnerIndex[-match(ValIndex,InnerIndex)] # Define Training segment
-          xTrain=X[trainInd,]
-          xTrain=subset(xTrain,select=incFeat)
-          yTrain=Y[trainInd]
-          # perform PLS up to 'comps' number of components
-          plsInner=pls(xTrain,yTrain,ncomp=comp,mode="regression")
-          if (length(plsInner$nzv$Position)>0) {
-            removeFeat=rownames(plsInner$nzv$Metrics)
-            xVal=xVal[,!colnames(xVal)%in%removeFeat]
+          # Store fitness metric
+          if (fitness=='misClass') {
+            missIn[j,count]=inMod$miss
+          } else if (fitness=='AUROC') {
+            aucIn[j,count]=inMod$auc
+          } else {
+            rmsepIn[j,count]=inMod$rmsep
           }
-          yValInner=predict(plsInner,newdata=xVal)$predict[,,]  # Store  prediction estimates per validation segment 
-          if (metric=='miss') {
-            # cat(' miss',count)
-            yClassInner=ifelse(yValInner>0,1,-1)
-            misClass=apply((yVal-yClassInner)*yVal/2,2,sum,na.rm=T)
-            missIn[j,count]=min(misClass)
-            nCompIn[j,count]=which.min(misClass)
-          } 
-          if (metric=='auc') {
-            # cat(' auc',count)
-            auc=apply(yValInner,2,function(x) roc(yVal,x)$auc)
-            aucIn[j,count]=max(auc)
-            nCompIn[j,count]=which.max(auc)
-          }
-          if (metric=='rmsep') {
-            # cat(' rmsep',count)
-            rmsep=apply(yValInner,2,function(x) sqrt(sum((yVal-x)^2,na.rm=T)/(length(yValInner[,1])-sum(is.na(yValInner[,1])))))
-            rmsepIn[j,count]=min(rmsep)
-            nCompIn[j,count]=which.min(rmsep)
-          }
-          VIPInner[match(names(vip(plsInner)[,nCompIn[j,count]]),rownames(VIPInner)),count,j]=rank(-vip(plsInner)[,nCompIn[j,count]])
-          # VIPInner[match(names(vip(plsInner)[,nCompIn[j]]),rownames(VIPInner)),j]=rank(-vip(plsInner)[,nCompIn[j]])				
+          # Store VIPs
+          VIPInner[match(names(inMod$vip),rownames(VIPInner)),count,j]=inMod$vip
         }
-        ## NB!!! Average VIP ranks over inner segments before feature elimination!!!
+        ## Average inner VIP ranks before variable elimination
         VIPInAve=apply(VIPInner[,count,],1,mean)
         if (count<cnt) {
-          incFeat=names(VIPInAve[order(VIPInAve)])[1:feat[count+1]]
+          incVar=names(VIPInAve[order(VIPInAve)])[1:var[count+1]]
         }
       }
-      if (metric=='auc') {
+      
+      ################################
+      ##
+      ##  <--------------  Hit med PLS
+
+      if (fitness=='AUROC') {
         minIndex=max(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
         # Find a middle index | Either arithmetic or geometric mean
-        # midIndex=which.min(abs(feat-mean(c(feat[minIndex],feat[maxIndex]))))  # Arithmetic
-        midIndex=which.min(abs(feat-exp(mean(log(c(feat[minIndex],feat[maxIndex]))))))  # Geometric
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric
       }
-      if (metric=='miss') {
+      if (fitness=='misClass') {
         minIndex=max(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
         # Find a middle index | Either arithmetic or geometric mean
-        # midIndex=which.min(abs(feat-mean(c(feat[minIndex],feat[maxIndex]))))  # Arithmetic
-        midIndex=which.min(abs(feat-exp(mean(log(c(feat[minIndex],feat[maxIndex]))))))  # Geometric
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric
       }
-      if (metric=='rmsep') {
+      if (fitness=='RMSEP') {
         minIndex=max(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
         # Find a middle index | Either arithmetic or geometric mean
-        # midIndex=which.min(abs(feat-mean(c(feat[minIndex],feat[maxIndex]))))  # Arithmetic
-        midIndex=which.min(abs(feat-exp(mean(log(c(feat[minIndex],feat[maxIndex]))))))  # Geometric
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric
       }
-      # Per outer segment: Average inner loop features, nComp and VIP ranks 
-      featOutMin[i]=feat[minIndex]
-      featOutMid[i]=feat[midIndex]
-      featOutMax[i]=feat[maxIndex]
+      # Per outer segment: Average inner loop variables, nComp and VIP ranks 
+      varOutMin[i]=var[minIndex]
+      varOutMid[i]=var[midIndex]
+      varOutMax[i]=var[maxIndex]
       nCompOutMin[i]=round(mean(nCompIn[,minIndex]))
       nCompOutMid[i]=round(mean(nCompIn[,midIndex]))
       nCompOutMax[i]=round(mean(nCompIn[,maxIndex]))
@@ -259,58 +246,58 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       VIPOutMid[,i]=apply(VIPInner[,midIndex,],1,mean)
       VIPOutMax[,i]=apply(VIPInner[,maxIndex,],1,mean)
       # Build outer model for min and max nComp and predict YTEST
-      xIn=X[-TestIndex,] # Perform Validation on all samples except holdout set
-      yIn=Y[-TestIndex]
-      incFeatMin=rownames(VIPOutMin)[rank(VIPOutMin[,i])<=featOutMin[i]]
-      xTrainMin=subset(xIn,select=incFeatMin)
+      xIn=X[-testIndex,] # Perform Validation on all samples except holdout set
+      yIn=Y[-testIndex]
+      incVarMin=rownames(VIPOutMin)[rank(VIPOutMin[,i])<=varOutMin[i]]
+      xTrainMin=subset(xIn,select=incVarMin)
       plsOutMin=pls(xTrainMin,yIn,ncomp=nCompOutMin[i],mode="classic")
-      xTestMin=subset(xTest,select=incFeatMin)
-      yPredMinR[TestIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 	
-      incFeatMid=rownames(VIPOutMid)[rank(VIPOutMid[,i])<=featOutMid[i]]
-      xTrainMid=subset(xIn,select=incFeatMid)
+      xTestMin=subset(xTest,select=incVarMin)
+      yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 	
+      incVarMid=rownames(VIPOutMid)[rank(VIPOutMid[,i])<=varOutMid[i]]
+      xTrainMid=subset(xIn,select=incVarMid)
       plsOutMid=pls(xTrainMid,yIn,ncomp=nCompOutMid[i],mode="classic")
-      xTestMid=subset(xTest,select=incFeatMid)
-      yPredMidR[TestIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
-      incFeatMax=rownames(VIPOutMax)[rank(VIPOutMax[,i])<=featOutMax[i]]
-      xTrainMax=subset(xIn,select=incFeatMax)
+      xTestMid=subset(xTest,select=incVarMid)
+      yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
+      incVarMax=rownames(VIPOutMax)[rank(VIPOutMax[,i])<=varOutMax[i]]
+      xTrainMax=subset(xIn,select=incVarMax)
       plsOutMax=pls(xTrainMax,yIn,ncomp=nCompOutMax[i],mode="classic")
-      xTestMax=subset(xTest,select=incFeatMax)
+      xTestMax=subset(xTest,select=incVarMax)
       if (length(plsOutMax$nzv$Position)>0) {
-        removeFeat=rownames(plsOutMax$nzv$Metrics)
-        xTestMax=xTestMax[,!colnames(xTestMax)%in%removeFeat]
+        removeVar=rownames(plsOutMax$nzv$Metrics)
+        xTestMax=xTestMax[,!colnames(xTestMax)%in%removeVar]
       }
-      yPredMaxR[TestIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
+      yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
       if (pred) {  # Predict extra prediction samples (XP)
-        YPR[,i]=predict(plsOutMid,newdata=subset(XP,select=incFeatMid))$predict[,,nCompOutMid[i]]
+        YPR[,i]=predict(plsOutMid,newdata=subset(XP,select=incVarMid))$predict[,,nCompOutMid[i]]
       }
     }
-    # Per repetition: Average outer loop features, nComp and VIP ranks 
-    featRepMinR=round(mean(featOutMin))
+    # Per repetition: Average outer loop variables, nComp and VIP ranks 
+    varRepMinR=round(mean(varOutMin))
     nCompRepMinR=round(mean(nCompOutMin))
     VIPRepMinR=apply(VIPOutMin,1,mean)
-    featRepMidR=round(mean(featOutMid))
+    varRepMidR=round(mean(varOutMid))
     nCompRepMidR=round(mean(nCompOutMid))
     VIPRepMidR=apply(VIPOutMid,1,mean)
-    featRepMaxR=round(mean(featOutMax))
+    varRepMaxR=round(mean(varOutMax))
     nCompRepMaxR=round(mean(nCompOutMax))
     VIPRepMaxR=apply(VIPOutMax,1,mean)
-    parReturn=list(yPredMin=yPredMinR,featRepMin=featRepMinR,nCompRepMin=nCompRepMinR,VIPRepMin=VIPRepMinR,
-                   yPredMid=yPredMidR,featRepMid=featRepMidR,nCompRepMid=nCompRepMidR,VIPRepMid=VIPRepMidR,
-                   yPredMax=yPredMaxR,featRepMax=featRepMaxR,nCompRepMax=nCompRepMaxR,VIPRepMax=VIPRepMaxR)
+    parReturn=list(yPredMin=yPredMinR,varRepMin=varRepMinR,nCompRepMin=nCompRepMinR,VIPRepMin=VIPRepMinR,
+                   yPredMid=yPredMidR,varRepMid=varRepMidR,nCompRepMid=nCompRepMidR,VIPRepMid=VIPRepMidR,
+                   yPredMax=yPredMaxR,varRepMax=varRepMaxR,nCompRepMax=nCompRepMaxR,VIPRepMax=VIPRepMaxR)
     if (pred) parReturn$YP=YPR
     return(parReturn)
   }
   for (r in 1:nRep) {
     yPredMin[,r]=reps[[r]]$yPredMin
-    featRepMin[r]=reps[[r]]$featRepMin
+    varRepMin[r]=reps[[r]]$varRepMin
     nCompRepMin[r]=reps[[r]]$nCompRepMin
     VIPRepMin[,r]=reps[[r]]$VIPRepMin
     yPredMid[,r]=reps[[r]]$yPredMid
-    featRepMid[r]=reps[[r]]$featRepMid
+    varRepMid[r]=reps[[r]]$varRepMid
     nCompRepMid[r]=reps[[r]]$nCompRepMid
     VIPRepMid[,r]=reps[[r]]$VIPRepMid
     yPredMax[,r]=reps[[r]]$yPredMax
-    featRepMax[r]=reps[[r]]$featRepMax
+    varRepMax[r]=reps[[r]]$varRepMax
     nCompRepMax[r]=reps[[r]]$nCompRepMax
     VIPRepMax[,r]=reps[[r]]$VIPRepMax
     if (pred) YP[,(nOuter*(r-1)+1):(nOuter*r)]=reps[[r]]$YP
@@ -347,7 +334,3 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   return(list(X,Y,ID))
 }
 
-X=matrix(1:6,ncol=2)
-Y=1:3
-MVWrap(X,Y,ML=T)
-MVWrap(X,Y)
