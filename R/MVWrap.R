@@ -13,11 +13,11 @@
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (defaults to ???)
 #' @param ML Logical for multilevel analysis (defaults to FALSE)
-#' @param pred Logical for prediction of external X matrix
-#' @param XP X matrix for prediction (required if pred=TRUE)
+#' @param modReturn Logical for returning outer segment models (defaults to FALSE)
+#' @param newdata New data matrix ONLY for prediction NOT modelling
 #' @return An object containing stuff...
 #' @export
-MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,pred=FALSE,XP=NULL){
+MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,pred=FALSE,newdata=NULL){
   # Start timer
   start.time=proc.time()[3]
   # Check indata
@@ -50,8 +50,9 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       fitness='RMSEP'
     }
   }
-  if (pred) {  # If model is also used to predict XP matrix, allocate a YP response array
-    YP=matrix(nrow=nrow(XP),ncol=nRep*nOuter)  # Predictions for all samples (rows) across outer segments (cols) and repetitions (dim3)
+  pred=ifelse(missing(newdata),FALSE,TRUE)
+  if (pred) {  # If model is also used to predict newdata matrix, allocate a YP response array
+    YP=matrix(nrow=nrow(newdata),ncol=nRep*nOuter)  # Predictions for all samples (rows) across outer segments (cols) and repetitions (dim3)
   }
   if (nrow(X)!=length(Y)) {
     cat('\nError: Must have same nSamp in X and Y.\n')
@@ -97,7 +98,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     # r=1
     # r=r+1
     sink('log.txt',append=TRUE)
-    if (pred) YPR=matrix(nrow=nrow(XP),ncol=nOuter)
+    if (pred) YPR=matrix(nrow=nrow(newdata),ncol=nOuter)
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
     if (DA) {
       groupTest=list()  ## Allocate list for samples within group
@@ -190,6 +191,8 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
             inMod=plsInner(xTrain,yTrain,xVal,yVal,fitness,comp,methParam$mode)
             nCompIn[j,count]=inMod$nComp
           } else {
+            cat('Inner RFMod yet to be coded')
+            return(NULL)
             inReturn=rfInner(xTrain,yTrain,xVal,yVal,fitness,methParam)
           }
           # Store fitness metric
@@ -209,81 +212,73 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
           incVar=names(VIPInAve[order(VIPInAve)])[1:var[count+1]]
         }
       }
-      
-      ################################
-      ##
-      ##  <--------------  Hit med PLS
-
       if (fitness=='AUROC') {
         minIndex=max(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
-        # Find a middle index | Either arithmetic or geometric mean
-        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic
-        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric
-      }
-      if (fitness=='misClass') {
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+      } else if (fitness=='misClass') {
         minIndex=max(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
-        # Find a middle index | Either arithmetic or geometric mean
-        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic
-        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric
-      }
-      if (fitness=='RMSEP') {
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+      }else {
         minIndex=max(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
-        # Find a middle index | Either arithmetic or geometric mean
-        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic
-        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
       }
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMid[i]=var[midIndex]
       varOutMax[i]=var[maxIndex]
-      nCompOutMin[i]=round(mean(nCompIn[,minIndex]))
-      nCompOutMid[i]=round(mean(nCompIn[,midIndex]))
-      nCompOutMax[i]=round(mean(nCompIn[,maxIndex]))
+      if (method=='PLS') {
+        nCompOutMin[i]=round(mean(nCompIn[,minIndex]))
+        nCompOutMid[i]=round(mean(nCompIn[,midIndex]))
+        nCompOutMax[i]=round(mean(nCompIn[,maxIndex]))
+      }
       VIPOutMin[,i]=apply(VIPInner[,minIndex,],1,mean)
       VIPOutMid[,i]=apply(VIPInner[,midIndex,],1,mean)
       VIPOutMax[,i]=apply(VIPInner[,maxIndex,],1,mean)
       # Build outer model for min and max nComp and predict YTEST
-      xIn=X[-testIndex,] # Perform Validation on all samples except holdout set
-      yIn=Y[-testIndex]
+      xIn=X[!testIndex,] # Perform Validation on all samples except holdout set
+      yIn=Y[!testIndex]
       incVarMin=rownames(VIPOutMin)[rank(VIPOutMin[,i])<=varOutMin[i]]
-      xTrainMin=subset(xIn,select=incVarMin)
-      plsOutMin=pls(xTrainMin,yIn,ncomp=nCompOutMin[i],mode="classic")
-      xTestMin=subset(xTest,select=incVarMin)
-      yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 	
       incVarMid=rownames(VIPOutMid)[rank(VIPOutMid[,i])<=varOutMid[i]]
-      xTrainMid=subset(xIn,select=incVarMid)
-      plsOutMid=pls(xTrainMid,yIn,ncomp=nCompOutMid[i],mode="classic")
-      xTestMid=subset(xTest,select=incVarMid)
-      yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
       incVarMax=rownames(VIPOutMax)[rank(VIPOutMax[,i])<=varOutMax[i]]
-      xTrainMax=subset(xIn,select=incVarMax)
-      plsOutMax=pls(xTrainMax,yIn,ncomp=nCompOutMax[i],mode="classic")
-      xTestMax=subset(xTest,select=incVarMax)
-      if (length(plsOutMax$nzv$Position)>0) {
-        removeVar=rownames(plsOutMax$nzv$Metrics)
-        xTestMax=xTestMax[,!colnames(xTestMax)%in%removeVar]
-      }
-      yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
-      if (pred) {  # Predict extra prediction samples (XP)
-        YPR[,i]=predict(plsOutMid,newdata=subset(XP,select=incVarMid))$predict[,,nCompOutMid[i]]
+      if (method=='PLS'){
+        plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode="classic")
+        yPredMinR[testIndex]=predict(plsOutMin,newdata=subset(xTest,select=incVarMin))$predict[,,nCompOutMin[i]]  # 	
+        plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode="classic")
+        yPredMidR[testIndex]=predict(plsOutMid,newdata=subset(xTest,select=incVarMid))$predict[,,nCompOutMid[i]]  # 	
+        plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode="classic")
+        yPredMaxR[testIndex]=predict(plsOutMax,newdata=subset(xTest,select=incVarMax))$predict[,,nCompOutMax[i]]  # 	
+        # If models complain about near zero variance, this code can be adapted and added before prediction!
+        # if (length(plsOutMax$nzv$Position)>0) {
+          # removeVar=rownames(plsOutMax$nzv$Metrics)
+          # xTestMax=xTestMax[,!colnames(xTestMax)%in%removeVar]
+        # }
+        if (pred) {  # Predict extra prediction samples (newdata)
+          YPR[,i]=predict(plsOutMid,newdata=subset(newdata,select=incVarMid))$predict[,,nCompOutMid[i]]
+        }
+      } else {
+        cat('Outer RFMod yet to be coded')
+        return(NULL)
       }
     }
     # Per repetition: Average outer loop variables, nComp and VIP ranks 
-    varRepMinR=round(mean(varOutMin))
-    nCompRepMinR=round(mean(nCompOutMin))
-    VIPRepMinR=apply(VIPOutMin,1,mean)
-    varRepMidR=round(mean(varOutMid))
-    nCompRepMidR=round(mean(nCompOutMid))
-    VIPRepMidR=apply(VIPOutMid,1,mean)
-    varRepMaxR=round(mean(varOutMax))
-    nCompRepMaxR=round(mean(nCompOutMax))
-    VIPRepMaxR=apply(VIPOutMax,1,mean)
-    parReturn=list(yPredMin=yPredMinR,varRepMin=varRepMinR,nCompRepMin=nCompRepMinR,VIPRepMin=VIPRepMinR,
-                   yPredMid=yPredMidR,varRepMid=varRepMidR,nCompRepMid=nCompRepMidR,VIPRepMid=VIPRepMidR,
-                   yPredMax=yPredMaxR,varRepMax=varRepMaxR,nCompRepMax=nCompRepMaxR,VIPRepMax=VIPRepMaxR)
+    parReturn=list(yPredMin=yPredMinR,yPredMid=yPredMidR,yPredMax=yPredMaxR)
+    parReturn$varRepMin=round(mean(varOutMin))
+    parReturn$varRepMid=round(mean(varOutMid))
+    parReturn$varRepMax=round(mean(varOutMax))
+    parReturn$VIPRepMin=apply(VIPOutMin,1,mean)
+    parReturn$VIPRepMid=apply(VIPOutMid,1,mean)
+    parReturn$VIPRepMax=apply(VIPOutMax,1,mean)
+    if (method=='PLS'){
+      parReturn$nCompRepMin=round(mean(nCompOutMin))
+      parReturn$nCompRepMid=round(mean(nCompOutMid))
+      parReturn$nCompRepMax=round(mean(nCompOutMax))
+    }
     if (pred) parReturn$YP=YPR
     return(parReturn)
   }
