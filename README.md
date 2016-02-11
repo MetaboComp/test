@@ -4,6 +4,10 @@ Multivariate methods with Unbiased Variable selection in R
 ## Issues
 - fix vectSamp(vect,n), where length(vect)<n
 - code rfInner.R
+- code rfModOut
+- Fix yPred arrays for multiple Y (from RF-OlleT)
+- check combinations of DA vs fitness (e.g. reg -> "RMSEP")
+- Include modReturn in modelReturn
 
 ## General description
 This is a package dedicated to predictive multivariate modelling for metabolomics.

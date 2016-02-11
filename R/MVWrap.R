@@ -17,7 +17,9 @@
 #' @param newdata New data matrix ONLY for prediction NOT modelling
 #' @return An object containing stuff...
 #' @export
-MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,pred=FALSE,newdata=NULL){
+MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL){
+  # Initialise modelReturn with function call
+  modelReturn=list(call=match.call())
   # Start timer
   start.time=proc.time()[3]
   # Check indata
@@ -58,6 +60,12 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     cat('\nError: Must have same nSamp in X and Y.\n')
     return(NULL)
   }
+  ## Store indata in list for later model return
+  InData=list(X=X,Y=Y,ID=ID,nRep=nRep,nOuter=nOuter,nInner=nInner,varRatio=varRatio,DA=DA,fitness=fitness,method=method,methParam=methParam,ML=ML)
+  if (pred) {
+    InData$pred=pred
+    InData$newdata=newdata
+  }
   ## Sort sampling based in subjects and not index
   unik=!duplicated(ID)  # boolean of unique IDs
   unikID=ID[unik]  
@@ -70,10 +78,6 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       groupID[[g]]=unikID[unikY==Ynames[g]]  # Find indices per group
     }
   }
-  ### Allocate variables
-  VIPMin=VIPMid=VIPMax=matrix(nrow=nVar0,ncol=3) # Allocate matrix for variable importance averaged over repetition
-  rownames(VIPMin)=rownames(VIPMid)=rownames(VIPMax)=colnames(X)
-  colnames(VIPMin)=colnames(VIPMid)=colnames(VIPMax)=c('Mean','SD','CV')
   # Allocate matrix for prediction of outer segments Y per repetition
   yPredMin=yPredMid=yPredMax=matrix(nrow=length(Y),ncol=nRep)
   colnames(yPredMin)=colnames(yPredMid)=colnames(yPredMax)=paste('Rep',1:nRep,sep='')
@@ -93,8 +97,9 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   }
   ## Choose package/core algorithm according to chosen method
   packs=c(ifelse(method=='PLS','mixOmics','randomForest'),'pROC')
+  exports=c(ifelse(method=='PLS','plsInner','rfInner'),'vectSamp')
   ## Start repetitions
-  reps=foreach(r=1:nRep, .packages=packs, .export='vectSamp') %dopar% {
+  reps=foreach(r=1:nRep, .packages=packs, .export=exports) %dopar% {
     # r=1
     # r=r+1
     sink('log.txt',append=TRUE)
@@ -131,7 +136,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       xTest=X[testIndex,]
       yTest=Y[testIndex]
       inID=unikID[!unikID%in%testID]  # IDs not in test set
-      inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
+      if (DA) inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
       ## Allocate variables for later use
       missIn=aucIn=rmsepIn=nCompIn=matrix(nrow=nInner,ncol=cnt)
       rownames(rmsepIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
@@ -142,15 +147,14 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       dimnames(VIPInner)[[3]]=paste(rep('inSeg',nInner),1:nInner,sep='')
       # Restart variables
       incVar=colnames(X)
-      ## Perform steps with successively fewer features
+      ## Perform steps with successively fewer variables
       for (count in 1:cnt) {  # Build models with successively fewer variables. Quality metric = number of missclassifications for Validation set
         # count=1 # for testing
         # count=count+1
         nVar=var[count]
         cat(nVar)
-        # if (resampInner==TRUE) inSamp=vectSamp(inInd,n=nInner)  # Resample inner segments for each variable elimination step
         if (method=='PLS') comp=ifelse(nVar<methParam$compMax,nVar,methParam$compMax)
-        if (DA==T) {
+        if (DA) {
           groupIDVal=list()
           for (g in 1:groups) { 
             groupIDVal[[g]]=inID[inY==Ynames[g]]  # Find indices per group
@@ -280,52 +284,73 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       parReturn$nCompRepMax=round(mean(nCompOutMax))
     }
     if (pred) parReturn$YP=YPR
+    sink()
     return(parReturn)
   }
   for (r in 1:nRep) {
     yPredMin[,r]=reps[[r]]$yPredMin
-    varRepMin[r]=reps[[r]]$varRepMin
-    nCompRepMin[r]=reps[[r]]$nCompRepMin
-    VIPRepMin[,r]=reps[[r]]$VIPRepMin
     yPredMid[,r]=reps[[r]]$yPredMid
-    varRepMid[r]=reps[[r]]$varRepMid
-    nCompRepMid[r]=reps[[r]]$nCompRepMid
-    VIPRepMid[,r]=reps[[r]]$VIPRepMid
     yPredMax[,r]=reps[[r]]$yPredMax
+    varRepMin[r]=reps[[r]]$varRepMin
+    varRepMid[r]=reps[[r]]$varRepMid
     varRepMax[r]=reps[[r]]$varRepMax
-    nCompRepMax[r]=reps[[r]]$nCompRepMax
+    VIPRepMin[,r]=reps[[r]]$VIPRepMin
+    VIPRepMid[,r]=reps[[r]]$VIPRepMid
     VIPRepMax[,r]=reps[[r]]$VIPRepMax
+    if (method=='PLS') {
+      nCompRepMin[r]=reps[[r]]$nCompRepMin
+      nCompRepMid[r]=reps[[r]]$nCompRepMid
+      nCompRepMax[r]=reps[[r]]$nCompRepMax
+    }
     if (pred) YP[,(nOuter*(r-1)+1):(nOuter*r)]=reps[[r]]$YP
   }
-  yMin=yMid=yMax=matrix(nrow=nrow(X),ncol=3)
-  colnames(yMin)=colnames(yMid)=colnames(yMax)=c('Mean','SD','CV')
-  yMin[,1]=apply(yPredMin,1,mean)[1:nrow(X)]
-  yMin[,2]=apply(yPredMin,1,sd)[1:nrow(X)]
-  yMin[,3]=abs(100*yMin[,2]/yMin[,1])
-  yMid[,1]=apply(yPredMid,1,mean)[1:nrow(X)]
-  yMid[,2]=apply(yPredMid,1,sd)[1:nrow(X)]
-  yMid[,3]=abs(100*yMid[,2]/yMid[,1])
-  yMax[,1]=apply(yPredMax,1,mean)[1:nrow(X)]
-  yMax[,2]=apply(yPredMax,1,sd)[1:nrow(X)]
-  yMax[,3]=abs(100*yMax[,2]/yMax[,1])
-  # Make ROCs
-  if (DA==T) {
-    ROCMin=roc(Y,yMin[,1])
-    ROCMid=roc(Y,yMid[,1])
-    ROCMax=roc(Y,yMax[,1])
+  # Average predictions
+  yPred=apply(yPredMin,1,mean)[1:nrow(X)]
+  yPred=cbind(yPred,apply(yPredMid,1,mean)[1:nrow(X)])
+  yPred=cbind(yPred,apply(yPredMax,1,mean)[1:nrow(X)])
+  colnames(yPred)=c('min','mid','max')
+  modelReturn$yPred=yPred
+  if (DA) {
+    ROCMin=roc(Y,yPred[,1])
+    ROCMid=roc(Y,yPred[,2])
+    ROCMax=roc(Y,yPred[,3])
+    auc=c(ROCMin$auc,ROCMid$auc,ROCMax$auc)
+    names(auc)=c('min','mid','max')
     # Classify predictions
-    yClassMin=ifelse(yMin[,1]>coords(ROCMin,'b',ret='t')[1],1,-1)
-    yClassMid=ifelse(yMid[,1]>coords(ROCMid,'b',ret='t')[1],1,-1)
-    yClassMax=ifelse(yMax[,1]>coords(ROCMax,'b',ret='t')[1],1,-1)
-    # Bind together all Y data
-    yMat=cbind(yMin[,1],yMid[,1],yMax[,1],yClassMin,yClassMax,Y)
-    colnames(yMat)[1:3]=c('yMin','yMid','yMax')
+    yClass=ifelse(yPred[,1]>coords(ROCMin,'b',ret='t')[1],1,-1)
+    yClass=cbind(yClass,ifelse(yPred[,2]>coords(ROCMid,'b',ret='t')[1],1,-1))
+    yClass=cbind(yClass,ifelse(yPred[,3]>coords(ROCMax,'b',ret='t')[1],1,-1))
+    colnames(yClass)=c('min','mid','max')
     # Calculate misclassifications
-    missMin=sum(abs((Y-yClassMin))/2)
-    missMid=sum(abs((Y-yClassMid))/2)
-    missMax=sum(abs((Y-yClassMax))/2)
+    miss=apply(yClass,2,function(x) sum(x!=Y))
+    names(miss)=c('min','mid','max')
+    modelReturn$yClass=yClass
+    modelReturn$miss=miss
+    modelReturn$auc=auc
   }
-  cat(X,Y,ID,nRep,nOuter,nInner,varRatio,fitness,method,methParam,ML)
-  return(list(X,Y,ID))
+  # Average VIP ranks over repetitions
+  VIP=apply(VIPRepMin,1,mean)
+  VIP=cbind(VIP,apply(VIPRepMid,1,mean))
+  VIP=cbind(VIP,apply(VIPRepMax,1,mean))
+  colnames(VIP)=c('min','mid','max')
+  modelReturn$VIP=VIP
+  # Average nVar over repetitions
+  nVar=c(mean(varRepMin),mean(varRepMid),mean(varRepMax))
+  names(nVar)=c('min','mid','max')
+  modelReturn$nVar=nVar
+  if (method=='PLS') {
+    # Average nComp over repetitions
+    nComp=c(mean(nCompRepMin),mean(nCompRepMid),mean(nCompRepMax))
+    names(nComp)=c('min','mid','max')
+    modelReturn$nComp=nComp
+  }
+  if (pred) modelReturn$YP=YP
+  modelReturn$nVarPerRep=list(minModel=varRepMin,midModel=varRepMid,maxModel=varRepMax)
+  if (method=='PLS') modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
+  modelReturn$inData=InData
+  # Stop timer
+  end.time=proc.time()[3]
+  modelReturn$calcMins=(end.time-start.time)/60
+  cat('\n Elapsed time',(end.time-start.time)/60,'mins \n')
+  return(modelReturn)
 }
-

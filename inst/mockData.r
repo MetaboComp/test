@@ -10,16 +10,24 @@ Yr=runif(nsamp)
 Y2=sample(c(-1,1),nsamp,replace=TRUE)
 Y3=sample(c('A','B','C'),nsamp,replace=TRUE)
 ID=sample(1:20,nsamp,replace=TRUE)
-Y=Y2
 
 DA=T
 method='PLS'
-nRep=5
+nRep=4
 nOuter=6
 nInner=5
 varRatio=0.75
 fitness='AUROC'
 ML=FALSE
-pred=FALSE
-XP=NULL
 methParam=list(compMax=3,mode='regression')
+pred=FALSE
+modReturn=FALSE
+
+library(doParallel)
+library(mixOmics)
+library(pROC)
+cl=makeCluster(detectCores())
+registerDoParallel(cl)
+# PLSModDA=MVWrap(X,Y2,ID,DA=T,nRep=nRep,method=method,fitness=fitness)
+PLSModreg=MVWrap(X,Yr,ID,DA=F,nRep=nRep,method=method,fitness="RMSEP")
+stopCluster(cl)

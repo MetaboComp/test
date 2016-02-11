@@ -15,7 +15,6 @@
 #' @return `vip` VIP rankings
 #' @export
 #'
-#' @examples
 plsInner=function(xTrain,yTrain,xVal,yVal,fitness,comp,mode='regression') {
   plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode)
   if (length(plsModIn$nzv$Position)>0) {

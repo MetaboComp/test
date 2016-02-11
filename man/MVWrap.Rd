@@ -6,7 +6,7 @@
 \usage{
 MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "misClass", "RMSEP"), method = c("PLS",
-  "RF"), methParam, ML = FALSE, pred = FALSE, XP = NULL)
+  "RF"), methParam, ML = FALSE, modReturn = FALSE, newdata = NULL)
 }
 \arguments{
 \item{X}{Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.}
@@ -33,9 +33,9 @@ MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
 
 \item{ML}{Logical for multilevel analysis (defaults to FALSE)}
 
-\item{pred}{Logical for prediction of external X matrix}
+\item{modReturn}{Logical for returning outer segment models (defaults to FALSE)}
 
-\item{XP}{X matrix for prediction (required if pred=TRUE)}
+\item{newdata}{New data matrix ONLY for prediction NOT modelling}
 }
 \value{
 An object containing stuff...
