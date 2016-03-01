@@ -253,13 +253,13 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       incVarMax=rownames(VIPOutMax)[rank(VIPOutMax[,i])<=varOutMax[i]]
       if (method=='PLS'){
         plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode="classic")
-        if (length(plsOutMin$nzv$Position)>0) removeVar=rownames(plsOutMin$nzv$Metrics)
+        removeVar=ifelse(length(plsOutMin$nzv$Position)>0,rownames(plsOutMin$nzv$Metrics),NA)
         yPredMinR[testIndex]=predict(plsOutMin,newdata=subset(xTest[,!colnames(xTest)%in%removeVar],select=incVarMin))$predict[,,nCompOutMin[i]]  # 	
         plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode="classic")
-        if (length(plsOutMid$nzv$Position)>0) removeVar=rownames(plsOutMid$nzv$Metrics)
+        removeVar=ifelse(length(plsOutMid$nzv$Position)>0,rownames(plsOutMid$nzv$Metrics),NA)
         yPredMidR[testIndex]=predict(plsOutMid,newdata=subset(xTest[,!colnames(xTest)%in%removeVar],select=incVarMid))$predict[,,nCompOutMid[i]]  # 	
         plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode="classic")
-        if (length(plsOutMax$nzv$Position)>0) removeVar=rownames(plsOutMax$nzv$Metrics)
+        removeVar=ifelse(length(plsOutMax$nzv$Position)>0,rownames(plsOutMax$nzv$Metrics),NA)
         yPredMaxR[testIndex]=predict(plsOutMax,newdata=subset(xTest[,!colnames(xTest)%in%removeVar],select=incVarMax))$predict[,,nCompOutMax[i]]  # 	
         # If models complain about near zero variance, this code can be adapted and added before prediction!
         # if (length(plsOutMax$nzv$Position)>0) {
