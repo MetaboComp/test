@@ -44,6 +44,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     Y=rep(c(-1,1),each=nSamp)
     nSamp=2*nSamp
     ID=c(ID,ID)
+    DA=TRUE
   }
   if (missing(fitness)) {
     if (DA) {
