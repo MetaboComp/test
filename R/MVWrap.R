@@ -100,6 +100,8 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   packs=c(ifelse(method=='PLS','mixOmics','randomForest'),'pROC')
   exports=c(ifelse(method=='PLS','plsInner','rfInner'),'vectSamp')
   ## Start repetitions
+  # reps=list()
+  # for (r in 1:nRep){
   reps=foreach(r=1:nRep, .packages=packs, .export=exports) %dopar% {
     # r=1
     # r=r+1
@@ -254,19 +256,19 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       if (method=='PLS'){
         # Min model
         plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode="classic")
-        removeVar=ifelse(length(plsOutMin$nzv$Position)>0,rownames(plsOutMin$nzv$Metrics),NA)
+        if (length(plsOutMin$nzv$Position)>0) removeVar=rownames(plsOutMin$nzv$Metrics) else removeVar=NA
         incVarMin=incVarMin[!incVarMin%in%removeVar]
         xTestMin=subset(xTest,select=incVarMin)
         yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 	
         # Mid model
         plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode="classic")
-        removeVar=ifelse(length(plsOutMid$nzv$Position)>0,rownames(plsOutMid$nzv$Metrics),NA)
+        if (length(plsOutMid$nzv$Position)>0) removeVar=rownames(plsOutMid$nzv$Metrics) else removeVar=NA
         incVarMid=incVarMid[!incVarMid%in%removeVar]
         xTestMid=subset(xTest,select=incVarMid)
         yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
         # Max model
         plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode="classic")
-        removeVar=ifelse(length(plsOutMax$nzv$Position)>0,rownames(plsOutMax$nzv$Metrics),NA)
+        if (length(plsOutMax$nzv$Position)>0) removeVar=rownames(plsOutMax$nzv$Metrics) else removeVar=NA
         incVarMax=incVarMax[!incVarMax%in%removeVar]
         xTestMax=subset(xTest,select=incVarMax)
         yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 	
@@ -299,6 +301,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     if (pred) parReturn$YP=YPR
     sink()
     return(parReturn)
+    # reps[[r]]=parReturn
   }
   for (r in 1:nRep) {
     yPredMin[,r]=reps[[r]]$yPredMin
