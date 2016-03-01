@@ -91,7 +91,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   colnames(VIPRepMin)=colnames(VIPRepMid)=colnames(VIPRepMax)=paste(rep('rep',nRep),1:nRep,sep='')
   var=numeric()
   cnt=0
-  while (nVar>2) {  
+  while (nVar>1) {  
     cnt=cnt+1
     var=c(var,nVar)
     nVar=floor(varRatio*nVar)
