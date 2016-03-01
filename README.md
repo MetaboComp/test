@@ -8,6 +8,7 @@ Multivariate methods with Unbiased Variable selection in R
 - Fix yPred arrays for multiple Y (from RF-OlleT)
 - check combinations of DA vs fitness (e.g. reg -> "RMSEP")
 - Include modReturn in modelReturn
+- Read reg/DA from Y
 
 ## General description
 This is a package dedicated to predictive multivariate modelling for metabolomics.
