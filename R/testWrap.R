@@ -18,7 +18,7 @@
 #' @param logg Logical for whether to sink model progressions to `log.txt`
 #' @return An object containing stuff...
 #' @export
-testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata,logg=FALSE){
+testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer

@@ -6,7 +6,8 @@
 \usage{
 MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "misClass", "RMSEP"), method = c("PLS",
-  "RF"), methParam, ML = FALSE, modReturn = FALSE, newdata, logg = FALSE)
+  "RF"), methParam, ML = FALSE, modReturn = FALSE, newdata = NULL,
+  logg = FALSE)
 }
 \arguments{
 \item{X}{Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.}

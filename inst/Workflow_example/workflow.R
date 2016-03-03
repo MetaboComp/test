@@ -7,9 +7,9 @@ library(MUVR)
 load(file='freelivedata.rdata')
 
 ## PLS regression
-cl=makeCluster(3)
+cl=makeCluster(4)
 registerDoParallel(cl)
-R.pls=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=6,method='PLS')
+R.pls=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=40,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 plot(YR,R.pls$yPred[,2])
@@ -17,9 +17,9 @@ cor(YR,R.pls$yPred[,2])
 R.pls$nVar
 
 ## RF regression
-cl=makeCluster(3)
+cl=makeCluster(4)
 registerDoParallel(cl)
-R.rf=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=6,method='RF')
+R.rf=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=40,method='RF',varRatio=0.9)
 stopCluster(cl)
 
 plot(YR,R.rf$yPred[,2])
