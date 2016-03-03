@@ -3,4 +3,5 @@
 export(MVWrap)
 export(plsInner)
 export(rfInner)
+export(testWrap)
 export(vectSamp)

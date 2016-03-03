@@ -1,3 +1,9 @@
+library(doParallel)
+library(mixOmics)
+library(randomForest)
+library(pROC)
+library(MUVR)
+
 # Mock data
 rm(list=ls())
 
@@ -23,9 +29,7 @@ methParam=list(compMax=3,mode='regression')
 pred=FALSE
 modReturn=FALSE
 
-library(doParallel)
-library(mixOmics)
-library(pROC)
+
 cl=makeCluster(detectCores())
 registerDoParallel(cl)
 # PLSModDA=MVWrap(X,Y2,ID,DA=T,nRep=nRep,method=method,fitness=fitness)

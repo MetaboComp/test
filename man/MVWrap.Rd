@@ -6,7 +6,7 @@
 \usage{
 MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "misClass", "RMSEP"), method = c("PLS",
-  "RF"), methParam, ML = FALSE, modReturn = FALSE, newdata = NULL)
+  "RF"), methParam, ML = FALSE, modReturn = FALSE, newdata, logg = FALSE)
 }
 \arguments{
 \item{X}{Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.}
@@ -36,6 +36,8 @@ MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
 \item{modReturn}{Logical for returning outer segment models (defaults to FALSE)}
 
 \item{newdata}{New data matrix ONLY for prediction NOT modelling}
+
+\item{logg}{Logical for whether to sink model progressions to `log.txt`}
 }
 \value{
 An object containing stuff...

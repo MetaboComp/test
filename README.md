@@ -39,5 +39,6 @@ Westerhuis et al 2008
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.911 | 2016-03-03 | RF regression works in sequential mode 
 0.0.910 | 2016-03-01 | Fixed PLS: DA, reg, ML, nearZeroVar
 0.0.900 | 2016-02-10 | Started to work on wrapper for MV-methods. Switched from GitHub to GitLab

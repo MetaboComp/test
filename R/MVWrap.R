@@ -15,9 +15,10 @@
 #' @param ML Logical for multilevel analysis (defaults to FALSE)
 #' @param modReturn Logical for returning outer segment models (defaults to FALSE)
 #' @param newdata New data matrix ONLY for prediction NOT modelling
+#' @param logg Logical for whether to sink model progressions to `log.txt`
 #' @return An object containing stuff...
 #' @export
-MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL){
+MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata,logg=FALSE){
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
@@ -36,7 +37,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     if (method=='PLS') {
       methParam=list(compMax=ifelse(nVar<3,nVar,3),mode='regression')
     } else {
-      methParam=NULL
+      methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=100,mtryMaxOut=100)
     }
   }
   if (ML) {
@@ -105,7 +106,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   reps=foreach(r=1:nRep, .packages=packs, .export=exports) %dopar% {
     # r=1
     # r=r+1
-    sink('log.txt',append=TRUE)
+    if (logg) sink('log.txt',append=TRUE)
     if (pred) YPR=matrix(nrow=nrow(newdata),ncol=nOuter)
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
     if (DA) {
@@ -157,6 +158,12 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
         nVar=var[count]
         cat(nVar)
         if (method=='PLS') comp=ifelse(nVar<methParam$compMax,nVar,methParam$compMax)
+        if (method=='RF') {
+          mtryIn=ifelse(DA,
+                        ifelse(sqrt(nVar)>methParam$mtryMaxIn,methParam$mtryMaxIn,floor(sqrt(nVar))),
+                        ifelse((nVar/3)>methParam$mtryMaxIn,methParam$mtryMaxIn,floor(nVar/3)))
+          mtryIn=ifelse(mtryIn<2,2,mtryIn)
+        }
         if (DA) {
           groupIDVal=list()
           for (g in 1:groups) { 
@@ -198,7 +205,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
             inMod=plsInner(xTrain,yTrain,xVal,yVal,fitness,comp,methParam$mode)
             nCompIn[j,count]=inMod$nComp
           } else {
-            inMod=rfInner(xTrain,yTrain,xVal,yVal,fitness)
+            inMod=rfInner(xTrain,yTrain,xVal,yVal,fitness,methParam$ntreeIn,mtryIn)
           }
           # Store fitness metric
           if (fitness=='misClass') {
@@ -309,7 +316,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
       parReturn$nCompRepMax=round(mean(nCompOutMax))
     }
     if (pred) parReturn$YP=YPR
-    sink()
+    if (logg) sink()
     return(parReturn)
     # reps[[r]]=parReturn
   }
