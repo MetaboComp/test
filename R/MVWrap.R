@@ -198,9 +198,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
             inMod=plsInner(xTrain,yTrain,xVal,yVal,fitness,comp,methParam$mode)
             nCompIn[j,count]=inMod$nComp
           } else {
-            cat('Inner RFMod yet to be coded')
-            return(NULL)
-            inReturn=rfInner(xTrain,yTrain,xVal,yVal,fitness,methParam)
+            inMod=rfInner(xTrain,yTrain,xVal,yVal,fitness)
           }
           # Store fitness metric
           if (fitness=='misClass') {
@@ -271,18 +269,30 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
         if (length(plsOutMax$nzv$Position)>0) removeVar=rownames(plsOutMax$nzv$Metrics) else removeVar=NA
         incVarMax=incVarMax[!incVarMax%in%removeVar]
         xTestMax=subset(xTest,select=incVarMax)
-        yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 	
-        # If models complain about near zero variance, this code can be adapted and added before prediction!
-        # if (length(plsOutMax$nzv$Position)>0) {
-          # removeVar=rownames(plsOutMax$nzv$Metrics)
-          # xTestMax=xTestMax[,!colnames(xTestMax)%in%removeVar]
-        # }
-        if (pred) {  # Predict extra prediction samples (newdata)
+        yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
+        # Prediction of newdata
+        if (pred) {
           YPR[,i]=predict(plsOutMid,newdata=subset(newdata,select=incVarMid))$predict[,,nCompOutMid[i]]
         }
       } else {
-        cat('Outer RFMod yet to be coded')
-        return(NULL)
+        rfOutMin=randomForest(subset(xIn,select=incVarMin),yIn,subset(xTest,select=incVarMin),yTest)
+        if (DA) {
+          yPredMinR[testIndex,]=rfOutMin$test$votes
+        } else {
+          yPredMinR[testIndex]=rfOutMin$test$predicted
+        }
+        rfOutMid=randomForest(subset(xIn,select=incVarMid),yIn,subset(xTest,select=incVarMid),yTest)
+        if (DA) {
+          yPredMidR[testIndex,]=rfOutMid$test$votes
+        } else {
+          yPredMidR[testIndex]=rfOutMid$test$predicted
+        }
+        rfOutMax=randomForest(subset(xIn,select=incVarMax),yIn,subset(xTest,select=incVarMax),yTest)
+        if (DA) {
+          yPredMaxR[testIndex,]=rfOutMax$test$votes
+        } else {
+          yPredMaxR[testIndex]=rfOutMax$test$predicted
+        }
       }
     }
     # Per repetition: Average outer loop variables, nComp and VIP ranks 
@@ -327,6 +337,10 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   colnames(yPred)=c('min','mid','max')
   modelReturn$yPred=yPred
   if (DA) {
+    if(method=='RF') {
+      cat('DA for random forest not yet implemented')
+      return(NULL)
+    }
     ROCMin=roc(Y,yPred[,1])
     ROCMid=roc(Y,yPred[,2])
     ROCMax=roc(Y,yPred[,3])

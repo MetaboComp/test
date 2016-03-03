@@ -31,3 +31,13 @@ registerDoParallel(cl)
 # PLSModDA=MVWrap(X,Y2,ID,DA=T,nRep=nRep,method=method,fitness=fitness)
 PLSModreg=MVWrap(X,Yr,ID,DA=F,nRep=nRep,method=method,fitness="RMSEP")
 stopCluster(cl)
+
+## <--------- Test zone for RF
+xTrain=X[1:20,]
+yTrain=Yr[1:20]
+xVal=X[21:40,]
+yVal=Yr[21:40]
+
+rfmod=randomForest(xTrain,yTrain,xVal,yVal)
+
+yClass=factor(sample(c('A','B'),40,replace=T))

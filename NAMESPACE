@@ -2,4 +2,5 @@
 
 export(MVWrap)
 export(plsInner)
+export(rfInner)
 export(vectSamp)
