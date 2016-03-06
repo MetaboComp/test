@@ -14,6 +14,7 @@ colnames(X)=paste('var',1:nvar,sep='')
 rownames(X)=paste('samp',1:nsamp,sep='')
 Yr=runif(nsamp)
 Y2=sample(c(-1,1),nsamp,replace=TRUE)
+YC=factor(sample(c('A','B'),nsamp,replace=TRUE))
 Y3=sample(c('A','B','C'),nsamp,replace=TRUE)
 ID=sample(1:20,nsamp,replace=TRUE)
 

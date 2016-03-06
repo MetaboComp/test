@@ -2,7 +2,7 @@
 % Please edit documentation in R/MVWrap.R
 \name{MVWrap}
 \alias{MVWrap}
-\title{MVWrap: Wrapper for Multivariate modelling with Variable selection}
+\title{MVWrap: Wrapper for "Multivariate modelling with Unbiased Variable selection"}
 \usage{
 MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "misClass", "RMSEP"), method = c("PLS",

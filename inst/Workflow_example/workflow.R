@@ -6,11 +6,14 @@ library(MUVR)
 
 load(file='freelivedata.rdata')
 
+
 ## PLS regression
 cl=makeCluster(4)
 registerDoParallel(cl)
 R.pls=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=40,method='PLS',varRatio=0.9)
 stopCluster(cl)
+
+plotVAL(R.pls)
 
 plot(YR,R.pls$yPred[,2])
 cor(YR,R.pls$yPred[,2])

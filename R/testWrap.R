@@ -1,4 +1,4 @@
-#' testWrap: Sequential wrapper for Multivariate modelling with Variable selection
+#' testWrap: Wrapper for testing new functions in "Multivariate modelling with Unbiased Variable selection"
 #' 
 #' Repeated double cross validation with tuning of variables in the inner loop.
 #' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.
@@ -97,6 +97,9 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     var=c(var,nVar)
     nVar=floor(varRatio*nVar)
   }
+  VAL=array(dim=c(nOuter,cnt,nRep))
+  rownames(VAL)=paste('outSeg',1:nOuter,paste='')
+  colnames(VAL)=var
   ## Choose package/core algorithm according to chosen method
   packs=c(ifelse(method=='PLS','mixOmics','randomForest'),'pROC')
   exports=c(ifelse(method=='PLS','plsInner','rfInner'),'vectSamp')
@@ -129,6 +132,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     VIPOutMin=VIPOutMid=VIPOutMax=matrix(data=nVar0,nrow=nVar0,ncol=nOuter)
     rownames(VIPOutMin)=rownames(VIPOutMid)=rownames(VIPOutMax)=colnames(X)
     colnames(VIPOutMin)=colnames(VIPOutMid)=colnames(VIPOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
+    VALRep=matrix(nrow=nOuter,ncol=cnt)
     ## Perform outer loop segments -> one "majority vote" MV model per segment
     for (i in 1:nOuter) {   
       # i=1
@@ -142,9 +146,9 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       inID=unikID[!unikID%in%testID]  # IDs not in test set
       if (DA) inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
       ## Allocate variables for later use
-      missIn=aucIn=rmsepIn=nCompIn=matrix(nrow=nInner,ncol=cnt)
-      rownames(rmsepIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
-      colnames(rmsepIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=var
+      missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=cnt)
+      rownames(rmsepIn)=rownames(PRESSIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
+      colnames(rmsepIn)=colnames(PRESSIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=var
       VIPInner=array(data=nVar0,dim=c(nVar0,cnt,nInner))
       rownames(VIPInner)=colnames(X)
       colnames(VIPInner)=var
@@ -214,6 +218,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
             aucIn[j,count]=inMod$auc
           } else {
             rmsepIn[j,count]=inMod$rmsep
+            PRESSIn[j,count]=(inMod$rmsep^2)*length(yVal)
           }
           # Store VIPs
           VIPInner[match(names(inMod$vip),rownames(VIPInner)),count,j]=inMod$vip
@@ -229,16 +234,19 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
         maxIndex=min(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
         # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
         midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+        VALRep[i,]=colMeans(aucIn)  # Quick'n'Dirty
       } else if (fitness=='misClass') {
         minIndex=max(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
         # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
         midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+        VALRep[i,]=colSums(missIn)
       }else {
         minIndex=max(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
         maxIndex=min(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
         # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
         midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+        VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
@@ -315,6 +323,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       parReturn$nCompRepMid=round(mean(nCompOutMid))
       parReturn$nCompRepMax=round(mean(nCompOutMax))
     }
+    parReturn$VAL=VALRep
     if (pred) parReturn$YP=YPR
     if (logg) sink()
     # return(parReturn)
@@ -335,6 +344,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       nCompRepMid[r]=reps[[r]]$nCompRepMid
       nCompRepMax[r]=reps[[r]]$nCompRepMax
     }
+    VAL[,,r]=reps[[r]]$VAL
     if (pred) YP[,(nOuter*(r-1)+1):(nOuter*r)]=reps[[r]]$YP
   }
   # Average predictions
@@ -381,6 +391,8 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     names(nComp)=c('min','mid','max')
     modelReturn$nComp=nComp
   }
+  modelReturn$VAL$metric=fitness
+  modelReturn$VAL$VAL=VAL
   if (pred) modelReturn$YP=YP
   modelReturn$nVarPerRep=list(minModel=varRepMin,midModel=varRepMid,maxModel=varRepMax)
   if (method=='PLS') modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
@@ -389,5 +401,6 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   end.time=proc.time()[3]
   modelReturn$calcMins=(end.time-start.time)/60
   cat('\n Elapsed time',(end.time-start.time)/60,'mins \n')
+  class(modelReturn)=c('MVObject',method)
   return(modelReturn)
 }

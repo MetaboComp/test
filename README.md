@@ -2,13 +2,23 @@
 Multivariate methods with Unbiased Variable selection in R
 
 ## Issues
-- fix vectSamp(vect,n), where length(vect)<n
+- fitnessOuter -> rank(colMeans) vs rank(-colMeans)
+  - same min / mid / max index calculations!
+- Read reg/DA from Y
+- misClass -> MISS
+- Recode DA
+  - Fix yPred arrays for multiple Y (from RF-OlleT)
+  - Fix PLS-DA using mixOmics::plsda -> plsdaInner & plsdaOuter
+  - AUROC only possible for nClass=2 else MISS
+- pls mode???
+- Include outMod in modelReturn
+- Fix vectSamp(vect,n), where length(vect)<n
+
+## Fixed
+- Validation plot (metric vs nVar)
 - code rfInner.R
 - code rfModOut
-- Fix yPred arrays for multiple Y (from RF-OlleT)
 - check combinations of DA vs fitness (e.g. reg -> "RMSEP")
-- Include modReturn in modelReturn
-- Read reg/DA from Y
 
 ## General description
 This is a package dedicated to predictive multivariate modelling for metabolomics.
@@ -39,6 +49,7 @@ Westerhuis et al 2008
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.912 | 2016-03-06 | Added plotVAL
 0.0.911 | 2016-03-03 | RF regression works in sequential mode 
 0.0.910 | 2016-03-01 | Fixed PLS: DA, reg, ML, nearZeroVar
 0.0.900 | 2016-02-10 | Started to work on wrapper for MV-methods. Switched from GitHub to GitLab
