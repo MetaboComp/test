@@ -3,9 +3,9 @@ Multivariate methods with Unbiased Variable selection in R
 
 ## Issues
 - fitnessOuter -> rank(colMeans) vs rank(-colMeans)
-  - same min / mid / max index calculations!
+  - AUROC
+  - MISS
 - Read reg/DA from Y
-- misClass -> MISS
 - Recode DA
   - Fix yPred arrays for multiple Y (from RF-OlleT)
   - Fix PLS-DA using mixOmics::plsda -> plsdaInner & plsdaOuter
@@ -13,8 +13,14 @@ Multivariate methods with Unbiased Variable selection in R
 - pls mode???
 - Include outMod in modelReturn
 - Fix vectSamp(vect,n), where length(vect)<n
+- Include choice of arithmetic or geometric mean in methParam
+  - Add default: geometric
 
 ## Fixed
+- fitnessOuter -> rank(colMeans) vs rank(-colMeans)
+  - same min / mid / max index calculations!
+  - RMSEP OK
+- misClass -> MISS
 - Validation plot (metric vs nVar)
 - code rfInner.R
 - code rfModOut
@@ -49,6 +55,7 @@ Westerhuis et al 2008
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.913 | 2016-03-06 | New index functions: apply/rank -> rank(colMeans)
 0.0.912 | 2016-03-06 | Added plotVAL
 0.0.911 | 2016-03-03 | RF regression works in sequential mode 
 0.0.910 | 2016-03-01 | Fixed PLS: DA, reg, ML, nearZeroVar

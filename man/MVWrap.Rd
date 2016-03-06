@@ -5,7 +5,7 @@
 \title{MVWrap: Wrapper for "Multivariate modelling with Unbiased Variable selection"}
 \usage{
 MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
-  DA = FALSE, fitness = c("AUROC", "misClass", "RMSEP"), method = c("PLS",
+  DA = FALSE, fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS",
   "RF"), methParam, ML = FALSE, modReturn = FALSE, newdata = NULL,
   logg = FALSE)
 }
@@ -26,7 +26,7 @@ MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
 
 \item{DA}{Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).}
 
-\item{fitness}{Fitness function for model tuning (choose either 'AUROC' or 'misClass' for classification; or 'RMSEP' (default) for regression.)}
+\item{fitness}{Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)}
 
 \item{method}{Multivariate method. Supports 'PLS' and 'RF' (default)}
 

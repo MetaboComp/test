@@ -9,7 +9,7 @@
 #' @param nInner Number of inner CV loop segments.
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration.
 #' @param DA Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
-#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'misClass' for classification; or 'RMSEP' (default) for regression.)
+#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (defaults to ???)
 #' @param ML Logical for multilevel analysis (defaults to FALSE)
@@ -18,7 +18,7 @@
 #' @param logg Logical for whether to sink model progressions to `log.txt`
 #' @return An object containing stuff...
 #' @export
-testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
+testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
@@ -49,7 +49,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   }
   if (missing(fitness)) {
     if (DA) {
-      fitness='misClass'
+      fitness='MISS'
     } else {
       fitness='RMSEP'
     }
@@ -104,9 +104,9 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   packs=c(ifelse(method=='PLS','mixOmics','randomForest'),'pROC')
   exports=c(ifelse(method=='PLS','plsInner','rfInner'),'vectSamp')
   ## Start repetitions
-  reps=list()
-  for (r in 1:nRep){
-  # reps=foreach(r=1:nRep, .packages=packs, .export=exports) %dopar% {
+  # reps=list()
+  # for (r in 1:nRep){
+  reps=foreach(r=1:nRep, .packages=packs, .export=exports) %dopar% {
     # r=1
     # r=r+1
     if (logg) sink('log.txt',append=TRUE)
@@ -212,7 +212,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
             inMod=rfInner(xTrain,yTrain,xVal,yVal,fitness,methParam$ntreeIn,mtryIn)
           }
           # Store fitness metric
-          if (fitness=='misClass') {
+          if (fitness=='MISS') {
             missIn[j,count]=inMod$miss
           } else if (fitness=='AUROC') {
             aucIn[j,count]=inMod$auc
@@ -230,24 +230,19 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
         }
       }
       if (fitness=='AUROC') {
-        minIndex=max(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
-        maxIndex=min(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
-        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
-        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+        fitRank=rank(-colMeans(aucIn))
         VALRep[i,]=colMeans(aucIn)  # Quick'n'Dirty
-      } else if (fitness=='misClass') {
-        minIndex=max(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
-        maxIndex=min(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
-        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
-        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+      } else if (fitness=='MISS') {
+        fitRank=rank(colMeans(missIn))
         VALRep[i,]=colSums(missIn)
       }else {
-        minIndex=max(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
-        maxIndex=min(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
-        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
-        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
+        fitRank=rank(colMeans(rmsepIn))
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
+      minIndex=max(which(fitRank==min(fitRank)))
+      maxIndex=min(which(fitRank==min(fitRank)))
+      # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
+      midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMid[i]=var[midIndex]
@@ -326,8 +321,8 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     parReturn$VAL=VALRep
     if (pred) parReturn$YP=YPR
     if (logg) sink()
-    # return(parReturn)
-    reps[[r]]=parReturn
+    return(parReturn)
+    # reps[[r]]=parReturn
   }
   for (r in 1:nRep) {
     yPredMin[,r]=reps[[r]]$yPredMin

@@ -9,7 +9,7 @@
 #' @param nInner Number of inner CV loop segments.
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration.
 #' @param DA Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
-#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)
+#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'misClass' for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (defaults to ???)
 #' @param ML Logical for multilevel analysis (defaults to FALSE)
@@ -18,7 +18,7 @@
 #' @param logg Logical for whether to sink model progressions to `log.txt`
 #' @return An object containing stuff...
 #' @export
-MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
+MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','misClass','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
@@ -49,7 +49,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   }
   if (missing(fitness)) {
     if (DA) {
-      fitness='MISS'
+      fitness='misClass'
     } else {
       fitness='RMSEP'
     }
@@ -212,7 +212,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
             inMod=rfInner(xTrain,yTrain,xVal,yVal,fitness,methParam$ntreeIn,mtryIn)
           }
           # Store fitness metric
-          if (fitness=='MISS') {
+          if (fitness=='misClass') {
             missIn[j,count]=inMod$miss
           } else if (fitness=='AUROC') {
             aucIn[j,count]=inMod$auc
@@ -230,19 +230,24 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
         }
       }
       if (fitness=='AUROC') {
-        fitRank=rank(-colMeans(aucIn))
+        minIndex=max(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
+        maxIndex=min(which(apply(t(apply(aucIn,1,rank)),2,mean)==max(apply(t(apply(aucIn,1,rank)),2,mean))))
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
         VALRep[i,]=colMeans(aucIn)  # Quick'n'Dirty
-      } else if (fitness=='MISS') {
-        fitRank=rank(colMeans(missIn))
+      } else if (fitness=='misClass') {
+        minIndex=max(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
+        maxIndex=min(which(apply(t(apply(missIn,1,rank)),2,mean)==min(apply(t(apply(missIn,1,rank)),2,mean))))
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
         VALRep[i,]=colSums(missIn)
       }else {
-        fitRank=rank(colMeans(rmsepIn))
+        minIndex=max(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
+        maxIndex=min(which(apply(t(apply(rmsepIn,1,rank)),2,mean)==min(apply(t(apply(rmsepIn,1,rank)),2,mean))))
+        # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
+        midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
-      minIndex=max(which(fitRank==min(fitRank)))
-      maxIndex=min(which(fitRank==min(fitRank)))
-      # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
-      midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMid[i]=var[midIndex]

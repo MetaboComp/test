@@ -6,6 +6,12 @@ library(MUVR)
 
 load(file='freelivedata.rdata')
 
+## Test VAL new Index function
+cl=makeCluster(4)
+registerDoParallel(cl)
+RVAL.pls=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=40,method='PLS',varRatio=0.7)
+stopCluster(cl)
+plotVAL(RVAL.pls)
 
 ## PLS regression
 cl=makeCluster(4)
