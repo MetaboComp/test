@@ -456,6 +456,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   modelReturn$VAL$VAL=VAL
   if (modReturn) modelReturn$outModels=outMods
   if (pred) modelReturn$YP=YP
+  modelReturn$yPredPerRep=list(minModel=yPredMin,midModel=yPredMid,maxModel=yPredMax)
   modelReturn$nVarPerRep=list(minModel=varRepMin,midModel=varRepMid,maxModel=varRepMax)
   if (method=='PLS') modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
   modelReturn$inData=InData
