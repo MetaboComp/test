@@ -5,7 +5,8 @@
 #' @param yTrain Training response
 #' @param xVal Validation data
 #' @param yVal Validation response (for tuning)
-#' @param fitness Fitness function ('misClass', 'AUROC' or 'RMSEP')
+#' @param DA Logical for discriminant analysis (classification or multilevel)
+#' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
 #' @param comp Max number of components to try
 #' @param mode PLS method (defaults to regression, see 'mixOmics' for details)
 #'
@@ -15,32 +16,46 @@
 #' @return `vip` VIP rankings
 #' @export
 #'
-plsInner=function(xTrain,yTrain,xVal,yVal,fitness,comp,mode='regression') {
-  plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode)
+plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
+  if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp) else 
+    plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode)
   if (length(plsModIn$nzv$Position)>0) {
     removeVar=rownames(plsModIn$nzv$Metrics)
     xVal=xVal[,!colnames(xVal)%in%removeVar]
   }
   yValInner=predict(plsModIn,newdata=xVal)$predict[,,]  # Store  prediction estimates per validation segment 
   returnIn=list()
-  if (fitness=='misClass') {
-    # cat(' miss',count)
-    yClassInner=ifelse(yValInner>0,1,-1)
-    misClass=apply(yClassInner,2,function(x) sum(x/yVal!=1))
-    returnIn$miss=min(misClass)
-    nComp=which.min(misClass)
-  } 
-  if (fitness=='AUROC') {
-    # cat(' auc',count)
-    auc=apply(yValInner,2,function(x) roc(yVal,x)$auc)
-    returnIn$auc=max(auc)
-    nComp=which.max(auc)
-  }
-  if (fitness=='RMSEP') {
-    # cat(' rmsep',count)
-    rmsep=apply(yValInner,2,function(x) sqrt(sum((yVal-x)^2,na.rm=T)/(length(yVal)-sum(is.na(x)))))
-    returnIn$rmsep=min(rmsep)
-    nComp=which.min(rmsep)
+  if (DA) {
+    if (fitness=='MISS') {
+      classes=apply(yValInner,c(1,3),which.max)
+      misClass=apply(classes,2,function(x) sum(x!=as.numeric(yVal)))
+      returnIn$miss=min(misClass)
+      nComp=which.min(misClass)
+    } else {
+      auc=apply(yValInner[,1,],2,function(x) roc(yVal,x)$auc)
+      returnIn$auc=max(auc)
+      nComp=which.max(auc)
+    }
+  } else {
+    if (fitness=='MISS') {
+      # cat(' miss',count)
+      yClassInner=ifelse(yValInner>0,1,-1)
+      misClass=apply(yClassInner,2,function(x) sum(x!=yVal))
+      returnIn$miss=min(misClass)
+      nComp=which.min(misClass)
+    } 
+    if (fitness=='AUROC') {
+      # cat(' auc',count)
+      auc=apply(yValInner,2,function(x) roc(yVal,x)$auc)
+      returnIn$auc=max(auc)
+      nComp=which.max(auc)
+    }
+    if (fitness=='RMSEP') {
+      # cat(' rmsep',count)
+      rmsep=apply(yValInner,2,function(x) sqrt(sum((yVal-x)^2,na.rm=T)/(length(yVal)-sum(is.na(x)))))
+      returnIn$rmsep=min(rmsep)
+      nComp=which.min(rmsep)
+    }
   }
   returnIn$nComp=nComp
   returnIn$vip=rank(-vip(plsModIn)[,nComp])

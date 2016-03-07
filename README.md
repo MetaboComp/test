@@ -2,24 +2,42 @@
 Multivariate methods with Unbiased Variable selection in R
 
 ## Issues
-- fitnessOuter -> rank(colMeans) vs rank(-colMeans)
-  - AUROC
-  - MISS
-- Read reg/DA from Y
-- Recode DA
-  - Fix yPred arrays for multiple Y (from RF-OlleT)
-  - Fix PLS-DA using mixOmics::plsda -> plsdaInner & plsdaOuter
-  - AUROC only possible for nClass=2 else MISS
+- Extract yPredPerRep
+- Check pred for classification
+- Y char -> Y factor
+- Index from colsums(ranks)?
 - pls mode???
-- Include outMod in modelReturn
 - Fix vectSamp(vect,n), where length(vect)<n
-- Include choice of arithmetic or geometric mean in methParam
-  - Add default: geometric
+- Y as data frame ?
+  - update code with regard to dim & is.null to separate vector from matrix etc.
+  - After ML arrangement?
 
 ## Fixed
+- Modify mockdata X for improved classification
+- Recode DA
+  - Fix PLS-DA using mixOmics::plsda -> plsdaInner & plsdaOuter
+  - AUROC only possible for nClass=2 else MISS
+  - Fix yPred arrays for multiple Y (from RF-OlleT)
+  - plsInner (AUROC & MISS)
+  - plsOuter
+  - rfInner  (AUROC & MISS)
+  - rfOuter
+  - within rep
+  - for all reps
+  - modelReturn
+- Include outMod in modelReturn
+  - modelReturn
+  - Include whichMod in methParam
+  - Test!
+- Include choice of arithmetic or geometric mean in methParam
+  - Add default: geometric
+- Read reg/DA from Y
+- midModel: index -> mean nVar NOT by index in var vector
 - fitnessOuter -> rank(colMeans) vs rank(-colMeans)
   - same min / mid / max index calculations!
   - RMSEP OK
+  - AUROC OK
+  - MISS OK
 - misClass -> MISS
 - Validation plot (metric vs nVar)
 - code rfInner.R
@@ -55,6 +73,7 @@ Westerhuis et al 2008
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.920 | 2016-03-07 | Recoded DA (also multiclass) for PLS and RF
 0.0.913 | 2016-03-06 | New index functions: apply/rank -> rank(colMeans)
 0.0.912 | 2016-03-06 | Added plotVAL
 0.0.911 | 2016-03-03 | RF regression works in sequential mode 

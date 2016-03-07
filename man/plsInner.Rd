@@ -4,7 +4,7 @@
 \alias{plsInner}
 \title{PLS model in inner CV loop}
 \usage{
-plsInner(xTrain, yTrain, xVal, yVal, fitness, comp, mode = "regression")
+plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp, mode = "regression")
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}
@@ -15,7 +15,9 @@ plsInner(xTrain, yTrain, xVal, yVal, fitness, comp, mode = "regression")
 
 \item{yVal}{Validation response (for tuning)}
 
-\item{fitness}{Fitness function ('misClass', 'AUROC' or 'RMSEP')}
+\item{DA}{Logical for discriminant analysis (classification or multilevel)}
+
+\item{fitness}{Fitness function ('MISS', 'AUROC' or 'RMSEP')}
 
 \item{comp}{Max number of components to try}
 

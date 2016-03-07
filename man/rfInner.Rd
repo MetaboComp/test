@@ -4,7 +4,7 @@
 \alias{rfInner}
 \title{RF model in inner CV loop}
 \usage{
-rfInner(xTrain, yTrain, xVal, yVal, fitness, ntree, mtry)
+rfInner(xTrain, yTrain, xVal, yVal, DA, fitness, ntree, mtry)
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}
@@ -15,7 +15,9 @@ rfInner(xTrain, yTrain, xVal, yVal, fitness, ntree, mtry)
 
 \item{yVal}{Validation response (for tuning)}
 
-\item{fitness}{Fitness function ('misClass', 'AUROC' or 'RMSEP')}
+\item{DA}{Logical for discriminant analysis (classification or multilevel)}
+
+\item{fitness}{Fitness function ('MISS', 'AUROC' or 'RMSEP')}
 
 \item{ntree}{See original function (`randomForest`). Passed from wrapper.}
 

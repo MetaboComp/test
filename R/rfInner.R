@@ -5,7 +5,8 @@
 #' @param yTrain Training response
 #' @param xVal Validation data
 #' @param yVal Validation response (for tuning)
-#' @param fitness Fitness function ('misClass', 'AUROC' or 'RMSEP')
+#' @param DA Logical for discriminant analysis (classification or multilevel)
+#' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
 #' @param ntree See original function (`randomForest`). Passed from wrapper.
 #' @param mtry See original function (`randomForest`). Passed from wrapper.
 #' @return An object containing:
@@ -13,19 +14,19 @@
 #' @return `vip` VIP rankings
 #' @export
 #'
-rfInner=function(xTrain,yTrain,xVal,yVal,fitness,ntree,mtry) {
+rfInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,ntree,mtry) {
   rfModIn=randomForest(xTrain,yTrain,xVal,yVal,ntree=ntree,mtry=mtry)
   yValInner=rfModIn$test$predicted 
   returnIn=list()
   returnIn$vip=rank(-rfModIn$importance)
   names(returnIn$vip)=rownames(rfModIn$importance)
-  if (fitness=='misClass') {
+  if (fitness=='MISS') {
     # cat(' miss',count)
-    returnIn$miss=sum(rfInner$test$predicted!=yVal)
+    returnIn$miss=sum(rfModIn$test$predicted!=yVal)
   } 
   if (fitness=='AUROC') {
     # cat(' auc',count)
-    returnIn$auc=auc=roc(yVal,yValInner)$auc
+    returnIn$auc=auc=roc(yVal,rfModIn$test$votes[,1])$auc
   }
   if (fitness=='RMSEP') {
     # cat(' rmsep',count)

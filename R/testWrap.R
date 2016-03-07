@@ -19,6 +19,7 @@
 #' @return An object containing stuff...
 #' @export
 testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
+  library(pROC)
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
@@ -33,25 +34,48 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   if (missing(ID)) ID=1:nSamp
   if (missing(nInner)) nInner=nOuter-1
   if (missing(method)) method='RF'
+  if (method=='RF') library(randomForest) else library(mixOmics)
   if (missing(methParam)) {
     if (method=='PLS') {
       methParam=list(compMax=ifelse(nVar<3,nVar,3),mode='regression')
     } else {
-      methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=100,mtryMaxOut=100)
+      methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=150)
     }
+    methParam$meanMeth='geom'
+    methParam$returnModel='mid'
   }
   if (ML) {
     X=rbind(X,-X)
-    Y=rep(c(-1,1),each=nSamp)
+    Y=as.factor(rep(c(-1,1),each=nSamp))
     nSamp=2*nSamp
     ID=c(ID,ID)
     DA=TRUE
+    cat('\nMultilevel -> Classification (2 classes)')
+  }
+  if (!is.null(dim(Y))) {
+    cat('\nY is not a vector: Return NULL')
+    return(NULL)
+  }
+  if (is.factor(Y)) {
+    cat('\nY is factor -> Classification (',length(unique(Y)),' classes)',sep='')
+    DA=TRUE
+  }
+  if (is.numeric(Y) & DA) {
+    Y=as.factor(Y)
+    cat('\nDA=TRUE -> Y as factor -> Classification (',length(unique(Y)),' classes)',sep='')
   }
   if (missing(fitness)) {
     if (DA) {
-      fitness='MISS'
+      if (length(unique(Y))>2) {
+        fitness='MISS'
+        cat('\nMissing fitness -> MISS')
+      } else {
+        fitness='AUROC'
+        cat('\nMissing fitness -> AUROC')
+      }
     } else {
       fitness='RMSEP'
+      cat('\nMissing fitness -> RMSEP')
     }
   }
   pred=ifelse(missing(newdata),FALSE,TRUE)
@@ -59,7 +83,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     YP=matrix(nrow=nrow(newdata),ncol=nRep*nOuter)  # Predictions for all samples (rows) across outer segments (cols) and repetitions (dim3)
   }
   if (nrow(X)!=length(Y)) {
-    cat('\nError: Must have same nSamp in X and Y.\n')
+    cat('\nMust have same nSamp in X and Y: Return NULL')
     return(NULL)
   }
   ## Store indata in list for later model return
@@ -79,11 +103,16 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     for (g in 1:groups) { 
       groupID[[g]]=unikID[unikY==Ynames[g]]  # Find indices per group
     }
+    yPredMin=yPredMid=yPredMax=array(dim=c(length(Y),length(levels(Y)),nRep))
+    colnames(yPredMin)=colnames(yPredMid)=colnames(yPredMax)=levels(Y)
+    dimnames(yPredMin)[[3]]=dimnames(yPredMid)[[3]]=dimnames(yPredMax)[[3]]=paste('Rep',1:nRep,sep='')
+    yPredMinR=yPredMidR=yPredMaxR=matrix(nrow=length(Y),ncol=length(levels(Y)))
+    colnames(yPredMinR)=colnames(yPredMidR)=colnames(yPredMaxR)=levels(Y)
+  } else {
+    yPredMin=yPredMid=yPredMax=matrix(nrow=length(Y),ncol=nRep)
+    colnames(yPredMin)=colnames(yPredMid)=colnames(yPredMax)=paste('Rep',1:nRep,sep='')
+    yPredMinR=yPredMidR=yPredMaxR=numeric(length(Y))
   }
-  # Allocate matrix for prediction of outer segments Y per repetition
-  yPredMin=yPredMid=yPredMax=matrix(nrow=length(Y),ncol=nRep)
-  colnames(yPredMin)=colnames(yPredMid)=colnames(yPredMax)=paste('Rep',1:nRep,sep='')
-  yPredMinR=yPredMidR=yPredMaxR=numeric(length(Y))
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
   varRepMin=varRepMid=varRepMax=nCompRepMin=nCompRepMid=nCompRepMax=missRep=numeric(nRep)
   names(varRepMin)=names(varRepMid)=names(varRepMax)=names(nCompRepMin)=names(nCompRepMid)=names(nCompRepMax)=names(missRep)=paste(rep('rep',nRep),1:nRep,sep='')
@@ -111,6 +140,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     # r=r+1
     if (logg) sink('log.txt',append=TRUE)
     if (pred) YPR=matrix(nrow=nrow(newdata),ncol=nOuter)
+    if (modReturn) outMod=list()
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
     if (DA) {
       groupTest=list()  ## Allocate list for samples within group
@@ -206,10 +236,10 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
           # trainIndex|valIndex|testIndex
           ## Make inner model
           if (method=='PLS') {
-            inMod=plsInner(xTrain,yTrain,xVal,yVal,fitness,comp,methParam$mode)
+            inMod=plsInner(xTrain,yTrain,xVal,yVal,DA,fitness,comp,methParam$mode)
             nCompIn[j,count]=inMod$nComp
           } else {
-            inMod=rfInner(xTrain,yTrain,xVal,yVal,fitness,methParam$ntreeIn,mtryIn)
+            inMod=rfInner(xTrain,yTrain,xVal,yVal,DA,fitness,methParam$ntreeIn,mtryIn)
           }
           # Store fitness metric
           if (fitness=='MISS') {
@@ -231,7 +261,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       }
       if (fitness=='AUROC') {
         fitRank=rank(-colMeans(aucIn))
-        VALRep[i,]=colMeans(aucIn)  # Quick'n'Dirty
+        VALRep[i,]=colMeans(aucIn)
       } else if (fitness=='MISS') {
         fitRank=rank(colMeans(missIn))
         VALRep[i,]=colSums(missIn)
@@ -241,12 +271,12 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       }
       minIndex=max(which(fitRank==min(fitRank)))
       maxIndex=min(which(fitRank==min(fitRank)))
-      # midIndex=which.min(abs(var-mean(c(var[minIndex],var[maxIndex]))))  # Arithmetic mean
-      midIndex=which.min(abs(var-exp(mean(log(c(var[minIndex],var[maxIndex]))))))  # Geometric mean
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
-      varOutMid[i]=var[midIndex]
       varOutMax[i]=var[maxIndex]
+      if (methParam$meanMeth=='geom') varOutMid[i]=round(exp(mean(log(c(var[minIndex],var[maxIndex])))))
+      if (methParam$meanMeth=='arit') varOutMid[i]=round(mean(c(var[minIndex],var[maxIndex])))
+      midIndex=which.min(abs(var-varOutMid[i]))
       if (method=='PLS') {
         nCompOutMin[i]=round(mean(nCompIn[,minIndex]))
         nCompOutMid[i]=round(mean(nCompIn[,midIndex]))
@@ -263,19 +293,22 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       incVarMax=rownames(VIPOutMax)[rank(VIPOutMax[,i])<=varOutMax[i]]
       if (method=='PLS'){
         # Min model
-        plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode="classic")
+        if (DA) plsOutMin=plsda(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i]) else 
+          plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode=methParam$mode)
         if (length(plsOutMin$nzv$Position)>0) removeVar=rownames(plsOutMin$nzv$Metrics) else removeVar=NA
         incVarMin=incVarMin[!incVarMin%in%removeVar]
         xTestMin=subset(xTest,select=incVarMin)
-        yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 	
+        yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 
         # Mid model
-        plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode="classic")
+        if (DA) plsOutMid=plsda(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i]) else 
+          plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode=methParam$mode)
         if (length(plsOutMid$nzv$Position)>0) removeVar=rownames(plsOutMid$nzv$Metrics) else removeVar=NA
         incVarMid=incVarMid[!incVarMid%in%removeVar]
         xTestMid=subset(xTest,select=incVarMid)
         yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
         # Max model
-        plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode="classic")
+        if (DA) plsOutMax=plsda(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i]) else 
+          plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode=methParam$mode)
         if (length(plsOutMax$nzv$Position)>0) removeVar=rownames(plsOutMax$nzv$Metrics) else removeVar=NA
         incVarMax=incVarMax[!incVarMax%in%removeVar]
         xTestMax=subset(xTest,select=incVarMax)
@@ -283,6 +316,16 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
         # Prediction of newdata
         if (pred) {
           YPR[,i]=predict(plsOutMid,newdata=subset(newdata,select=incVarMid))$predict[,,nCompOutMid[i]]
+        }
+        if (modReturn) {
+          whichMod=methParam$returnModel
+          if (is.null(whichMod)) {
+            cat('\nNo return model specified. Please add "min", "mid" or "max" to "methParam$returnModel": Return NULL')
+            return(NULL)
+          }
+          if (whichMod=='min') outMod[[i]]=plsOutMin else
+            if (whichMod=='mid') outMod[[i]]=plsOutMid else
+              outMod[[i]]=plsOutMax
         }
       } else {
         rfOutMin=randomForest(subset(xIn,select=incVarMin),yIn,subset(xTest,select=incVarMin),yTest)
@@ -303,6 +346,16 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
         } else {
           yPredMaxR[testIndex]=rfOutMax$test$predicted
         }
+        if (modReturn) {
+          whichMod=methParam$returnModel
+          if (is.null(whichMod)) {
+            cat('\nNo return model specified. Please add "min", "mid" or "max" to "methParam$returnModel": Return NULL')
+            return(NULL)
+          }
+          if (whichMod=='min') outMod[[i]]=rfOutMin else
+            if (whichMod=='mid') outMod[[i]]=rfOutMid else
+              outMod[[i]]=rfOutMax
+        }
       }
     }
     # Per repetition: Average outer loop variables, nComp and VIP ranks 
@@ -319,15 +372,20 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       parReturn$nCompRepMax=round(mean(nCompOutMax))
     }
     parReturn$VAL=VALRep
+    if (modReturn) parReturn$outModel=outMod
     if (pred) parReturn$YP=YPR
     if (logg) sink()
     return(parReturn)
     # reps[[r]]=parReturn
   }
+  if (modReturn) outMods=list()
   for (r in 1:nRep) {
-    yPredMin[,r]=reps[[r]]$yPredMin
-    yPredMid[,r]=reps[[r]]$yPredMid
-    yPredMax[,r]=reps[[r]]$yPredMax
+    if (DA) yPredMin[,,r]=reps[[r]]$yPredMin else
+      yPredMin[,r]=reps[[r]]$yPredMin
+    if (DA) yPredMid[,,r]=reps[[r]]$yPredMin else
+      yPredMid[,r]=reps[[r]]$yPredMin
+    if (DA) yPredMax[,,r]=reps[[r]]$yPredMin else
+      yPredMax[,r]=reps[[r]]$yPredMin
     varRepMin[r]=reps[[r]]$varRepMin
     varRepMid[r]=reps[[r]]$varRepMid
     varRepMax[r]=reps[[r]]$varRepMax
@@ -340,32 +398,40 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
       nCompRepMax[r]=reps[[r]]$nCompRepMax
     }
     VAL[,,r]=reps[[r]]$VAL
+    if (modReturn) outMods=c(outMods,reps[[r]]$outModel)
     if (pred) YP[,(nOuter*(r-1)+1):(nOuter*r)]=reps[[r]]$YP
   }
   # Average predictions
-  yPred=apply(yPredMin,1,mean)[1:nrow(X)]
-  yPred=cbind(yPred,apply(yPredMid,1,mean)[1:nrow(X)])
-  yPred=cbind(yPred,apply(yPredMax,1,mean)[1:nrow(X)])
-  colnames(yPred)=c('min','mid','max')
+  if (DA) {
+    yPred=list()
+    yPred[['min']]=apply(yPredMin,c(1,2),mean)
+    yPred[['mid']]=apply(yPredMid,c(1,2),mean)
+    yPred[['max']]=apply(yPredMax,c(1,2),mean)
+  } else {
+    yPred=apply(yPredMin,1,mean)[1:nrow(X)]
+    yPred=cbind(yPred,apply(yPredMid,1,mean)[1:nrow(X)])
+    yPred=cbind(yPred,apply(yPredMax,1,mean)[1:nrow(X)])
+    colnames(yPred)=c('min','mid','max')
+  }
   modelReturn$yPred=yPred
   if (DA) {
-    if(method=='RF') {
-      cat('DA for random forest not yet implemented')
-      return(NULL)
+    auc=matrix(nrow=3,ncol=length(levels(Y)),dimnames=list(c('min','mid','max'),levels(Y)))
+    for (cl in 1:length(levels(Y))) {
+      auc[1,cl]=roc(Y==(levels(Y)[cl]),yPred[['min']][,cl])$auc
+      auc[2,cl]=roc(Y==(levels(Y)[cl]),yPred[['mid']][,cl])$auc
+      auc[3,cl]=roc(Y==(levels(Y)[cl]),yPred[['max']][,cl])$auc
     }
-    ROCMin=roc(Y,yPred[,1])
-    ROCMid=roc(Y,yPred[,2])
-    ROCMax=roc(Y,yPred[,3])
-    auc=c(ROCMin$auc,ROCMid$auc,ROCMax$auc)
-    names(auc)=c('min','mid','max')
     # Classify predictions
-    yClass=ifelse(yPred[,1]>coords(ROCMin,'b',ret='t')[1],1,-1)
-    yClass=cbind(yClass,ifelse(yPred[,2]>coords(ROCMid,'b',ret='t')[1],1,-1))
-    yClass=cbind(yClass,ifelse(yPred[,3]>coords(ROCMax,'b',ret='t')[1],1,-1))
+    miss=numeric(3)
+    names(miss)=c('min','mid','max')
+    yClass=data.frame(Y)
+    for (mo in 1:3) {
+      classPred=as.factor(apply(yPred[[mo]],1,function(x) levels(Y)[which.max(x)]))
+      miss[mo]=sum(classPred!=Y)
+      yClass[,mo]=classPred
+    }
     colnames(yClass)=c('min','mid','max')
     # Calculate misclassifications
-    miss=apply(yClass,2,function(x) sum(x!=Y))
-    names(miss)=c('min','mid','max')
     modelReturn$yClass=yClass
     modelReturn$miss=miss
     modelReturn$auc=auc
@@ -388,6 +454,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   }
   modelReturn$VAL$metric=fitness
   modelReturn$VAL$VAL=VAL
+  if (modReturn) modelReturn$outModels=outMods
   if (pred) modelReturn$YP=YP
   modelReturn$nVarPerRep=list(minModel=varRepMin,midModel=varRepMid,maxModel=varRepMax)
   if (method=='PLS') modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
@@ -396,6 +463,6 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   end.time=proc.time()[3]
   modelReturn$calcMins=(end.time-start.time)/60
   cat('\n Elapsed time',(end.time-start.time)/60,'mins \n')
-  class(modelReturn)=c('MVObject',method)
+  class(modelReturn)=c('MVObject',method,ifelse(!DA,'Regression',ifelse(ML,'Multilevel','Classification')))
   return(modelReturn)
 }
