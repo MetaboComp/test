@@ -10,12 +10,13 @@ This is a package dedicated to predictive multivariate modelling for metabolomic
 - Variable selection: Performed internally.  
   The unbiased VS stems from being tuned in the inner CV loop.  
 
-algorithm | MV-core | response | data structure | comment
-:-------- | :------- | :------------- | :------ | :------
-PLS-VS | PLS | class/reg | unpaired | Parallellised. Used in Hanhineva et al 2015.
-ML-PLS-VS | PLS | class/reg | paired (multilevel) | Parallellised. Used in 'BioDiVa' and 'Satiety' projects.
-RF-VS | Random Forest | classification | unpaired | Parallellised. Used in Buck et al 2016.
-ML-RF-VS | Random Forest | classification | paired (multilevel) | Parallellised. Used in 'BioDiVa' project.
+## Examples of use
+MV-core       | response       | data structure | comment
+:------       | :-------       | :------------- | :------
+PLS           | regression     | unpaired       | Used in Hanhineva et al 2015 on LC-MS metabolomics data (linear code; before MUVR)
+PLS           | multilevel     | paired         | Used in 'BioDiVa', 'Satiety' and 'CRISP' projects.
+Random Forest | classification | unpaired       | Used in Buck et al 2016 on 16S microbiomics data (linear code; before MUVR)
+Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 
 ## References
 
