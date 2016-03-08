@@ -50,6 +50,7 @@ plotMV=function(MVObj,model='mid') {
     for (li in 1:(nSamp+1)) {
       abline(h=li-.5,lty=3,col='grey')
     }
-    abline(v=0.5)
+    abline(h=nsamp/2+0.5,lty=2)
+    abline(v=0,lty=2)
   }
 }
