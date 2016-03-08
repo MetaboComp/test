@@ -4,13 +4,13 @@ library(MUVR)
 load(file='freelivedata.rdata')
 
 ## Test VAL new Index function
-cl=makeCluster(4)
+cl=makeCluster(3)
 registerDoParallel(cl)
-RVAL.pls=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=40,method='PLS',varRatio=0.7)
+Rtest.pls=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=30,method='PLS',varRatio=0.9)
 stopCluster(cl)
-plotVAL(RVAL.pls)
-plot(YR,RVAL.pls$yPred[,2])
-cor(YR,RVAL.pls$yPred[,2])
+plotVAL(Rtest.pls)
+plot(YR,Rtest.pls$yPred[,2])
+cor(YR,Rtest.pls$yPred[,2])
 
 ## PLS regression
 cl=makeCluster(3)
@@ -22,7 +22,11 @@ plotVAL(R.pls)
 
 plot(YR,R.pls$yPred[,2])
 cor(YR,R.pls$yPred[,2])
+
+R.pls$nComp
 R.pls$nVar
+VIPs=R.pls$VIP[rank(R.pls$VIP[,1])<85,1]
+head(sort(VIPs),10)
 
 ## RF regression
 cl=makeCluster(4)

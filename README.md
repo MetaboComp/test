@@ -2,20 +2,23 @@
 Multivariate methods with Unbiased Variable selection in R
 
 ## Issues
-- Extract yPredPerRep
+- Move issues to GitLab
 - Check pred for classification
 - Y char -> Y factor
-- Index from colsums(ranks)?
 - pls mode???
 - Fix vectSamp(vect,n), where length(vect)<n
 - Y as data frame ?
   - update code with regard to dim & is.null to separate vector from matrix etc.
   - After ML arrangement?
 
+## testWrap
+- Index from colsums(ranks)?
+- Extract yPredPerRep
+
 ## Fixed
 - Modify mockdata X for improved classification
 - Recode DA
-  - Fix PLS-DA using mixOmics::plsda -> plsdaInner & plsdaOuter
+  - Fix PLS-DA using mixOmics::plsda
   - AUROC only possible for nClass=2 else MISS
   - Fix yPred arrays for multiple Y (from RF-OlleT)
   - plsInner (AUROC & MISS)

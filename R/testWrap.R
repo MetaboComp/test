@@ -31,7 +31,10 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   }
   nSamp=nrow(X)
   nVar=nVar0=ncol(X)
-  if (missing(ID)) ID=1:nSamp
+  if (missing(ID)) {
+    cat('\nMissing ID -> Assume all unique (i.e. sample independence)')
+    ID=1:nSamp
+  }
   if (missing(nInner)) nInner=nOuter-1
   if (missing(method)) method='RF'
   if (method=='RF') library(randomForest) else library(mixOmics)
@@ -260,13 +263,19 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
         }
       }
       if (fitness=='AUROC') {
-        fitRank=rank(-colMeans(aucIn))
+        fitRank=-aucIn
+        fitRank[]=rank(fitRank)
+        fitRank=colMeans(fitRank)
         VALRep[i,]=colMeans(aucIn)
       } else if (fitness=='MISS') {
-        fitRank=rank(colMeans(missIn))
+        fitRank=missIn
+        fitRank[]=rank(fitRank)
+        fitRank=colMeans(fitRank)
         VALRep[i,]=colSums(missIn)
       }else {
-        fitRank=rank(colMeans(rmsepIn))
+        fitRank=rmsepIn
+        fitRank[]=rank(fitRank)
+        fitRank=colMeans(fitRank)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
       minIndex=max(which(fitRank==min(fitRank)))
