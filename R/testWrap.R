@@ -60,6 +60,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     cat('\nY is not a vector: Return NULL')
     return(NULL)
   }
+  if (is.character(Y)) Y=factor(Y)
   if (is.factor(Y)) {
     cat('\nY is factor -> Classification (',length(unique(Y)),' classes)',sep='')
     DA=TRUE
