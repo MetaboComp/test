@@ -32,13 +32,15 @@ X3[MT & Y3=='C',7:8]=0.7*X3[MT & Y3=='C',7:8]
 cl=makeCluster(4)
 registerDoParallel(cl)
 test1=testWrap(X2,Y2,nRep=5,method='PLS',modReturn=F)
-# test2=testWrap(X2,Y2,nRep=5,method='RF',modReturn=F)
+test2=testWrap(X2,Y2,nRep=5,method='RF',modReturn=F)
 test3=testWrap(X3,Y3,nRep=5,method='PLS',modReturn=F)
-# test4=testWrap(X3,Y3,nRep=5,method='RF',modReturn=F)
+test4=testWrap(X3,Y3,nRep=5,method='RF',modReturn=F)
 stopCluster(cl)
 
 plotMV(test1)
+plotMV(test2)
 plotMV(test3)
+plotMV(test4)
 
 DA=T
 method='PLS'

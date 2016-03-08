@@ -17,11 +17,8 @@ cl=makeCluster(3)
 registerDoParallel(cl)
 R.pls=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=30,method='PLS',varRatio=0.9)
 stopCluster(cl)
-
+plotMV(R.pls)
 plotVAL(R.pls)
-
-plot(YR,R.pls$yPred[,2])
-cor(YR,R.pls$yPred[,2])
 
 R.pls$nComp
 R.pls$nVar
@@ -49,7 +46,7 @@ load(file='otudata.rdata')
 ## RF classification
 cl=makeCluster(3)
 registerDoParallel(cl)
-M.rf=testWrap(X=Xotu,Y=Yotu,nRep=12,method='RF',varRatio=0.7)
+M.rf=testWrap(X=Xotu,Y=Yotu,nRep=30,method='RF',varRatio=0.9)
 stopCluster(cl)
 
 ## PLS classification
@@ -57,3 +54,12 @@ cl=makeCluster(3)
 registerDoParallel(cl)
 M.pls=testWrap(X=Xotu2,Y=Yotu,nRep=12,method='PLS',varRatio=0.7)
 stopCluster(cl)
+
+## Multilevel ClinDiff
+load(file='clinDiff.rdata')
+cl=makeCluster(4)
+registerDoParallel(cl)
+ML.pls=testWrap(X=clinDiff,ML=T,nRep=16,method='PLS',varRatio=0.9)
+stopCluster(cl)
+plotMV(ML.pls)
+class(ML.pls)

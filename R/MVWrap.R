@@ -31,7 +31,10 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   }
   nSamp=nrow(X)
   nVar=nVar0=ncol(X)
-  if (missing(ID)) ID=1:nSamp
+  if (missing(ID)) {
+    cat('\nMissing ID -> Assume all unique (i.e. sample independence)')
+    ID=1:nSamp
+  }
   if (missing(nInner)) nInner=nOuter-1
   if (missing(method)) method='RF'
   if (method=='RF') library(randomForest) else library(mixOmics)
@@ -46,11 +49,12 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   }
   if (ML) {
     X=rbind(X,-X)
-    Y=as.factor(rep(c(-1,1),each=nSamp))
+    Y=rep(c(-1,1),each=nSamp)
     nSamp=2*nSamp
     ID=c(ID,ID)
-    DA=TRUE
-    cat('\nMultilevel -> Classification (2 classes)')
+    DA=FALSE
+    fitness='MISS'
+    cat('\nMultilevel -> Regression on (-1,1) & fitness=MISS')
   }
   if (!is.null(dim(Y))) {
     cat('\nY is not a vector: Return NULL')
@@ -260,13 +264,19 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
         }
       }
       if (fitness=='AUROC') {
-        fitRank=rank(-colMeans(aucIn))
+        fitRank=-aucIn
+        fitRank[]=rank(fitRank)
+        fitRank=colMeans(fitRank)
         VALRep[i,]=colMeans(aucIn)
       } else if (fitness=='MISS') {
-        fitRank=rank(colMeans(missIn))
+        fitRank=missIn
+        fitRank[]=rank(fitRank)
+        fitRank=colMeans(fitRank)
         VALRep[i,]=colSums(missIn)
       }else {
-        fitRank=rank(colMeans(rmsepIn))
+        fitRank=rmsepIn
+        fitRank[]=rank(fitRank)
+        fitRank=colMeans(fitRank)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
       minIndex=max(which(fitRank==min(fitRank)))
@@ -435,6 +445,11 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     modelReturn$yClass=yClass
     modelReturn$miss=miss
     modelReturn$auc=auc
+  } else if (ML) {
+    modelReturn$yClass=apply(yPred,2,function(x) ifelse(x>0,1,-1))
+    modelReturn$miss=apply(modelReturn$yClass,2,function(x) sum(x!=Y))
+    modelReturn$auc=apply(yPred,2,function(x) roc(Y,x)$auc)
+    colnames(modelReturn$yClass)=names(modelReturn$miss)=names(modelReturn$auc)==c('min','mid','max')
   }
   # Average VIP ranks over repetitions
   VIP=apply(VIPRepMin,1,mean)
@@ -464,6 +479,6 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   end.time=proc.time()[3]
   modelReturn$calcMins=(end.time-start.time)/60
   cat('\n Elapsed time',(end.time-start.time)/60,'mins \n')
-  class(modelReturn)=c('MVObject',method,ifelse(!DA,'Regression',ifelse(ML,'Multilevel','Classification')))
+  class(modelReturn)=c('MVObject',method,ifelse(DA,'Classification',ifelse(ML,'Multilevel','Regression')))
   return(modelReturn)
 }

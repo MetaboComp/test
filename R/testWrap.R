@@ -49,11 +49,12 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   }
   if (ML) {
     X=rbind(X,-X)
-    Y=as.factor(rep(c(-1,1),each=nSamp))
+    Y=rep(c(-1,1),each=nSamp)
     nSamp=2*nSamp
     ID=c(ID,ID)
-    DA=TRUE
-    cat('\nMultilevel -> Classification (2 classes)')
+    DA=FALSE
+    fitness='MISS'
+    cat('\nMultilevel -> Regression on (-1,1) & fitness=MISS')
   }
   if (!is.null(dim(Y))) {
     cat('\nY is not a vector: Return NULL')
@@ -444,6 +445,11 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     modelReturn$yClass=yClass
     modelReturn$miss=miss
     modelReturn$auc=auc
+  } else if (ML) {
+    modelReturn$yClass=apply(yPred,2,function(x) ifelse(x>0,1,-1))
+    modelReturn$miss=apply(modelReturn$yClass,2,function(x) sum(x!=Y))
+    modelReturn$auc=apply(yPred,2,function(x) roc(Y,x)$auc)
+    colnames(modelReturn$yClass)=names(modelReturn$miss)=names(modelReturn$auc)==c('min','mid','max')
   }
   # Average VIP ranks over repetitions
   VIP=apply(VIPRepMin,1,mean)
@@ -473,6 +479,6 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   end.time=proc.time()[3]
   modelReturn$calcMins=(end.time-start.time)/60
   cat('\n Elapsed time',(end.time-start.time)/60,'mins \n')
-  class(modelReturn)=c('MVObject',method,ifelse(!DA,'Regression',ifelse(ML,'Multilevel','Classification')))
+  class(modelReturn)=c('MVObject',method,ifelse(DA,'Classification',ifelse(ML,'Multilevel','Regression')))
   return(modelReturn)
 }

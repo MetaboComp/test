@@ -1,52 +1,6 @@
 # MUVR
 Multivariate methods with Unbiased Variable selection in R
 
-## Issues
-- Move issues to GitLab
-- Check pred for classification
-- Y char -> Y factor
-- pls mode???
-- Fix vectSamp(vect,n), where length(vect)<n
-- Y as data frame ?
-  - update code with regard to dim & is.null to separate vector from matrix etc.
-  - After ML arrangement?
-
-## testWrap
-- Index from colsums(ranks)?
-- Extract yPredPerRep
-
-## Fixed
-- Modify mockdata X for improved classification
-- Recode DA
-  - Fix PLS-DA using mixOmics::plsda
-  - AUROC only possible for nClass=2 else MISS
-  - Fix yPred arrays for multiple Y (from RF-OlleT)
-  - plsInner (AUROC & MISS)
-  - plsOuter
-  - rfInner  (AUROC & MISS)
-  - rfOuter
-  - within rep
-  - for all reps
-  - modelReturn
-- Include outMod in modelReturn
-  - modelReturn
-  - Include whichMod in methParam
-  - Test!
-- Include choice of arithmetic or geometric mean in methParam
-  - Add default: geometric
-- Read reg/DA from Y
-- midModel: index -> mean nVar NOT by index in var vector
-- fitnessOuter -> rank(colMeans) vs rank(-colMeans)
-  - same min / mid / max index calculations!
-  - RMSEP OK
-  - AUROC OK
-  - MISS OK
-- misClass -> MISS
-- Validation plot (metric vs nVar)
-- code rfInner.R
-- code rfModOut
-- check combinations of DA vs fitness (e.g. reg -> "RMSEP")
-
 ## General description
 This is a package dedicated to predictive multivariate modelling for metabolomics.
 - Types: Classification and regression
@@ -65,17 +19,15 @@ ML-RF-VS | Random Forest | classification | paired (multilevel) | Parallellised.
 
 ## References
 
-Buck et al 2016
-
-Filzmoser et al 2009
-
-Hanhineva et al 2015
-
-Westerhuis et al 2008
+- *Buck M, Nilsson LKJ, Brunius C, Dabire RK, Hopkins R, Terenius O, 2016. Bacterial associations reveal spatial population dynamics in Anopheles gambiae mosquitoes. Scientific Reports; Accepted.*
+- *Filzmoser P, Liebmann B, Varmuza K, 2009. Repeated double cross validation. Journal of Chemometrics 23(4), 160-171.*
+- *Hanhineva K, Brunius C, Andersson A, Marklund M, Juvonen R, Keski-Rahkonen P, Auriola S, Landberg R., 2015. Discovery of urinary biomarkers of whole grain rye intake in free-living subjects using nontargeted LC-MS metabolite profiling, Molecular Nutrition and Food Research 59(11), 2315-25.*
+- *Westerhuis JA, Hoefsloot HCJ, Smit S, Vis DJ, Smilde AK, Velzen EJJ, Duijnhoven JPM, Dorsten FA, 2008. Assessment of PLSDA cross validation. Metabolomics 4(1), 81-89.*
 
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.930 | 2016-03-08 | Recoded ML to regression. Added plotMV. Migrated `Issues` to GitLab.
 0.0.920 | 2016-03-07 | Recoded DA (also multiclass) for PLS and RF
 0.0.913 | 2016-03-06 | New index functions: apply/rank -> rank(colMeans)
 0.0.912 | 2016-03-06 | Added plotVAL
