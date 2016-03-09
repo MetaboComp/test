@@ -2,6 +2,7 @@
 
 export(MVWrap)
 export(plotMV)
+export(plotPCA)
 export(plotVAL)
 export(plsInner)
 export(rfInner)
