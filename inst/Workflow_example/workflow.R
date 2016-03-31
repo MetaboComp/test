@@ -3,11 +3,17 @@ library(MUVR)
 
 load(file='freelivedata.rdata')
 
-## Test VAL new Index function
+## Test wrapper for PLS and RF
 cl=makeCluster(3)
 registerDoParallel(cl)
-Rtest.pls=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=30,method='PLS',varRatio=0.9)
+RT.pls=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=6,method='PLS',varRatio=0.7)
 stopCluster(cl)
+cl=makeCluster(3)
+registerDoParallel(cl)
+RT.rf=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=6,method='RF',varRatio=0.7)
+stopCluster(cl)
+
+
 plotVAL(Rtest.pls)
 plot(YR,Rtest.pls$yPred[,2])
 cor(YR,Rtest.pls$yPred[,2])

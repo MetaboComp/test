@@ -28,6 +28,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.931 | 2016-03-31 | Added R2 and Q2 for regression. Fixed yPred (previously Min for all methods!)
 0.0.930 | 2016-03-08 | Recoded ML to regression. Added plotMV. Migrated `Issues` to GitLab.
 0.0.920 | 2016-03-07 | Recoded DA (also multiclass) for PLS and RF
 0.0.913 | 2016-03-06 | New index functions: apply/rank -> rank(colMeans)

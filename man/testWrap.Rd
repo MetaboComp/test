@@ -2,7 +2,7 @@
 % Please edit documentation in R/testWrap.R
 \name{testWrap}
 \alias{testWrap}
-\title{testWrap: Wrapper for testing new functions in "Multivariate modelling with Unbiased Variable selection"}
+\title{testWrap: Wrapper for "Multivariate modelling with Unbiased Variable selection"}
 \usage{
 testWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS",

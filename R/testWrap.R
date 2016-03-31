@@ -1,4 +1,4 @@
-#' testWrap: Wrapper for testing new functions in "Multivariate modelling with Unbiased Variable selection"
+#' testWrap: Wrapper for "Multivariate modelling with Unbiased Variable selection"
 #' 
 #' Repeated double cross validation with tuning of variables in the inner loop.
 #' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.
@@ -393,10 +393,10 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   for (r in 1:nRep) {
     if (DA) yPredMin[,,r]=reps[[r]]$yPredMin else
       yPredMin[,r]=reps[[r]]$yPredMin
-    if (DA) yPredMid[,,r]=reps[[r]]$yPredMin else
-      yPredMid[,r]=reps[[r]]$yPredMin
-    if (DA) yPredMax[,,r]=reps[[r]]$yPredMin else
-      yPredMax[,r]=reps[[r]]$yPredMin
+    if (DA) yPredMid[,,r]=reps[[r]]$yPredMid else
+      yPredMid[,r]=reps[[r]]$yPredMid
+    if (DA) yPredMax[,,r]=reps[[r]]$yPredMax else
+      yPredMax[,r]=reps[[r]]$yPredMax
     varRepMin[r]=reps[[r]]$varRepMin
     varRepMid[r]=reps[[r]]$varRepMid
     varRepMax[r]=reps[[r]]$varRepMax
@@ -434,14 +434,13 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     }
     # Classify predictions
     miss=numeric(3)
-    names(miss)=c('min','mid','max')
     yClass=data.frame(Y)
     for (mo in 1:3) {
       classPred=as.factor(apply(yPred[[mo]],1,function(x) levels(Y)[which.max(x)]))
       miss[mo]=sum(classPred!=Y)
       yClass[,mo]=classPred
     }
-    colnames(yClass)=c('min','mid','max')
+    names(miss)=colnames(yClass)=c('min','mid','max')
     # Calculate misclassifications
     modelReturn$yClass=yClass
     modelReturn$miss=miss
@@ -476,6 +475,71 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   modelReturn$nVarPerRep=list(minModel=varRepMin,midModel=varRepMid,maxModel=varRepMax)
   if (method=='PLS') modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
   modelReturn$inData=InData
+  ## Build overall "Fit" method for calculating R2 and visualisations
+  incVarMin=names(VIP[rank(VIP[,1])<=round(nVar[1]),1])
+  incVarMid=names(VIP[rank(VIP[,2])<=round(nVar[2]),2])
+  incVarMax=names(VIP[rank(VIP[,3])<=round(nVar[3]),3])
+  if (method=='PLS'){
+    # Min model
+    if (DA) plsFitMin=plsda(subset(X,select=incVarMin),Y,ncomp=round(nComp[1])) else 
+      plsFitMin=pls(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),mode=methParam$mode)
+    if (length(plsFitMin$nzv$Position)>0) removeVar=rownames(plsFitMin$nzv$Metrics) else removeVar=NA
+    incVarMin=incVarMin[!incVarMin%in%removeVar]
+    yFitMin=predict(plsFitMin,newdata=subset(X,select=incVarMin))$predict[,,nComp[1]]  # 
+    # Mid model
+    if (DA) plsFitMid=plsda(subset(X,select=incVarMid),Y,ncomp=round(nComp[2])) else 
+      plsFitMid=pls(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),mode=methParam$mode)
+    if (length(plsFitMid$nzv$Position)>0) removeVar=rownames(plsFitMid$nzv$Metrics) else removeVar=NA
+    incVarMid=incVarMid[!incVarMid%in%removeVar]
+    yFitMid=predict(plsFitMid,newdata=subset(X,select=incVarMid))$predict[,,nComp[2]]  # 
+    # Max model
+    if (DA) plsFitMax=plsda(subset(X,select=incVarMax),Y,ncomp=round(nComp[3])) else 
+      plsFitMax=pls(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),mode=methParam$mode)
+    if (length(plsFitMax$nzv$Position)>0) removeVar=rownames(plsFitMax$nzv$Metrics) else removeVar=NA
+    incVarMax=incVarMax[!incVarMax%in%removeVar]
+    yFitMax=predict(plsFitMax,newdata=subset(X,select=incVarMax))$predict[,,nComp[3]]  # 
+    yFit=cbind(yFitMin,yFitMid,yFitMax)
+    yRep=ncol(yFit)/3
+    colnames(yFit)=rep(c('min','mid','max'),each=yRep)
+    modelReturn$Fit=list(yFit=yFit,plsFitMin=plsFitMin,plsFitMid=plsFitMid,plsFitMax=plsFitMax)
+    # Prediction of newdata
+  } else {
+    rfFitMin=randomForest(subset(X,select=incVarMin),Y)
+    if (DA) {
+      yFitMin=rfFitMin$votes
+    } else {
+      yFitMin=rfFitMin$predicted
+    }
+    rfFitMid=randomForest(subset(X,select=incVarMid),Y)
+    if (DA) {
+      yFitMid=rfFitMid$votes
+    } else {
+      yFitMid=rfFitMid$predicted
+    }
+    rfFitMax=randomForest(subset(X,select=incVarMax),Y)
+    if (DA) {
+      yFitMax=rfFitMax$votes
+    } else {
+      yFitMax=rfFitMax$predicted
+    }
+  }
+  # Calculate fit statistics
+  if (!DA) {
+    TSS=sum((Y-mean(Y))^2)
+    RSSMin=sum((Y-yFitMin)^2)
+    RSSMid=sum((Y-yFitMid)^2)
+    RSSMax=sum((Y-yFitMax)^2)
+    PRESSMin=sum((Y-yPred[,1])^2)
+    PRESSMid=sum((Y-yPred[,2])^2)
+    PRESSMax=sum((Y-yPred[,3])^2)
+    R2Min=1-(RSSMin/TSS)
+    R2Mid=1-(RSSMid/TSS)
+    R2Max=1-(RSSMax/TSS)
+    Q2Min=1-(PRESSMin/TSS)
+    Q2Mid=1-(PRESSMid/TSS)
+    Q2Max=1-(PRESSMax/TSS)
+    modelReturn$fitMetric=list(R2=c(R2Min,R2Mid,R2Max),Q2=c(Q2Min,Q2Mid,Q2Max))
+  }
   # Stop timer
   end.time=proc.time()[3]
   modelReturn$calcMins=(end.time-start.time)/60
