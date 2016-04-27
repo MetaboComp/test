@@ -15,7 +15,7 @@ plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp, mode = "regression")
 
 \item{yVal}{Validation response (for tuning)}
 
-\item{DA}{Logical for discriminant analysis (classification or multilevel)}
+\item{DA}{Logical for discriminant analysis (classification)}
 
 \item{fitness}{Fitness function ('MISS', 'AUROC' or 'RMSEP')}
 

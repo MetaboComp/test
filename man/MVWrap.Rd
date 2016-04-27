@@ -16,7 +16,7 @@ MVWrap(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
 
 \item{ID}{Subject identifier (for sampling by subject; Assumption of independence if not specified)}
 
-\item{nRep}{Number of repetitions of double CV..}
+\item{nRep}{Number of repetitions of double CV.}
 
 \item{nOuter}{Number of outer CV loop segments.}
 

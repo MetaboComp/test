@@ -16,14 +16,11 @@ plotMV=function(MVObj,model='mid') {
   if (class(MVObj)[3]=='Regression') {
     YP=MVObj$yPred[,modNum]
     YPR=MVObj$yPredPerRep[[modNum]]
-    library(Hmisc)
     matplot(Y,YPR,pch=20,xlab='Original Y',ylab='Predicted Y',col='grey',bty='l',cex=0.5)
     points(Y,YP,pch=20)
     reg=lm(YP~Y)
     abline(reg)
-    R=rcorr(Y,YP)$r[1,2]
-    p=rcorr(Y,YP)$P[1,2]
-    legend('topleft',legend=c(paste('R =',signif(R,3)),paste('p =',signif(p,3))),bty='n')
+    legend('topleft',legend=c(paste('Model R2 =',signif(MVObj$fitMetric$R2[modNum],3)),paste('Model Q2 =',signif(MVObj$fitMetric$Q2[modNum],3))),bty='n')
   } else if (class(MVObj)[3]=='Classification') {
     YP=MVObj$yPred[[modNum]]
     YPR=MVObj$yPredPerRep[[modNum]]

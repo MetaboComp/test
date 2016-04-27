@@ -4,7 +4,7 @@
 #' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.
 #' @param Y Response vector (Dependent variable). For PLS-DA, values should be -1 vs 1 for the two classes.
 #' @param ID Subject identifier (for sampling by subject; Assumption of independence if not specified)
-#' @param nRep Number of repetitions of double CV..
+#' @param nRep Number of repetitions of double CV.
 #' @param nOuter Number of outer CV loop segments.
 #' @param nInner Number of inner CV loop segments.
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration.
@@ -244,7 +244,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
             inMod=plsInner(xTrain,yTrain,xVal,yVal,DA,fitness,comp,methParam$mode)
             nCompIn[j,count]=inMod$nComp
           } else {
-            inMod=rfInner(xTrain,yTrain,xVal,yVal,DA,fitness,methParam$ntreeIn,mtryIn)
+            inMod=rfInner(xTrain,yTrain,xVal,yVal,DA,fitness,ntree=methParam$ntreeIn,mtry=mtryIn)
           }
           # Store fitness metric
           if (fitness=='MISS') {
@@ -522,6 +522,10 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
     } else {
       yFitMax=rfFitMax$predicted
     }
+    yFit=cbind(yFitMin,yFitMid,yFitMax)
+    yRep=ncol(yFit)/3
+    colnames(yFit)=rep(c('min','mid','max'),each=yRep)
+    modelReturn$Fit=list(yFit=yFit,rfFitMin=rfFitMin,rfFitMid=rfFitMid,rfFitMax=rfFitMax)
   }
   # Calculate fit statistics
   if (!DA) {

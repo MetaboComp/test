@@ -5,7 +5,7 @@
 #' @param yTrain Training response
 #' @param xVal Validation data
 #' @param yVal Validation response (for tuning)
-#' @param DA Logical for discriminant analysis (classification or multilevel)
+#' @param DA Logical for discriminant analysis (classification)
 #' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
 #' @param comp Max number of components to try
 #' @param mode PLS method (defaults to regression, see 'mixOmics' for details)

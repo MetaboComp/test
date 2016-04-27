@@ -29,12 +29,12 @@ X3[MT & Y3=='B',7:8]=1.3*X3[MT & Y3=='B',7:8]
 X3[MT & Y3=='C',7:8]=0.7*X3[MT & Y3=='C',7:8]
 # ID=sample(1:20,nsamp,replace=TRUE)
 
-cl=makeCluster(4)
+cl=makeCluster(3)
 registerDoParallel(cl)
-test1=testWrap(X2,Y2,nRep=5,method='PLS',modReturn=F)
-test2=testWrap(X2,Y2,nRep=5,method='RF',modReturn=F)
-test3=testWrap(X3,Y3,nRep=5,method='PLS',modReturn=F)
-test4=testWrap(X3,Y3,nRep=5,method='RF',modReturn=F)
+test1=testWrap(X2,Y2,nRep=6,method='PLS',modReturn=F)
+test2=testWrap(X2,Y2,nRep=6,method='RF',modReturn=F)
+test3=testWrap(X3,Y3,nRep=6,method='PLS',modReturn=F)
+test4=testWrap(X3,Y3,nRep=6,method='RF',modReturn=F)
 stopCluster(cl)
 
 plotMV(test1)

@@ -5,7 +5,7 @@
 #' @param yTrain Training response
 #' @param xVal Validation data
 #' @param yVal Validation response (for tuning)
-#' @param DA Logical for discriminant analysis (classification or multilevel)
+#' @param DA Logical for discriminant analysis (classification)
 #' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
 #' @param ntree See original function (`randomForest`). Passed from wrapper.
 #' @param mtry See original function (`randomForest`). Passed from wrapper.
@@ -22,7 +22,10 @@ rfInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,ntree,mtry) {
   names(returnIn$vip)=rownames(rfModIn$importance)
   if (fitness=='MISS') {
     # cat(' miss',count)
-    returnIn$miss=sum(rfModIn$test$predicted!=yVal)
+    if (DA) returnIn$miss=sum(yValInner!=yVal) else {
+      yClassInner=ifelse(yValInner>0,1,-1)
+      returnIn$miss=sum(yClassInner!=yVal)
+    }
   } 
   if (fitness=='AUROC') {
     # cat(' auc',count)
