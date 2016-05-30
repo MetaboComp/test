@@ -11,7 +11,7 @@ This is a package dedicated to predictive multivariate modelling for metabolomic
   The unbiased VS stems from being tuned in the inner CV loop.  
 
 ## Installation
-Install `devtools` to be able to install packages from GitHub.
+Install `devtools` to be able to install packages from Git repositories.
 
 Install `MUVR` package by:
 
