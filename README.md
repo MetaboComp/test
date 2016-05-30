@@ -10,6 +10,17 @@ This is a package dedicated to predictive multivariate modelling for metabolomic
 - Variable selection: Performed internally.  
   The unbiased VS stems from being tuned in the inner CV loop.  
 
+## Installation
+Install `devtools` to be able to install packages from GitHub.
+
+Install `MUVR` package by:
+
+`devtools::install_git("https://username:password@gitlab.com/CarlBrunius/MUVR.git")`
+
+where `username` and `password` are you actual username and password for your GitLab account.
+
+In addition to functions relevant for within/between batch correction, data is provided to accurately reproduce figures from the original *Brunius et al* paper (see below).
+
 ## Examples of use
 MV-core       | response       | data structure | comment
 :------       | :-------       | :------------- | :------
