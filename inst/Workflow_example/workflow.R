@@ -3,9 +3,10 @@
 library(doParallel)
 library(MUVR)
 
-# Freelive-Regression
+# Freelive - Regression
 
-load(file='freelivedata.rdata')
+rm(list=ls())
+data("freelive")
 
 ## PLS regression
 
@@ -81,17 +82,12 @@ R2.rf$fitMetric
 Rrdcv.rf$fitMetric
 Rrdcv2.rf$fitMetric
 
-plot(YR,R.rf$yPred[,2])
-cor(YR,R.rf$yPred[,2])
-R.rf$nVar
+# save(R.pls,R2.pls,Rrdcv.pls,Rrdcv2.pls,R.rf,R2.rf,Rrdcv.rf,Rrdcv2.rf,file='Exclude/freeliveModels.rda')
 
-plot(R.pls$yPred[,2],R.rf$yPred[,2])
-cor(R.pls$yPred[,2],R.rf$yPred[,2])
-
-
+# Mosquito - Classification
 
 rm(list=ls())
-load(file='otudata.rdata')
+data("mosquito")
 
 ## RF classification
 cl=makeCluster(3)
