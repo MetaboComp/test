@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.940 | 2016-06-08 | Added `rdCV` algorithm. Updated `workflow.r`
 0.0.932 | 2016-04-27 | Updated `rfInner` and `MVWrap` for ML-RF.
 0.0.931 | 2016-03-31 | Added R2 and Q2 for regression. Fixed yPred (previously Min for all methods!)
 0.0.930 | 2016-03-08 | Recoded ML to regression. Added plotMV. Migrated `Issues` to GitLab.

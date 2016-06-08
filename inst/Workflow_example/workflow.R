@@ -1,41 +1,85 @@
+# Call in relevant libraries
+
 library(doParallel)
 library(MUVR)
 
+# Freelive-Regression
+
 load(file='freelivedata.rdata')
 
-## Test wrapper for PLS and RF
-cl=makeCluster(3)
-registerDoParallel(cl)
-RT.pls=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=6,method='PLS',varRatio=0.7)
-stopCluster(cl)
-cl=makeCluster(3)
-registerDoParallel(cl)
-RT.rf=testWrap(X=XRVIP,Y=YR,ID=IDR,nRep=6,method='RF',varRatio=0.7)
-stopCluster(cl)
-
-
-plotVAL(Rtest.pls)
-plot(YR,Rtest.pls$yPred[,2])
-cor(YR,Rtest.pls$yPred[,2])
-
 ## PLS regression
+
+### MUVR: Full data
+
 cl=makeCluster(3)
 registerDoParallel(cl)
-R.pls=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=30,method='PLS',varRatio=0.9)
+R.pls=MVWrap(X=XR,Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
-plotMV(R.pls)
-plotVAL(R.pls)
 
-R.pls$nComp
-R.pls$nVar
-VIPs=R.pls$VIP[rank(R.pls$VIP[,1])<85,1]
-head(sort(VIPs),10)
+### MUVR: sPLS-filter
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+R2.pls=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+stopCluster(cl)
+
+### rdCV: Full data
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+Rrdcv.pls=rdCV(X=XR,Y=YR,ID=IDR,nRep=15,method='PLS')
+stopCluster(cl)
+
+### rdCV: sPLS filter
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+Rrdcv2.pls=rdCV(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='PLS')
+stopCluster(cl)
+
+### Take out R2 and Q2
+
+R.pls$fitMetric
+R2.pls$fitMetric
+Rrdcv.pls$fitMetric
+Rrdcv2.pls$fitMetric
 
 ## RF regression
-cl=makeCluster(4)
+
+### MUVR: Full data
+
+cl=makeCluster(3)
 registerDoParallel(cl)
-R.rf=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=40,method='RF',varRatio=0.9)
+R.rf=MVWrap(X=XR,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
 stopCluster(cl)
+
+### MUVR: sPLS filter
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+R2.rf=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
+
+### rdCV: Full data
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+Rrdcv.rf=rdCV(X=XR,Y=YR,ID=IDR,nRep=15,method='RF')
+stopCluster(cl)
+
+### rdCV: sPLS filter
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+Rrdcv2.rf=rdCV(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF')
+stopCluster(cl)
+
+### Take out R2 and Q2
+
+R.rf$fitMetric
+R2.rf$fitMetric
+Rrdcv.rf$fitMetric
+Rrdcv2.rf$fitMetric
 
 plot(YR,R.rf$yPred[,2])
 cor(YR,R.rf$yPred[,2])
