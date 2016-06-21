@@ -40,7 +40,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   if (method=='RF') library(randomForest) else library(mixOmics)
   if (missing(methParam)) {
     if (method=='PLS') {
-      methParam=list(compMax=ifelse(nVar<3,nVar,3),mode='regression')
+      methParam=list(compMax=ifelse(nVar<5,nVar,5),mode='regression')
     } else {
       methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=150)
     }
