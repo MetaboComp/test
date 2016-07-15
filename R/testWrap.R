@@ -1,10 +1,11 @@
 #' testWrap: Wrapper for "Multivariate modelling with Unbiased Variable selection"
 #' 
 #' Repeated double cross validation with tuning of variables in the inner loop.
+#'
 #' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.
 #' @param Y Response vector (Dependent variable). For PLS-DA, values should be -1 vs 1 for the two classes.
 #' @param ID Subject identifier (for sampling by subject; Assumption of independence if not specified)
-#' @param nRep Number of repetitions of double CV..
+#' @param nRep Number of repetitions of double CV.
 #' @param nOuter Number of outer CV loop segments.
 #' @param nInner Number of inner CV loop segments.
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration.
@@ -15,10 +16,12 @@
 #' @param ML Logical for multilevel analysis (defaults to FALSE)
 #' @param modReturn Logical for returning outer segment models (defaults to FALSE)
 #' @param newdata New data matrix ONLY for prediction NOT modelling
+#' @param nCompMax Option to choose max number of PLS components (default is 5)
 #' @param logg Logical for whether to sink model progressions to `log.txt`
+#'
 #' @return An object containing stuff...
 #' @export
-testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
+testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
   library(pROC)
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
@@ -40,13 +43,14 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   if (method=='RF') library(randomForest) else library(mixOmics)
   if (missing(methParam)) {
     if (method=='PLS') {
-      methParam=list(compMax=ifelse(nVar<3,nVar,3),mode='regression')
+      methParam=list(compMax=ifelse(nVar<5,nVar,5),mode='regression')
     } else {
       methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=150)
     }
     methParam$meanMeth='geom'
     methParam$returnModel='mid'
   }
+  if (!missing(nCompMax)) methParam$compMax=nCompMax
   if (ML) {
     X=rbind(X,-X)
     Y=rep(c(-1,1),each=nSamp)
@@ -244,7 +248,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
             inMod=plsInner(xTrain,yTrain,xVal,yVal,DA,fitness,comp,methParam$mode)
             nCompIn[j,count]=inMod$nComp
           } else {
-            inMod=rfInner(xTrain,yTrain,xVal,yVal,DA,fitness,methParam$ntreeIn,mtryIn)
+            inMod=rfInner(xTrain,yTrain,xVal,yVal,DA,fitness,ntree=methParam$ntreeIn,mtry=mtryIn)
           }
           # Store fitness metric
           if (fitness=='MISS') {
@@ -265,23 +269,25 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
         }
       }
       if (fitness=='AUROC') {
-        fitRank=-aucIn
-        fitRank[]=rank(fitRank)
-        fitRank=colMeans(fitRank)
+        fitRank=colMeans(-aucIn)
+        # fitRank[]=rank(fitRank)
+        # fitRank=colMeans(fitRank)
         VALRep[i,]=colMeans(aucIn)
       } else if (fitness=='MISS') {
-        fitRank=missIn
-        fitRank[]=rank(fitRank)
-        fitRank=colMeans(fitRank)
+        fitRank=VALRep[i,]=colSums(missIn)
+        # fitRank[]=rank(fitRank)
+        # fitRank=colMeans(fitRank)
         VALRep[i,]=colSums(missIn)
       }else {
-        fitRank=rmsepIn
-        fitRank[]=rank(fitRank)
-        fitRank=colMeans(fitRank)
+        fitRank=colMeans(rmsepIn)
+        # fitRank[]=rank(fitRank)
+        # fitRank=colMeans(fitRank)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
-      minIndex=max(which(fitRank==min(fitRank)))
-      maxIndex=min(which(fitRank==min(fitRank)))
+      minIndex=max(which(fitRank<=(min(fitRank)+0.05*abs(min(fitRank)))))
+      maxIndex=min(which(fitRank<=(min(fitRank)+0.05*abs(min(fitRank)))))
+      # minIndex=max(which(fitRank==min(fitRank)))
+      # maxIndex=min(which(fitRank==min(fitRank)))
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMax[i]=var[maxIndex]
@@ -522,6 +528,10 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
     } else {
       yFitMax=rfFitMax$predicted
     }
+    yFit=cbind(yFitMin,yFitMid,yFitMax)
+    yRep=ncol(yFit)/3
+    colnames(yFit)=rep(c('min','mid','max'),each=yRep)
+    modelReturn$Fit=list(yFit=yFit,rfFitMin=rfFitMin,rfFitMid=rfFitMid,rfFitMax=rfFitMax)
   }
   # Calculate fit statistics
   if (!DA) {

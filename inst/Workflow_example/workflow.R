@@ -13,6 +13,8 @@ data("freelive")
 ### Variable selections
 
 ### Univ
+
+tUni=proc.time()[3]
 pUni=pUniFDR=numeric(ncol(XR))
 for(v in 1:ncol(XR)) {
   Xv=XR[,v]
@@ -21,21 +23,43 @@ for(v in 1:ncol(XR)) {
 }
 pUniFDR=p.adjust(pUni,method='fdr')
 UV=colnames(XR)[pUniFDR<0.05]
+tUni=(proc.time()[3]-tUni)/60
+
 ### sPLS-1
 
 library(mixOmics)
+tsp1=proc.time()[3]
 splsMod=mixOmics::spls(XR,YR,ncomp=3,mode='regression',keepX=c(1000,1000,1000))
 splsVIP=vip(splsMod)[,3]
 VIP=names(splsVIP)[splsVIP>1]
+tsp1=(proc.time()[3]-tsp1)/60
 
 ### sPLS-2
 
 library(spls)
-a=proc.time()[3]
+tsp2=proc.time()[3]
 sp=cv.spls(XR,YR,eta=seq(.3,.9,.1),K=1:5)
 sp2=spls::spls(XR,YR,eta=sp$eta.opt,K=sp$K.opt)
 varsp=colnames(sp2$x)[sp2$A]
-a=(proc.time()[3]-a)/60
+tsp2=(proc.time()[3]-tsp2)/60
+
+### VSURF
+
+library(VSURF)
+vs=VSURF(XR,YR,parallel=T)
+varVSI=colnames(XR)[vs$varselect.interp]
+varVSP=colnames(XR)[vs$varselect.pred]
+tVSURF=as.numeric(vs$overall.time*60)
+
+### Boruta
+
+library(Boruta)
+bor=Boruta(XR,YR,holdHistory=F)
+varBor=colnames(XR)[bor$finalDecision=='Confirmed']
+tBor=bor$timeTaken
+
+tVS=c(tBor,0,tsp1,tsp2,tUni,tVSURF,tVSURF)
+names(tVS)=c('Boruta','Full','sPLS-1','sPLS-2','Univ','VSURF-I','VSURF-P')
 
 ### MUVR: Full data
 
@@ -63,6 +87,32 @@ stopCluster(cl)
 cl=makeCluster(3)
 registerDoParallel(cl)
 RMP_sp2=MVWrap(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+stopCluster(cl)
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+test=testWrap(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+stopCluster(cl)
+
+### MUVR: VSURF-I
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RMP_VSI=MVWrap(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+stopCluster(cl)
+
+### MUVR: VSURF-P
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RMP_VSP=MVWrap(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+stopCluster(cl)
+
+### MUVR: Boruta
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RMP_Bor=MVWrap(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### rdCV: Full data
@@ -93,7 +143,28 @@ registerDoParallel(cl)
 RRP_sp2=rdCV(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS')
 stopCluster(cl)
 
-mods=ls(pattern='RRP')
+### rdCV: VSURF-I
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RRP_VSI=rdCV(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='PLS')
+stopCluster(cl)
+
+### rdCV: VSURF-P
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RRP_VSP=rdCV(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='PLS')
+stopCluster(cl)
+
+### rdCV: Boruta
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RRP_Bor=rdCV(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='PLS')
+stopCluster(cl)
+
+mods=ls(pattern='RRP_')
 nMod=length(mods)
 R2=Q2=tVal=nC=nV=numeric(nMod)
 for (m in 1:nMod) {
@@ -105,7 +176,7 @@ for (m in 1:nMod) {
 }
 RRPMat=data.frame(nComp=nC,nVar=nV,R2=R2,Q2=Q2,tVal=tVal,row.names=mods)
 
-mods=ls(pattern='RMP')
+mods=ls(pattern='RMP_')
 nMod=length(mods)
 R2=Q2=tVal=nC=nV=numeric(nMod)
 for (m in 1:nMod) {
@@ -213,15 +284,35 @@ plotVAL(M.rf)
 ## PLS classification
 cl=makeCluster(3)
 registerDoParallel(cl)
-M.pls=testWrap(X=Xotu2,Y=Yotu,nRep=12,method='PLS',varRatio=0.7)
+MA.pls=MVWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='AUROC')
+MA.test=testWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='AUROC')
+MM.pls=MVWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='MISS')
+MM.test=testWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='MISS')
 stopCluster(cl)
+png(filename='Exclude/class.png')
+par(mfrow=c(2,2))
+par(mar=c(4,4,0,0)+.5)
+plotVAL(MM.pls)
+plotVAL(MA.pls)
+plotVAL(MM.test)
+plotVAL(MA.test)
+dev.off()
 
 ## Multilevel ClinDiff
-load(file='clinDiff.rdata')
-cl=makeCluster(4)
+data("clinDiff")
+cl=makeCluster(3)
 registerDoParallel(cl)
-ML.pls=testWrap(X=clinDiff,ML=T,nRep=16,method='PLS',varRatio=0.9)
+ML.pls=MVWrap(X=clinDiff,ML=T,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
+cl=makeCluster(3)
+registerDoParallel(cl)
+ML.test=testWrap(X=clinDiff,ML=T,nRep=15,method='PLS',varRatio=0.9)
+stopCluster(cl)
+
+plotVAL(ML.pls)
+plotVAL(ML.test)
+
+
 plotMV(ML.pls)
 plotVAL(ML.pls)
 class(ML.pls)
