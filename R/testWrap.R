@@ -1,27 +1,27 @@
-#' testWrap: Wrapper for "Multivariate modelling with Unbiased Variable selection"
+#' MUVR: Wrapper for "Multivariate modelling with Unbiased Variable selection"
 #' 
 #' Repeated double cross validation with tuning of variables in the inner loop.
 #'
-#' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data.
-#' @param Y Response vector (Dependent variable). For PLS-DA, values should be -1 vs 1 for the two classes.
+#' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data. For multilevel, only the positive half of the difference matrix is specified.
+#' @param Y Response vector (Dependent variable). For classification, a factor (or character) variable should be used. For multilevel, Y is calculated automatically.
 #' @param ID Subject identifier (for sampling by subject; Assumption of independence if not specified)
-#' @param nRep Number of repetitions of double CV.
-#' @param nOuter Number of outer CV loop segments.
-#' @param nInner Number of inner CV loop segments.
-#' @param varRatio Ratio of variables to include in subsequent inner loop iteration.
+#' @param nRep Number of repetitions of double CV. (Defaults to 5)
+#' @param nOuter Number of outer CV loop segments. (Defaults to 6)
+#' @param nInner Number of inner CV loop segments. (Defaults to nOuter-1)
+#' @param varRatio Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)
 #' @param DA Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
 #' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
-#' @param methParam List with parameter settings for specified MV method (defaults to ???)
+#' @param methParam List with parameter settings for specified MV method (see function code for details)
 #' @param ML Logical for multilevel analysis (defaults to FALSE)
 #' @param modReturn Logical for returning outer segment models (defaults to FALSE)
-#' @param newdata New data matrix ONLY for prediction NOT modelling
+#' @param newdata New data matrix ONLY for prediction NOT modelling (Not yet fully implemented)
 #' @param nCompMax Option to choose max number of PLS components (default is 5)
 #' @param logg Logical for whether to sink model progressions to `log.txt`
 #'
 #' @return An object containing stuff...
 #' @export
-testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
+MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
   library(pROC)
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
@@ -463,6 +463,7 @@ testWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c
   VIP=cbind(VIP,apply(VIPRepMax,1,mean))
   colnames(VIP)=c('min','mid','max')
   modelReturn$VIP=VIP
+  modelReturn$VIPPerRep=list(minModel=VIPRepMin,midModel=VIPRepMid,maxModel=VIPRepMax)
   # Average nVar over repetitions
   nVar=c(mean(varRepMin),mean(varRepMid),mean(varRepMax))
   names(nVar)=c('min','mid','max')
