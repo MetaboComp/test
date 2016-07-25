@@ -320,6 +320,7 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
   # Average VIP ranks over repetitions
   VIP=apply(VIPRep,1,mean)
   modelReturn$VIP=VIP
+  modelReturn$VIPPerRep=VIPRep
   # Average nVar over repetitions
   if (method=='PLS') {
     # Average nComp over repetitions
