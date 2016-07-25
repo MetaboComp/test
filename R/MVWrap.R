@@ -457,6 +457,7 @@ MVWrap=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('
   VIP=cbind(VIP,apply(VIPRepMax,1,mean))
   colnames(VIP)=c('min','mid','max')
   modelReturn$VIP=VIP
+  modelReturn$VIPPerRep=list(minModel=VIPRepMin,midModel=VIPRepMid,maxModel=VIPRepMax)
   # Average nVar over repetitions
   nVar=c(mean(varRepMin),mean(varRepMid),mean(varRepMax))
   names(nVar)=c('min','mid','max')
