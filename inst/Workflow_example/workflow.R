@@ -65,54 +65,49 @@ names(tVS)=c('Boruta','Full','sPLS-1','sPLS-2','Univ','VSURF-I','VSURF-P')
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-RMP_full=MVWrap(X=XR,Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_full=MUVR(X=XR,Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: Uni-variate
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-RMP_uni=MVWrap(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_uni=MUVR(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: sPLS-filter 1
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-RMP_sp1=MVWrap(X=subset(XR,select = VIP),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_sp1=MUVR(X=subset(XR,select = VIP),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: sPLS filter 2
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-RMP_sp2=MVWrap(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
-stopCluster(cl)
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-test=testWrap(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_sp2=MUVR(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: VSURF-I
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-RMP_VSI=MVWrap(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_VSI=MUVR(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: VSURF-P
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-RMP_VSP=MVWrap(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_VSP=MUVR(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: Boruta
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-RMP_Bor=MVWrap(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_Bor=MUVR(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
 stopCluster(cl)
 
 ### rdCV: Full data
