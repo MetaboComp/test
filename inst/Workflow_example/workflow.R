@@ -9,6 +9,14 @@ rm(list=ls())
 data("freelive")
 
 ## PLS regression
+#  Different types of variable selections are performed prior to main analysis to 
+#  examine impact of performance
+#  Data for regression is
+#  X=LCMS metabolomics of urine samples
+#  Y=Dietary consumption of whole grain rye in a free living population
+#  Individuals are resampled after 2-3 months
+#  ID variable is added to perform subsampling only on iondependent samples
+
 
 ### Variable selections
 
@@ -29,7 +37,7 @@ tUni=(proc.time()[3]-tUni)/60
 
 library(mixOmics)
 tsp1=proc.time()[3]
-splsMod=mixOmics::spls(XR,YR,ncomp=3,mode='regression',keepX=c(1000,1000,1000))
+splsMod=mixOmics::spls(XR,YR,ncomp=3,mode='regression',keepX=c(500,500,500))
 splsVIP=vip(splsMod)[,3]
 VIP=names(splsVIP)[splsVIP>1]
 tsp1=(proc.time()[3]-tsp1)/60
@@ -181,7 +189,8 @@ for (m in 1:nMod) {
   eval(parse(text=paste('nC[m]=',mods[m],'$nComp[2]',sep='')))
   eval(parse(text=paste('nV[m]=',mods[m],'$nVar[2]',sep='')))
 }
-RMPMat=data.frame(nComp=nC,nVar=nV,R2=R2,Q2=Q2,tVal=tVal,row.names=mods)
+RMPMat=data.frame(nComp=round(nC),nVar=round(nV),R2=round(R2,2),Q2=round(Q2,2),tVal=round(tVal,2),row.names=mods)
+write.csv2(RMPMat,file='RMPMat.csv')
 
 ## RF regression
 
@@ -189,78 +198,100 @@ RMPMat=data.frame(nComp=nC,nVar=nV,R2=R2,Q2=Q2,tVal=tVal,row.names=mods)
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-R.rf=MVWrap(X=XR,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+RMR_full=MUVR(X=XR,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
+
+### MUVR: Uni-variate
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RMR_uni=MUVR(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: sPLS filter
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-R2.rf=MVWrap(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+RMR_sp1=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
 stopCluster(cl)
 
 ### MUVR: sPLS filter 2
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-R3.rf=MVWrap(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+RMR_sp2=MUVR(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
+
+### MUVR: VSURF-I
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RMR_VSI=MUVR(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
+
+### MUVR: VSURF-P
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RMR_VSP=MUVR(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
+
+### MUVR: Boruta
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RMR_Bor=MUVR(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
 stopCluster(cl)
 
 ### rdCV: Full data
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-Rrdcv.rf=rdCV(X=XR,Y=YR,ID=IDR,nRep=15,method='RF')
+RRR_full=rdCV(X=XR,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
+
+### rdCV: Uni-variate
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RRR_uni=rdCV(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
 stopCluster(cl)
 
 ### rdCV: sPLS filter
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-Rrdcv2.rf=rdCV(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF')
+RRR_sp1=rdCV(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
 stopCluster(cl)
 
-### rdCV: sPLS filter
+### rdCV: sPLS filter 2
 
 cl=makeCluster(3)
 registerDoParallel(cl)
-Rrdcv3.rf=rdCV(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='RF')
+RRR_sp2=rdCV(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
 stopCluster(cl)
 
-### Take out R2 and Q2
+### rdCV: VSURF-I
 
-R.rf$fitMetric
-R2.rf$fitMetric
-R3.rf$fitMetric
-R3.rf$nVar
-Rrdcv.rf$fitMetric
-Rrdcv2.rf$fitMetric
-Rrdcv3.rf$fitMetric
-Rrdcv3.rf$nVar
+cl=makeCluster(3)
+registerDoParallel(cl)
+RRR_VSI=rdCV(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
 
-# save(R.pls,R2.pls,Rrdcv.pls,Rrdcv2.pls,R.rf,R2.rf,Rrdcv.rf,Rrdcv2.rf,file='Exclude/freeliveModels.rda')
+### rdCV: VSURF-P
 
-### Permutation test sPLS2
+cl=makeCluster(3)
+registerDoParallel(cl)
+RRR_VSP=rdCV(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
 
-nPerm=100
-h0_sp2_pls=eta_sp2_pls=K_sp2_pls=nVar_sp2_pls=numeric(nPerm)
-t_sp2_pls=proc.time()[3]
-for (p in 1:nPerm) {
-  cat ('permutation',p,'of',nPerm,'\n')
-  yPerm=sample(YR)
-  spp=cv.spls(XR,yPerm,eta=seq(.3,.9,.1),K=1:5,plot.it=F)
-  spp2=spls::spls(XR,yPerm,eta=spp$eta.opt,K=spp$K.opt)
-  eta_sp2_pls[p]=spp$eta.opt
-  K_sp2_pls[p]=spp$K.opt
-  nVar_sp2_pls[p]=length(spp2$A)
-  varspp=colnames(spp2$x)[spp2$A]
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=MVWrap(X=subset(XR,select=varspp),Y=yPerm,ID=IDR,nRep=12,method='PLS',varRatio=0.75)
-  h0_sp2_pls[p]=permMod$fitMetric$Q2[2]
-  stopCluster(cl)
-}
-t_sp2_pls=(proc.time()[3]-t_sp2_pls)/60
+### rdCV: Boruta
+
+cl=makeCluster(3)
+registerDoParallel(cl)
+RRR_Bor=rdCV(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+stopCluster(cl)
+
 
 
 # Mosquito - Classification
@@ -311,3 +342,5 @@ plotVAL(ML.test)
 plotMV(ML.pls)
 plotVAL(ML.pls)
 class(ML.pls)
+
+

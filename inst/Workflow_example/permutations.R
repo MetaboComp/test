@@ -11,7 +11,7 @@ nPerm=100
 
 ### Univ
 UP_corYR=UP_R2=UP_Q2=numeric(nPerm)
-for (p in 1:nPerm) {
+for (p in 48:nPerm) {
   YPerm=sample(YR)
   UP_corYR[p]=cor(YR,YPerm)
   pUni=pUniFDR=numeric(ncol(XR))
@@ -22,6 +22,7 @@ for (p in 1:nPerm) {
   }
   pUniFDR=p.adjust(pUni,method='fdr')
   UV=colnames(XR)[pUniFDR<0.05]
+  if (length(UV)<100) UV=colnames(XR)[pUniFDR<sort(pUniFDR)[101]]
   cl=makeCluster(3)
   registerDoParallel(cl)
   permMod=MUVR(X=subset(XR,select=UV),Y=YPerm,ID=IDR,nRep=15,method='PLS',varRatio=0.75)
@@ -30,12 +31,14 @@ for (p in 1:nPerm) {
   UP_Q2[p]=permMod$fitMetric$Q2[1]
 }
 
+save(UP_Q2,UP_R2,UP_corYR,file='UP.rda')
+
 ### sPLS-1
 sP1P_corYR=sP1P_R2=sP1P_Q2=numeric(nPerm)
 for (p in 1:nPerm) {
   YPerm=sample(YR)
   sP1P_corYR[p]=cor(YR,YPerm)
-  splsMod=mixOmics::spls(XR,YR,ncomp=3,mode='regression',keepX=c(1000,1000,1000))
+  splsMod=mixOmics::spls(XR,YR,ncomp=3,mode='regression',keepX=c(500,500,500))
   splsVIP=mixOmics::vip(splsMod)[,3]
   sP1=names(splsVIP)[splsVIP>1]
   cl=makeCluster(3)
@@ -89,3 +92,30 @@ for (p in 1:nPerm) {
   FP_R2[p]=permMod$fitMetric$R2[1]
   FP_Q2[p]=permMod$fitMetric$Q2[1]
 }
+
+### rdCV
+rP_corYR=rP_R2=rP_Q2=numeric(nPerm)
+for (p in 1:nPerm) {
+  YPerm=sample(YR)
+  rP_corYR[p]=cor(YR,YPerm)
+  cl=makeCluster(3)
+  registerDoParallel(cl)
+  permMod=rdCV(X=XR,Y=YPerm,ID=IDR,nRep=15,method='PLS')
+  stopCluster(cl)
+  rP_R2[p]=permMod$fitMetric$R2[1]
+  rP_Q2[p]=permMod$fitMetric$Q2[1]
+}
+
+### Full RF
+FR_corYR=FR_R2=FR_Q2=numeric(nPerm)
+for (p in 1:nPerm) {
+  YPerm=sample(YR)
+  FR_corYR[p]=cor(YR,YPerm)
+  cl=makeCluster(3)
+  registerDoParallel(cl)
+  permMod=MUVR(X=XR,Y=YPerm,ID=IDR,nRep=15,method='RF',varRatio=0.75)
+  stopCluster(cl)
+  FR_R2[p]=permMod$fitMetric$R2[1]
+  FR_Q2[p]=permMod$fitMetric$Q2[1]
+}
+
