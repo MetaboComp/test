@@ -9,20 +9,23 @@
 #' @param nOuter Number of outer CV loop segments. (Defaults to 6)
 #' @param nInner Number of inner CV loop segments. (Defaults to nOuter-1)
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)
-#' @param DA Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
+#' @param DA Boolean for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
 #' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (see function code for details)
-#' @param ML Logical for multilevel analysis (defaults to FALSE)
-#' @param modReturn Logical for returning outer segment models (defaults to FALSE)
+#' @param ML Boolean for multilevel analysis (defaults to FALSE)
+#' @param modReturn Boolean for returning outer segment models (defaults to FALSE)
 #' @param newdata New data matrix ONLY for prediction NOT modelling (Not yet fully implemented)
 #' @param nCompMax Option to choose max number of PLS components (default is 5)
-#' @param logg Logical for whether to sink model progressions to `log.txt`
+#' @param logg Boolean for whether to sink model progressions to `log.txt`
+#' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
 #'
 #' @return An object containing stuff...
 #' @export
-MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE){
+MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE,parallel=TRUE){
   library(pROC)
+  library(foreach)
+  if (parallel) "%doVersion%"=get("%dopar%") else "%doVersion%"=get("%do%")
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
@@ -144,7 +147,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   ## Start repetitions
   # reps=list()
   # for (r in 1:nRep){
-  reps=foreach(r=1:nRep, .packages=packs, .export=exports) %dopar% {
+  reps=foreach(r=1:nRep, .packages=packs, .export=exports) %doVersion% {
     # r=1
     # r=r+1
     if (logg) sink('log.txt',append=TRUE)
@@ -179,7 +182,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       cat('\n Segment ',i,' (variables):',sep='') # Counter
       ## Draw out test set
       testID=allTest[[i]] # Draw out segment = holdout set BASED ON UNIQUE ID
-      testIndex=ID%in%testID # Logical for samples included
+      testIndex=ID%in%testID # Boolean for samples included
       xTest=X[testIndex,]
       yTest=Y[testIndex]
       inID=unikID[!unikID%in%testID]  # IDs not in test set
