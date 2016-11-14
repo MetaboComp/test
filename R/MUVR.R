@@ -431,7 +431,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     modelReturn$yClass=apply(yPred,2,function(x) ifelse(x>0,1,-1))
     modelReturn$miss=apply(modelReturn$yClass,2,function(x) sum(x!=Y))
     modelReturn$auc=apply(yPred,2,function(x) roc(Y,x)$auc)
-    colnames(modelReturn$yClass)=names(modelReturn$miss)=names(modelReturn$auc)==c('min','mid','max')
+    colnames(modelReturn$yClass)=names(modelReturn$miss)=names(modelReturn$auc)=c('min','mid','max')
   }
   # Average VIP ranks over repetitions
   VIP=apply(VIPRepMin,1,mean)
