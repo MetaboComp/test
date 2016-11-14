@@ -325,14 +325,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         xTestMax=subset(xTest,select=incVarMax)
         yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
         if (modReturn) {
-          whichMod=methParam$returnModel
-          if (is.null(whichMod)) {
-            cat('\nNo return model specified. Please add "min", "mid" or "max" to "methParam$returnModel": Return NULL')
-            return(NULL)
-          }
-          if (whichMod=='min') outMod[[i]]=plsOutMin else
-            if (whichMod=='mid') outMod[[i]]=plsOutMid else
-              outMod[[i]]=plsOutMax
+          outMod[[i]]=list(plsOutMin,plsOutMid,plsOutMax)
         }
       } else {
         rfOutMin=randomForest(subset(xIn,select=incVarMin),yIn,subset(xTest,select=incVarMin),yTest)
@@ -354,14 +347,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
           yPredMaxR[testIndex]=rfOutMax$test$predicted
         }
         if (modReturn) {
-          whichMod=methParam$returnModel
-          if (is.null(whichMod)) {
-            cat('\nNo return model specified. Please add "min", "mid" or "max" to "methParam$returnModel": Return NULL')
-            return(NULL)
-          }
-          if (whichMod=='min') outMod[[i]]=rfOutMin else
-            if (whichMod=='mid') outMod[[i]]=rfOutMid else
-              outMod[[i]]=rfOutMax
+          outMod[[i]]=list(rfOutMin,rfOutMid,rfOutMax)
         }
       }
     }
