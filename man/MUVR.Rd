@@ -6,8 +6,8 @@
 \usage{
 MUVR(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS",
-  "RF"), nCompMax, methParam, ML = FALSE, modReturn = FALSE,
-  newdata = NULL, logg = FALSE)
+  "RF"), nCompMax, methParam, ML = FALSE, modReturn = FALSE, logg = FALSE,
+  parallel = TRUE)
 }
 \arguments{
 \item{X}{Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data. For multilevel, only the positive half of the difference matrix is specified.}
@@ -24,7 +24,7 @@ MUVR(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
 
 \item{varRatio}{Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)}
 
-\item{DA}{Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).}
+\item{DA}{Boolean for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).}
 
 \item{fitness}{Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)}
 
@@ -34,16 +34,16 @@ MUVR(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
 
 \item{methParam}{List with parameter settings for specified MV method (see function code for details)}
 
-\item{ML}{Logical for multilevel analysis (defaults to FALSE)}
+\item{ML}{Boolean for multilevel analysis (defaults to FALSE)}
 
-\item{modReturn}{Logical for returning outer segment models (defaults to FALSE)}
+\item{modReturn}{Boolean for returning outer segment models (defaults to FALSE)}
 
-\item{newdata}{New data matrix ONLY for prediction NOT modelling (Not yet fully implemented)}
+\item{logg}{Boolean for whether to sink model progressions to `log.txt`}
 
-\item{logg}{Logical for whether to sink model progressions to `log.txt`}
+\item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
 }
 \value{
-An object containing stuff...
+An object containing stuff XXX...
 }
 \description{
 Repeated double cross validation with tuning of variables in the inner loop.

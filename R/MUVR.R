@@ -15,14 +15,13 @@
 #' @param methParam List with parameter settings for specified MV method (see function code for details)
 #' @param ML Boolean for multilevel analysis (defaults to FALSE)
 #' @param modReturn Boolean for returning outer segment models (defaults to FALSE)
-#' @param newdata New data matrix ONLY for prediction NOT modelling (Not yet fully implemented)
 #' @param nCompMax Option to choose max number of PLS components (default is 5)
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
 #'
-#' @return An object containing stuff...
+#' @return An object containing stuff XXX...
 #' @export
-MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,newdata=NULL,logg=FALSE,parallel=TRUE){
+MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,logg=FALSE,parallel=TRUE){
   library(pROC)
   library(foreach)
   if (parallel) "%doVersion%"=get("%dopar%") else "%doVersion%"=get("%do%")
@@ -56,7 +55,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   if (!missing(nCompMax)) methParam$compMax=nCompMax
   if (ML) {
     X=rbind(X,-X)
-    Y=rep(c(-1,1),each=nSamp)
+    if (missing(Y)) Y=rep(-1,nSamp)
+    Y=c(Y,-Y)
     nSamp=2*nSamp
     ID=c(ID,ID)
     DA=FALSE
@@ -90,20 +90,12 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       cat('\nMissing fitness -> RMSEP')
     }
   }
-  pred=ifelse(missing(newdata),FALSE,TRUE)
-  if (pred) {  # If model is also used to predict newdata matrix, allocate a YP response array
-    YP=matrix(nrow=nrow(newdata),ncol=nRep*nOuter)  # Predictions for all samples (rows) across outer segments (cols) and repetitions (dim3)
-  }
   if (nrow(X)!=length(Y)) {
     cat('\nMust have same nSamp in X and Y: Return NULL')
     return(NULL)
   }
   ## Store indata in list for later model return
   InData=list(X=X,Y=Y,ID=ID,nRep=nRep,nOuter=nOuter,nInner=nInner,varRatio=varRatio,DA=DA,fitness=fitness,method=method,methParam=methParam,ML=ML)
-  if (pred) {
-    InData$pred=pred
-    InData$newdata=newdata
-  }
   ## Sort sampling based in subjects and not index
   unik=!duplicated(ID)  # boolean of unique IDs
   unikID=ID[unik]  
@@ -151,7 +143,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     # r=1
     # r=r+1
     if (logg) sink('log.txt',append=TRUE)
-    if (pred) YPR=matrix(nrow=nrow(newdata),ncol=nOuter)
     if (modReturn) outMod=list()
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
     if (DA) {
@@ -333,10 +324,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         incVarMax=incVarMax[!incVarMax%in%removeVar]
         xTestMax=subset(xTest,select=incVarMax)
         yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
-        # Prediction of newdata
-        if (pred) {
-          YPR[,i]=predict(plsOutMid,newdata=subset(newdata,select=incVarMid))$predict[,,nCompOutMid[i]]
-        }
         if (modReturn) {
           whichMod=methParam$returnModel
           if (is.null(whichMod)) {
@@ -512,7 +499,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     yRep=ncol(yFit)/3
     colnames(yFit)=rep(c('min','mid','max'),each=yRep)
     modelReturn$Fit=list(yFit=yFit,plsFitMin=plsFitMin,plsFitMid=plsFitMid,plsFitMax=plsFitMax)
-    # Prediction of newdata
   } else {
     rfFitMin=randomForest(subset(X,select=incVarMin),Y)
     if (DA) {
