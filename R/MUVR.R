@@ -366,7 +366,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     }
     parReturn$VAL=VALRep
     if (modReturn) parReturn$outModel=outMod
-    if (pred) parReturn$YP=YPR
     if (logg) sink()
     return(parReturn)
     # reps[[r]]=parReturn
@@ -392,7 +391,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     }
     VAL[,,r]=reps[[r]]$VAL
     if (modReturn) outMods=c(outMods,reps[[r]]$outModel)
-    if (pred) YP[,(nOuter*(r-1)+1):(nOuter*r)]=reps[[r]]$YP
   }
   # Average predictions
   if (DA) {
@@ -453,7 +451,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   modelReturn$VAL$metric=fitness
   modelReturn$VAL$VAL=VAL
   if (modReturn) modelReturn$outModels=outMods
-  if (pred) modelReturn$YP=YP
   modelReturn$yPredPerRep=list(minModel=yPredMin,midModel=yPredMid,maxModel=yPredMax)
   modelReturn$nVarPerRep=list(minModel=varRepMin,midModel=varRepMid,maxModel=varRepMax)
   if (method=='PLS') modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
