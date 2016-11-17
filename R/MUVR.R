@@ -120,6 +120,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
   varRepMin=varRepMid=varRepMax=nCompRepMin=nCompRepMid=nCompRepMax=missRep=numeric(nRep)
   names(varRepMin)=names(varRepMid)=names(varRepMax)=names(nCompRepMin)=names(nCompRepMid)=names(nCompRepMax)=names(missRep)=paste(rep('rep',nRep),1:nRep,sep='')
+  nCompSegMin=nCompSegMid=nCompSegMax=matrix(nrow=nRep,ncol=nOuter,dimnames=list(paste('repetition',1:nRep,sep=''),paste('segment',1:nOuter,sep='')))
   VIPRepMin=VIPRepMid=VIPRepMax=matrix(data=nVar0,nrow=nVar0,ncol=nRep)
   rownames(VIPRepMin)=rownames(VIPRepMid)=rownames(VIPRepMax)=colnames(X)
   colnames(VIPRepMin)=colnames(VIPRepMid)=colnames(VIPRepMax)=paste(rep('rep',nRep),1:nRep,sep='')
@@ -363,6 +364,9 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       parReturn$nCompRepMin=round(mean(nCompOutMin))
       parReturn$nCompRepMid=round(mean(nCompOutMid))
       parReturn$nCompRepMax=round(mean(nCompOutMax))
+      parReturn$nCompSegMin=nCompOutMin
+      parReturn$nCompSegMid=nCompOutMid
+      parReturn$nCompSegMax=nCompOutMax
     }
     parReturn$VAL=VALRep
     if (modReturn) parReturn$outModel=outMod
@@ -388,6 +392,9 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       nCompRepMin[r]=reps[[r]]$nCompRepMin
       nCompRepMid[r]=reps[[r]]$nCompRepMid
       nCompRepMax[r]=reps[[r]]$nCompRepMax
+      nCompSegMin[r,]=reps[[r]]$nCompSegMin
+      nCompSegMid[r,]=reps[[r]]$nCompSegMid
+      nCompSegMax[r,]=reps[[r]]$nCompSegMax
     }
     VAL[,,r]=reps[[r]]$VAL
     if (modReturn) outMods=c(outMods,reps[[r]]$outModel)
@@ -453,7 +460,10 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   if (modReturn) modelReturn$outModels=outMods
   modelReturn$yPredPerRep=list(minModel=yPredMin,midModel=yPredMid,maxModel=yPredMax)
   modelReturn$nVarPerRep=list(minModel=varRepMin,midModel=varRepMid,maxModel=varRepMax)
-  if (method=='PLS') modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
+  if (method=='PLS') {
+    modelReturn$nCompPerRep=list(minModel=nCompRepMin,midModel=nCompRepMid,maxModel=nCompRepMax)
+    modelReturn$nCompPerSeg=list(minModel=nCompSegMin,midModel=nCompSegMid,maxModel=nCompSegMax)
+  }
   modelReturn$inData=InData
   ## Build overall "Fit" method for calculating R2 and visualisations
   incVarMin=names(VIP[rank(VIP[,1])<=round(nVar[1]),1])

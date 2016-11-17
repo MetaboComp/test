@@ -78,10 +78,14 @@ stopCluster(cl)
 
 ### MUVR: Uni-variate
 
-cl=makeCluster(3)
+cl=makeCluster(detectCores()-1)
 registerDoParallel(cl)
-RMP_uni=MUVR(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
+RMP_uni=MUVR(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=14,method='PLS',varRatio=0.75,modReturn=T)
 stopCluster(cl)
+
+newdata=subset(XR,select = UV)
+preds=predMV(RMP_uni,newdata,'min')
+plotPred(YR,preds)
 
 ### MUVR: sPLS-filter 1
 

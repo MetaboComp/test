@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.950 | 2016-11-16 | Added first version of predict function `predMV` (for PLS regression) and tweaked MUVR to allow for submodel predictions
 0.0.945 | 2016-11-14 | Added choice of Y in ML (for easier permutation analysis)
 0.0.944 | 2016-11-10 | Added choice (non)-parallel
 0.0.943 | 2016-07-25 | MVWrap -> MUVR & Included VIPPerRep in MUVR and RDCV.
