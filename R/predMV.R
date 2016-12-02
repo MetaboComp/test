@@ -17,29 +17,69 @@ predMV=function(MVObj,newdata,model='mid') {
   method=MVObj$inData$method
   nRep=MVObj$inData$nRep
   nOuter=MVObj$inData$nOuter
-  yPred=matrix(nrow=length(MVObj$outModels),ncol=nrow(newdata),dimnames=list(paste('model',1:length(MVObj$outModels),sep=''),paste('observation',1:nrow(newdata),sep='')))
+  if (method=='PLS') {
+    nComps=MVObj$nCompPerSeg[[modNum]]
+    library(mixOmics)
+  } else {
+    library(randomForest)
+  }
   # par(mar=c(4,4,0,0)+.5)
   if (class(MVObj)[3]=='Regression') {
-    if (method=='PLS') {
-      library(mixOmics)
-      nComps=MVObj$nCompPerSeg[[modNum]]
-      n=0
-      for(r in 1:nRep) {
-        for(i in 1:nOuter) {
-          n=n+1
-          mod=MVObj$outModels[[n]][[modNum]]
-          X=subset(newdata,select=mod$names$X)
-          nComp=nComps[r,i]
-          yPred[n,]=predict(mod,newdata=X)$predict[,,nComp]  # 
+    yPredPerMod=matrix(ncol=length(MVObj$outModels),nrow=nrow(newdata),dimnames=list(paste('observation',1:nrow(newdata),sep=''),paste('model',1:length(MVObj$outModels),sep='')))
+    n=0
+    for(r in 1:nRep) {
+      for(i in 1:nOuter) {
+        n=n+1
+        mod=MVObj$outModels[[n]][[modNum]]
+        if (method=='PLS') {
+          if (any(!mod$names$X%in%colnames(newdata))) {
+            cat('\nMismatch variable names in model',n,': Return NULL')
+            return(NULL)
+          } else {
+            X=subset(newdata,select=mod$names$X)
+            nComp=nComps[r,i]
+            yPredPerMod[,n]=predict(mod,newdata=X)$predict[,,nComp]  # 
+          }
+        } else {
+          if (any(!rownames(mod$importance)%in%colnames(newdata))) {
+            cat('\nMismatch variable names in model',n,': Return NULL')
+            return(NULL)
+          } else {
+            X=subset(newdata,select=mod$names$X)
+            X=subset(newdata,select=rownames(mod$importance))
+            yPredPerMod[,n]=predict(mod,newdata=X)  # 
+          }
         }
       }
-    } else {
-      cat('\nNot yet implemented')
     }
+    yPred=apply(yPredPerMod,1,mean)
+    return(list(yPred=yPred,yPredPerMod=yPredPerMod))
   } else if (class(MVObj)[3]=='Classification') {
-    cat('\nNot yet implemented')
+    yPredPerMod=array(dim=c(nrow(newdata),length(levels(MVObj$inData$Y)),length(MVObj$outModels)),dimnames=list(paste('observation',1:nrow(newdata),sep=''),levels(MVObj$inData$Y),paste('model',1:length(MVObj$outModels),sep='')))
+    n=0
+    for(r in 1:nRep) {
+      for(i in 1:nOuter) {
+        n=n+1
+        mod=MVObj$outModels[[n]][[modNum]]
+        if (method=='PLS') {
+          cat('\nNot yet implemented')
+          return(NULL)
+        } else {
+          if (any(!rownames(mod$importance)%in%colnames(newdata))) {
+            cat('\nMismatch variable names in model',n,': Return NULL')
+            return(NULL)
+          } else {
+            X=subset(newdata,select=rownames(mod$importance))
+            yPredPerMod[,,n]=predict(mod,newdata=X,type='vote')  # 
+          }
+        }
+      }
+    }
+    yPred=apply(yPredPerMod,c(1,2),mean)
+    yClass=levels(MVObj$inData$Y)[apply(yPred,1,which.max)]
+    names(yClass)=paste('observation',1:nrow(newdata),sep='')
+    return(list(yClass=yClass,yPred=yPred,yPredPerMod=yPredPerMod))
   } else {
     cat('\nNot yet implemented')
   }
-  return(yPred)
 }

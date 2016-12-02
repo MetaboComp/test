@@ -329,19 +329,19 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
           outMod[[i]]=list(plsOutMin,plsOutMid,plsOutMax)
         }
       } else {
-        rfOutMin=randomForest(subset(xIn,select=incVarMin),yIn,subset(xTest,select=incVarMin),yTest)
+        rfOutMin=randomForest(x=subset(xIn,select=incVarMin),y=yIn,xtest=subset(xTest,select=incVarMin),ytest=yTest,keep.forest=TRUE)
         if (DA) {
           yPredMinR[testIndex,]=rfOutMin$test$votes
         } else {
           yPredMinR[testIndex]=rfOutMin$test$predicted
         }
-        rfOutMid=randomForest(subset(xIn,select=incVarMid),yIn,subset(xTest,select=incVarMid),yTest)
+        rfOutMid=randomForest(x=subset(xIn,select=incVarMid),y=yIn,xtest=subset(xTest,select=incVarMid),ytest=yTest,keep.forest=TRUE)
         if (DA) {
           yPredMidR[testIndex,]=rfOutMid$test$votes
         } else {
           yPredMidR[testIndex]=rfOutMid$test$predicted
         }
-        rfOutMax=randomForest(subset(xIn,select=incVarMax),yIn,subset(xTest,select=incVarMax),yTest)
+        rfOutMax=randomForest(x=subset(xIn,select=incVarMax),y=yIn,xtest=subset(xTest,select=incVarMax),ytest=yTest,keep.forest=TRUE)
         if (DA) {
           yPredMaxR[testIndex,]=rfOutMax$test$votes
         } else {
