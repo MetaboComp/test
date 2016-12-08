@@ -97,7 +97,7 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
     for (g in 1:groups) { 
       groupID[[g]]=unikID[unikY==Ynames[g]]  # Find indices per group
     }
-    yPredarray(dim=c(length(Y),length(levels(Y)),nRep))
+    yPred=array(dim=c(length(Y),length(levels(Y)),nRep))
     colnames(yPred)=levels(Y)
     dimnames(yPred)[[3]]=paste('Rep',1:nRep,sep='')
     yPredR=matrix(nrow=length(Y),ncol=length(levels(Y)))
@@ -308,7 +308,7 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
     }
     # Classify predictions
     yClass=as.factor(apply(yPredAve,1,function(x) levels(Y)[which.max(x)]))
-    miss=sum(classPred!=Y)
+    miss=sum(yClass!=Y)
     modelReturn$yClass=yClass
     modelReturn$miss=miss
     modelReturn$auc=auc
