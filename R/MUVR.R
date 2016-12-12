@@ -423,7 +423,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     miss=numeric(3)
     yClass=data.frame(Y)
     for (mo in 1:3) {
-      classPred=as.factor(apply(yPred[[mo]],1,function(x) levels(Y)[which.max(x)]))
+      classPred=factor(apply(yPred[[mo]],1,function(x) levels(Y)[which.max(x)]),levels=levels(Y))
       miss[mo]=sum(classPred!=Y)
       yClass[,mo]=classPred
     }
