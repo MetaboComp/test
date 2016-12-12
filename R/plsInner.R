@@ -29,11 +29,11 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
     if (fitness=='MISS') {
       classes=apply(yValInner,c(1,3),which.max)
       misClass=apply(classes,2,function(x) sum(x!=as.numeric(yVal)))
-      returnIn$miss=min(misClass)
+      returnIn$miss=min(misClass,na.rm=T)
       nComp=which.min(misClass)
     } else {
       auc=apply(yValInner[,1,],2,function(x) roc(yVal,x)$auc)
-      returnIn$auc=max(auc)
+      returnIn$auc=max(auc,na.rm=T)
       nComp=which.max(auc)
     }
   } else {
@@ -41,19 +41,19 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
       # cat(' miss',count)
       yClassInner=ifelse(yValInner>0,1,-1)
       misClass=apply(yClassInner,2,function(x) sum(x!=yVal))
-      returnIn$miss=min(misClass)
+      returnIn$miss=min(misClass,na.rm=T)
       nComp=which.min(misClass)
     } 
     if (fitness=='AUROC') {
       # cat(' auc',count)
       auc=apply(yValInner,2,function(x) roc(yVal,x)$auc)
-      returnIn$auc=max(auc)
+      returnIn$auc=max(auc,na.rm=T)
       nComp=which.max(auc)
     }
     if (fitness=='RMSEP') {
       # cat(' rmsep',count)
       rmsep=apply(yValInner,2,function(x) sqrt(sum((yVal-x)^2,na.rm=T)/(length(yVal)-sum(is.na(x)))))
-      returnIn$rmsep=min(rmsep)
+      returnIn$rmsep=min(rmsep,na.rm=T)
       nComp=which.min(rmsep)
     }
   }
