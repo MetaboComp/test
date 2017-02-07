@@ -25,7 +25,7 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
       removeVar=rownames(plsModIn$nzv$Metrics)
       xVal=xVal[,!colnames(xVal)%in%removeVar]
     }
-    yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
+    yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,,drop=F], error=function(e) return('error'))
     if (any(yValInner=='error')) comp=comp-1 else cond=FALSE
   }
   returnIn=list()
