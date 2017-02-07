@@ -12,7 +12,7 @@ plotMV=function(MVObj,model='mid') {
   modNum=ifelse(model=='min',1,ifelse(model=='mid',2,3))
   Y=MVObj$inData$Y
   nSamp=length(Y)
-  par(mar=c(4,4,0,0)+.5)
+  # par(mar=c(4,4,2,0)+.5)
   if (class(MVObj)[3]=='Regression') {
     YP=MVObj$yPred[,modNum]
     YPR=MVObj$yPredPerRep[[modNum]]
