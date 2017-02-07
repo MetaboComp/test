@@ -17,13 +17,19 @@
 #' @export
 #'
 plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
-  if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp) else 
-    plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode)
-  if (length(plsModIn$nzv$Position)>0) {
-    removeVar=rownames(plsModIn$nzv$Metrics)
-    xVal=xVal[,!colnames(xVal)%in%removeVar]
+  cond=TRUE
+  while(cond) {
+    if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp) else 
+      plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode)
+    if (length(plsModIn$nzv$Position)>0) {
+      removeVar=rownames(plsModIn$nzv$Metrics)
+      xVal=xVal[,!colnames(xVal)%in%removeVar]
+    }
+    yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
+    if (any(yValInner=='error')) {
+      comp=comp-1 
+    } else cond=FALSE
   }
-  yValInner=predict(plsModIn,newdata=xVal)$predict[,,]  # Store  prediction estimates per validation segment 
   returnIn=list()
   if (DA) {
     if (fitness=='MISS') {
