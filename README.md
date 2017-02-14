@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.953 | 2017-02-14 | Added `pPerm`, `plotPerm` and `plotVIP`
 0.0.952 | 2017-02-07 | Updated plsInner -> removes comp if error
 0.0.951 | 2016-12-12 | Updated plsInner -> deals with NA
 0.0.950 | 2016-11-16 | Added first version of predict function `predMV` (for PLS regression) and tweaked MUVR to allow for submodel predictions
