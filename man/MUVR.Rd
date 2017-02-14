@@ -43,7 +43,7 @@ MUVR(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
 \item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
 }
 \value{
-An object containing stuff XXX...
+A MUVR object
 }
 \description{
 Repeated double cross validation with tuning of variables in the inner loop.
