@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.954 | 2017-03-09 | Added `biplotPLS`
 0.0.953 | 2017-02-14 | Added `pPerm`, `plotPerm` and `plotVIP`
 0.0.952 | 2017-02-07 | Updated plsInner -> removes comp if error
 0.0.951 | 2016-12-12 | Updated plsInner -> deals with NA
