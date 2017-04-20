@@ -107,23 +107,17 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     for (g in 1:groups) { 
       groupID[[g]]=unikID[unikY==Ynames[g]]  # Find indices per group
     }
-    yPredMin=yPredMid=yPredMax=array(dim=c(length(Y),length(levels(Y)),nRep))
-    colnames(yPredMin)=colnames(yPredMid)=colnames(yPredMax)=levels(Y)
-    dimnames(yPredMin)[[3]]=dimnames(yPredMid)[[3]]=dimnames(yPredMax)[[3]]=paste('Rep',1:nRep,sep='')
-    yPredMinR=yPredMidR=yPredMaxR=matrix(nrow=length(Y),ncol=length(levels(Y)))
-    colnames(yPredMinR)=colnames(yPredMidR)=colnames(yPredMaxR)=levels(Y)
+    yPredMin=yPredMid=yPredMax=array(dim=c(length(Y),length(levels(Y)),nRep),dimnames=list(ID,levels(Y),paste('Rep',1:nRep,sep='')))
+    yPredMinR=yPredMidR=yPredMaxR=matrix(nrow=length(Y),ncol=length(levels(Y)),dimnames=list(ID,levels(Y)))
   } else {
-    yPredMin=yPredMid=yPredMax=matrix(nrow=length(Y),ncol=nRep)
-    colnames(yPredMin)=colnames(yPredMid)=colnames(yPredMax)=paste('Rep',1:nRep,sep='')
+    yPredMin=yPredMid=yPredMax=matrix(nrow=length(Y),ncol=nRep,dimnames=list(ID,paste('Rep',1:nRep,sep='')))
     yPredMinR=yPredMidR=yPredMaxR=numeric(length(Y))
   }
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
   varRepMin=varRepMid=varRepMax=nCompRepMin=nCompRepMid=nCompRepMax=missRep=numeric(nRep)
   names(varRepMin)=names(varRepMid)=names(varRepMax)=names(nCompRepMin)=names(nCompRepMid)=names(nCompRepMax)=names(missRep)=paste(rep('rep',nRep),1:nRep,sep='')
   nCompSegMin=nCompSegMid=nCompSegMax=matrix(nrow=nRep,ncol=nOuter,dimnames=list(paste('repetition',1:nRep,sep=''),paste('segment',1:nOuter,sep='')))
-  VIPRepMin=VIPRepMid=VIPRepMax=matrix(data=nVar0,nrow=nVar0,ncol=nRep)
-  rownames(VIPRepMin)=rownames(VIPRepMid)=rownames(VIPRepMax)=colnames(X)
-  colnames(VIPRepMin)=colnames(VIPRepMid)=colnames(VIPRepMax)=paste(rep('rep',nRep),1:nRep,sep='')
+  VIPRepMin=VIPRepMid=VIPRepMax=matrix(data=nVar0,nrow=nVar0,ncol=nRep,dimnames=list(colnames(X),paste(rep('rep',nRep),1:nRep,sep='')))
   var=numeric()
   cnt=0
   while (nVar>1) {  
@@ -131,9 +125,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     var=c(var,nVar)
     nVar=floor(varRatio*nVar)
   }
-  VAL=array(dim=c(nOuter,cnt,nRep))
-  rownames(VAL)=paste('outSeg',1:nOuter,paste='')
-  colnames(VAL)=var
+  VAL=array(dim=c(nOuter,cnt,nRep),dimnames=list(paste('outSeg',1:nOuter,paste=''),var,paste(rep('rep',nRep),1:nRep,sep='')))
   ## Choose package/core algorithm according to chosen method
   packs=c(ifelse(method=='PLS','mixOmics','randomForest'),'pROC')
   exports=c(ifelse(method=='PLS','plsInner','rfInner'),'vectSamp')
@@ -163,9 +155,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     }
     varOutMin=varOutMid=varOutMax=nCompOutMin=nCompOutMid=nCompOutMax=numeric(nOuter)
     names(varOutMin)=names(varOutMid)=names(varOutMax)=names(nCompOutMin)=names(nCompOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
-    VIPOutMin=VIPOutMid=VIPOutMax=matrix(data=nVar0,nrow=nVar0,ncol=nOuter)
-    rownames(VIPOutMin)=rownames(VIPOutMid)=rownames(VIPOutMax)=colnames(X)
-    colnames(VIPOutMin)=colnames(VIPOutMid)=colnames(VIPOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
+    VIPOutMin=VIPOutMid=VIPOutMax=matrix(data=nVar0,nrow=nVar0,ncol=nOuter,dimnames=list(colnames(X),paste(rep('outSeg',nOuter),1:nOuter,sep='')))
     VALRep=matrix(nrow=nOuter,ncol=cnt)
     ## Perform outer loop segments -> one "majority vote" MV model per segment
     for (i in 1:nOuter) {   
@@ -180,13 +170,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       inID=unikID[!unikID%in%testID]  # IDs not in test set
       if (DA) inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
       ## Allocate variables for later use
-      missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=cnt)
-      rownames(rmsepIn)=rownames(PRESSIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
-      colnames(rmsepIn)=colnames(PRESSIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=var
-      VIPInner=array(data=nVar0,dim=c(nVar0,cnt,nInner))
-      rownames(VIPInner)=colnames(X)
-      colnames(VIPInner)=var
-      dimnames(VIPInner)[[3]]=paste(rep('inSeg',nInner),1:nInner,sep='')
+      missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=cnt,dimnames=list(paste(rep('inSeg',nInner),1:nInner,sep=''),var))
+      VIPInner=array(data=nVar0,dim=c(nVar0,cnt,nInner),dimnames=list(colnames(X),var,paste(rep('inSeg',nInner),1:nInner,sep='')))
       # Restart variables
       incVar=colnames(X)
       ## Perform steps with successively fewer variables
@@ -195,12 +180,10 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         # count=count+1
         nVar=var[count]
         cat(nVar)
-        if (method=='PLS') comp=ifelse(nVar<methParam$compMax,nVar,methParam$compMax)
+        if (method=='PLS') comp=min(c(nVar,methParam$compMax))
         if (method=='RF') {
-          mtryIn=ifelse(DA,
-                        ifelse(sqrt(nVar)>methParam$mtryMaxIn,methParam$mtryMaxIn,floor(sqrt(nVar))),
-                        ifelse((nVar/3)>methParam$mtryMaxIn,methParam$mtryMaxIn,floor(nVar/3)))
-          mtryIn=ifelse(mtryIn<2,2,mtryIn)
+          mtryIn=ifelse(DA,min(c(methParam$mtryMaxIn,floor(sqrt(nVar)))),min(c(methParam$mtryMaxIn,floor(nVar/3))))
+          mtryIn=max(c(2,mtryIn))
         }
         if (DA) {
           groupIDVal=list()
@@ -265,24 +248,16 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       }
       if (fitness=='AUROC') {
         fitRank=colMeans(-aucIn)
-        # fitRank[]=rank(fitRank)
-        # fitRank=colMeans(fitRank)
         VALRep[i,]=colMeans(aucIn)
       } else if (fitness=='MISS') {
         fitRank=VALRep[i,]=colSums(missIn)
-        # fitRank[]=rank(fitRank)
-        # fitRank=colMeans(fitRank)
         VALRep[i,]=colSums(missIn)
       }else {
         fitRank=colMeans(rmsepIn)
-        # fitRank[]=rank(fitRank)
-        # fitRank=colMeans(fitRank)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
       minIndex=max(which(fitRank<=(min(fitRank)+0.05*abs(min(fitRank)))))
       maxIndex=min(which(fitRank<=(min(fitRank)+0.05*abs(min(fitRank)))))
-      # minIndex=max(which(fitRank==min(fitRank)))
-      # maxIndex=min(which(fitRank==min(fitRank)))
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMax[i]=var[maxIndex]
@@ -410,6 +385,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     yPred=cbind(yPred,apply(yPredMid,1,mean)[1:nrow(X)])
     yPred=cbind(yPred,apply(yPredMax,1,mean)[1:nrow(X)])
     colnames(yPred)=c('min','mid','max')
+    rownames(yPred)=ID
   }
   modelReturn$yPred=yPred
   if (DA) {
@@ -428,7 +404,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       yClass[,mo]=classPred
     }
     names(miss)=colnames(yClass)=c('min','mid','max')
-    # Calculate misclassifications
+    rownames(yClass)=ID
+    # Report
     modelReturn$yClass=yClass
     modelReturn$miss=miss
     modelReturn$auc=auc
@@ -437,6 +414,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     modelReturn$miss=apply(modelReturn$yClass,2,function(x) sum(x!=Y))
     modelReturn$auc=apply(yPred,2,function(x) roc(Y,x)$auc)
     colnames(modelReturn$yClass)=names(modelReturn$miss)=names(modelReturn$auc)=c('min','mid','max')
+    rownames(modelReturn$yClass)=ID
   }
   # Average VIP ranks over repetitions
   VIP=apply(VIPRepMin,1,mean)
@@ -491,6 +469,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     yFit=cbind(yFitMin,yFitMid,yFitMax)
     yRep=ncol(yFit)/3
     colnames(yFit)=rep(c('min','mid','max'),each=yRep)
+    rownames(yFit)=ID
     modelReturn$Fit=list(yFit=yFit,plsFitMin=plsFitMin,plsFitMid=plsFitMid,plsFitMax=plsFitMax)
   } else {
     rfFitMin=randomForest(subset(X,select=incVarMin),Y)
@@ -514,6 +493,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     yFit=cbind(yFitMin,yFitMid,yFitMax)
     yRep=ncol(yFit)/3
     colnames(yFit)=rep(c('min','mid','max'),each=yRep)
+    rownames(yFit)=ID
     modelReturn$Fit=list(yFit=yFit,rfFitMin=rfFitMin,rfFitMid=rfFitMid,rfFitMax=rfFitMax)
   }
   # Calculate fit statistics

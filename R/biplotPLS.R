@@ -27,7 +27,7 @@ biplotPLS=function(fit,comps=1:2,xCol,labPlSc=TRUE,labs,vars,labPlLo=TRUE,pchSc=
   nVar=nrow(loads)
   if(missing(xCol)) {
     if (missing(colSc)) {
-      colSc=rep(1,nSamp) 
+      colSc=rep(1,nSamp)
       legPlot=FALSE
     } else {
       colScLeg=colSc
@@ -58,13 +58,13 @@ biplotPLS=function(fit,comps=1:2,xCol,labPlSc=TRUE,labs,vars,labPlLo=TRUE,pchSc=
   axis(1)
   axis(2,las=1)
   if (labPlSc) {
-    if (missing(labs)) labs=rownames(scores) 
+    if (missing(labs)) labs=rownames(scores)
     # cat(labs)
     text(scores,as.character(labs),pos=3)
   }
   if (legPlot) {
     if (missing(xCol)) {
-      legend('topleft',legend=unique(colScLeg),pch=16,col=unique(colSc),bty='n')
+      legend('topleft',legend=unique(colScLeg),pch=unique(pchSc),col=unique(colSc),bty='n')
     } else {
       whUnik=!duplicated(xCol)
       unik=xCol[whUnik]
