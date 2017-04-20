@@ -19,11 +19,11 @@
 plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
   cond=TRUE
   while(cond) {
-    if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp) else 
-      plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode)
+    if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE) else 
+      plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode,near.zero.var=TRUE)
     if (length(plsModIn$nzv$Position)>0) {
       removeVar=rownames(plsModIn$nzv$Metrics)
-      xVal=xVal[,!colnames(xVal)%in%removeVar]
+      xVal=xVal[,!colnames(xVal)%in%removeVar,drop=F]
     }
     yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,,drop=F], error=function(e) return('error'))
     if (any(yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE

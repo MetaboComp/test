@@ -280,22 +280,22 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       incVarMax=rownames(VIPOutMax)[rank(VIPOutMax[,i])<=varOutMax[i]]
       if (method=='PLS'){
         # Min model
-        if (DA) plsOutMin=plsda(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i]) else 
-          plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode=methParam$mode)
+        if (DA) plsOutMin=plsda(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],near.zero.var=TRUE) else 
+          plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode=methParam$mode,near.zero.var=TRUE)
         if (length(plsOutMin$nzv$Position)>0) removeVar=rownames(plsOutMin$nzv$Metrics) else removeVar=NA
         incVarMin=incVarMin[!incVarMin%in%removeVar]
         xTestMin=subset(xTest,select=incVarMin)
         yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 
         # Mid model
-        if (DA) plsOutMid=plsda(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i]) else 
-          plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode=methParam$mode)
+        if (DA) plsOutMid=plsda(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],near.zero.var=TRUE) else 
+          plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode=methParam$mode,near.zero.var=TRUE)
         if (length(plsOutMid$nzv$Position)>0) removeVar=rownames(plsOutMid$nzv$Metrics) else removeVar=NA
         incVarMid=incVarMid[!incVarMid%in%removeVar]
         xTestMid=subset(xTest,select=incVarMid)
         yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
         # Max model
-        if (DA) plsOutMax=plsda(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i]) else 
-          plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode=methParam$mode)
+        if (DA) plsOutMax=plsda(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],near.zero.var=TRUE) else 
+          plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode=methParam$mode,near.zero.var=TRUE)
         if (length(plsOutMax$nzv$Position)>0) removeVar=rownames(plsOutMax$nzv$Metrics) else removeVar=NA
         incVarMax=incVarMax[!incVarMax%in%removeVar]
         xTestMax=subset(xTest,select=incVarMax)
@@ -449,20 +449,20 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   incVarMax=names(VIP[rank(VIP[,3])<=round(nVar[3]),3])
   if (method=='PLS'){
     # Min model
-    if (DA) plsFitMin=plsda(subset(X,select=incVarMin),Y,ncomp=round(nComp[1])) else 
-      plsFitMin=pls(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),mode=methParam$mode)
+    if (DA) plsFitMin=plsda(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),near.zero.var=TRUE) else 
+      plsFitMin=pls(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),mode=methParam$mode,near.zero.var=TRUE)
     if (length(plsFitMin$nzv$Position)>0) removeVar=rownames(plsFitMin$nzv$Metrics) else removeVar=NA
     incVarMin=incVarMin[!incVarMin%in%removeVar]
     yFitMin=predict(plsFitMin,newdata=subset(X,select=incVarMin))$predict[,,nComp[1]]  # 
     # Mid model
-    if (DA) plsFitMid=plsda(subset(X,select=incVarMid),Y,ncomp=round(nComp[2])) else 
-      plsFitMid=pls(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),mode=methParam$mode)
+    if (DA) plsFitMid=plsda(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),near.zero.var=TRUE) else 
+      plsFitMid=pls(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),mode=methParam$mode,near.zero.var=TRUE)
     if (length(plsFitMid$nzv$Position)>0) removeVar=rownames(plsFitMid$nzv$Metrics) else removeVar=NA
     incVarMid=incVarMid[!incVarMid%in%removeVar]
     yFitMid=predict(plsFitMid,newdata=subset(X,select=incVarMid))$predict[,,nComp[2]]  # 
     # Max model
-    if (DA) plsFitMax=plsda(subset(X,select=incVarMax),Y,ncomp=round(nComp[3])) else 
-      plsFitMax=pls(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),mode=methParam$mode)
+    if (DA) plsFitMax=plsda(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),near.zero.var=TRUE) else 
+      plsFitMax=pls(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),mode=methParam$mode,near.zero.var=TRUE)
     if (length(plsFitMax$nzv$Position)>0) removeVar=rownames(plsFitMax$nzv$Metrics) else removeVar=NA
     incVarMax=incVarMax[!incVarMax%in%removeVar]
     yFitMax=predict(plsFitMax,newdata=subset(X,select=incVarMax))$predict[,,nComp[3]]  # 
