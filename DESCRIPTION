@@ -11,6 +11,7 @@ Depends:
     R (>= 3.2.2)
 Imports:
     randomForest,
+    mixOmics,
     pROC,
     doParallel,
     foreach
