@@ -282,14 +282,17 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         # Min model
         if (DA) plsOutMin=plsda(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],near.zero.var=TRUE) else 
           plsOutMin=pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],mode=methParam$mode,near.zero.var=TRUE)
+        xTestMin=subset(xTest,select=incVarMin)
         yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 
         # Mid model
         if (DA) plsOutMid=plsda(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],near.zero.var=TRUE) else 
           plsOutMid=pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],mode=methParam$mode,near.zero.var=TRUE)
+        xTestMid=subset(xTest,select=incVarMid)
         yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
         # Max model
         if (DA) plsOutMax=plsda(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],near.zero.var=TRUE) else 
           plsOutMax=pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],mode=methParam$mode,near.zero.var=TRUE)
+        xTestMax=subset(xTest,select=incVarMax)
         yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
         if (modReturn) {
           outMod[[i]]=list(plsOutMin,plsOutMid,plsOutMax)

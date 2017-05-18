@@ -27,14 +27,14 @@ data("mosquito")
 nCore=detectCores()-1
 cl=makeCluster(nCore)
 registerDoParallel(cl)
-Class_PLS_Quick=MUVR(X=Xotu2,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS',parallel=F) # Quick'N'Dirty
+Class_PLS_Quick=MUVR(X=Xotu2,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS') # Quick'N'Dirty
 Class_PLS_Full=MUVR(X=Xotu2,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
-Class_RF_Quick=MUVR(X=Xotu,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='RF',parallel=F) # Quick'N'Dirty
+Class_RF_Quick=MUVR(X=Xotu,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='RF') # Quick'N'Dirty
 Class_RF_Full=MUVR(X=Xotu,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
 stopCluster(cl)
 
-plotVAL(Class_RF)
-plotMV(Class_RF)
+plotVAL(Class_PLS_Quick)
+plotMV(Class_PLS_Quick)
 
 ## PLS classification
 cl=makeCluster(3)
