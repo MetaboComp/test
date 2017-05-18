@@ -1,315 +1,40 @@
-# Call in relevant libraries
-
+# Regression examples using "freelive" data
+rm(list=ls())
 library(doParallel)
 library(MUVR)
-
-# Freelive - Regression
-
-rm(list=ls())
 data("freelive")
+#  XRVIP=LCMS metabolomics of urine samples (selected metabolite features)
+#  YR=Dietary consumption of whole grain rye in a free living population
+#  IDR=Individual identifier (due to resampling after 2-3 months -> Dependent samples)
 
-## PLS regression
-#  Different types of variable selections are performed prior to main analysis to 
-#  examine impact of performance
-#  Data for regression is
-#  X=LCMS metabolomics of urine samples
-#  Y=Dietary consumption of whole grain rye in a free living population
-#  Individuals are resampled after 2-3 months
-#  ID variable is added to perform subsampling only on iondependent samples
-
-
-### Variable selections
-
-### Univ
-
-tUni=proc.time()[3]
-pUni=pUniFDR=numeric(ncol(XR))
-for(v in 1:ncol(XR)) {
-  Xv=XR[,v]
-  rye.df=data.frame(X=Xv,Y=YR)
-  pUni[v]=anova(lm(Y~X,data=rye.df))[1,5]
-}
-pUniFDR=p.adjust(pUni,method='fdr')
-UV=colnames(XR)[pUniFDR<0.05]
-tUni=(proc.time()[3]-tUni)/60
-
-### sPLS-1
-
-library(mixOmics)
-tsp1=proc.time()[3]
-splsMod=mixOmics::spls(XR,YR,ncomp=3,mode='regression',keepX=c(500,500,500))
-splsVIP=vip(splsMod)[,3]
-VIP=names(splsVIP)[splsVIP>1]
-tsp1=(proc.time()[3]-tsp1)/60
-
-### sPLS-2
-
-library(spls)
-tsp2=proc.time()[3]
-sp=cv.spls(XR,YR,eta=seq(.3,.9,.1),K=1:5)
-sp2=spls::spls(XR,YR,eta=sp$eta.opt,K=sp$K.opt)
-varsp=colnames(sp2$x)[sp2$A]
-tsp2=(proc.time()[3]-tsp2)/60
-
-### VSURF
-
-library(VSURF)
-vs=VSURF(XR,YR,parallel=T)
-varVSI=colnames(XR)[vs$varselect.interp]
-varVSP=colnames(XR)[vs$varselect.pred]
-tVSURF=as.numeric(vs$overall.time*60)
-
-### Boruta
-
-library(Boruta)
-bor=Boruta(XR,YR,holdHistory=F)
-varBor=colnames(XR)[bor$finalDecision=='Confirmed']
-tBor=bor$timeTaken
-
-tVS=c(tBor,0,tsp1,tsp2,tUni,tVSURF,tVSURF)
-names(tVS)=c('Boruta','Full','sPLS-1','sPLS-2','Univ','VSURF-I','VSURF-P')
-
-### MUVR: Full data
-
-cl=makeCluster(3)
+nCore=detectCores()-1
+cl=makeCluster(nCore)
 registerDoParallel(cl)
-RMP_full=MUVR(X=XR,Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: Uni-variate
-
-cl=makeCluster(detectCores()-1)
-registerDoParallel(cl)
-RMP_uni=MUVR(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=14,method='PLS',varRatio=0.75,modReturn=T)
-stopCluster(cl)
-
-newdata=subset(XR,select = UV)
-preds=predMV(RMP_uni,newdata,'min')
-plotPred(YR,preds)
-
-### MUVR: sPLS-filter 1
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMP_sp1=MUVR(X=subset(XR,select = VIP),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: sPLS filter 2
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMP_sp2=MUVR(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: VSURF-I
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMP_VSI=MUVR(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: VSURF-P
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMP_VSP=MUVR(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: Boruta
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMP_Bor=MUVR(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='PLS',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: Full data
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRP_full=rdCV(X=XR,Y=YR,ID=IDR,nRep=15,method='PLS')
-stopCluster(cl)
-
-### rdCV: Uni-variate
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRP_Uni=rdCV(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='PLS')
-stopCluster(cl)
-
-### rdCV: sPLS filter 1
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRP_sp1=rdCV(X=subset(XR,select = VIP),Y=YR,ID=IDR,nRep=15,method='PLS')
-stopCluster(cl)
-
-### rdCV: sPLS filter 2
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRP_sp2=rdCV(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='PLS')
-stopCluster(cl)
-
-### rdCV: VSURF-I
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRP_VSI=rdCV(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='PLS')
-stopCluster(cl)
-
-### rdCV: VSURF-P
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRP_VSP=rdCV(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='PLS')
-stopCluster(cl)
-
-### rdCV: Boruta
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRP_Bor=rdCV(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='PLS')
-stopCluster(cl)
-
-mods=ls(pattern='RRP_')
-nMod=length(mods)
-R2=Q2=tVal=nC=nV=numeric(nMod)
-for (m in 1:nMod) {
-  eval(parse(text=paste('R2[m]=',mods[m],'$fitMetric$R2',sep='')))
-  eval(parse(text=paste('Q2[m]=',mods[m],'$fitMetric$Q2',sep='')))
-  eval(parse(text=paste('tVal[m]=',mods[m],'$calcMins',sep='')))
-  eval(parse(text=paste('nC[m]=',mods[m],'$nComp',sep='')))
-  eval(parse(text=paste('nV[m]=length(',mods[m],'$VIP)',sep='')))
-}
-RRPMat=data.frame(nComp=nC,nVar=nV,R2=R2,Q2=Q2,tVal=tVal,row.names=mods)
-
-mods=ls(pattern='RMP_')
-nMod=length(mods)
-R2=Q2=tVal=nC=nV=numeric(nMod)
-for (m in 1:nMod) {
-  eval(parse(text=paste('R2[m]=',mods[m],'$fitMetric$R2[2]',sep='')))
-  eval(parse(text=paste('Q2[m]=',mods[m],'$fitMetric$Q2[2]',sep='')))
-  eval(parse(text=paste('tVal[m]=',mods[m],'$calcMins',sep='')))
-  eval(parse(text=paste('nC[m]=',mods[m],'$nComp[2]',sep='')))
-  eval(parse(text=paste('nV[m]=',mods[m],'$nVar[2]',sep='')))
-}
-RMPMat=data.frame(nComp=round(nC),nVar=round(nV),R2=round(R2,2),Q2=round(Q2,2),tVal=round(tVal,2),row.names=mods)
-write.csv2(RMPMat,file='RMPMat.csv')
-
-## RF regression
-
-### MUVR: Full data
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMR_full=MUVR(X=XR,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: Uni-variate
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMR_uni=MUVR(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: sPLS filter
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMR_sp1=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: sPLS filter 2
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMR_sp2=MUVR(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: VSURF-I
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMR_VSI=MUVR(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: VSURF-P
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMR_VSP=MUVR(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### MUVR: Boruta
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RMR_Bor=MUVR(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: Full data
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRR_full=rdCV(X=XR,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: Uni-variate
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRR_uni=rdCV(X=subset(XR,select = UV),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: sPLS filter
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRR_sp1=rdCV(X=XRVIP,Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: sPLS filter 2
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRR_sp2=rdCV(X=subset(XR,select = varsp),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: VSURF-I
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRR_VSI=rdCV(X=subset(XR,select = varVSI),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: VSURF-P
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRR_VSP=rdCV(X=subset(XR,select = varVSP),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
-stopCluster(cl)
-
-### rdCV: Boruta
-
-cl=makeCluster(3)
-registerDoParallel(cl)
-RRR_Bor=rdCV(X=subset(XR,select = varBor),Y=YR,ID=IDR,nRep=15,method='RF',varRatio=0.9)
+Regr_PLS_Quick=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS') # Quick'N'Dirty
+Regr_PLS_Full=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
+Regr_RF_Quick=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=nCore,nOuter=5,varRatio=0.75,method='RF') # Quick'N'Dirty
+Regr_RF_Full=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
 stopCluster(cl)
 
 
-
-# Mosquito - Classification
-
+# Classification examples using "mosquito" data
 rm(list=ls())
+library(doParallel)
+library(MUVR)
 data("mosquito")
 
 ## RF classification
-cl=makeCluster(3)
+nCore=detectCores()-1
+cl=makeCluster(nCore)
 registerDoParallel(cl)
-M.rf=testWrap(X=Xotu,Y=Yotu,nRep=30,method='RF',varRatio=0.9)
+Class_PLS_Quick=MUVR(X=Xotu2,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS',parallel=F) # Quick'N'Dirty
+Class_PLS_Full=MUVR(X=Xotu2,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
+Class_RF_Quick=MUVR(X=Xotu,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='RF',parallel=F) # Quick'N'Dirty
+Class_RF_Full=MUVR(X=Xotu,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
 stopCluster(cl)
-plotMV(M.rf)
-plotVAL(M.rf)
+
+plotVAL(Class_RF)
+plotMV(Class_RF)
 
 ## PLS classification
 cl=makeCluster(3)
