@@ -2,6 +2,7 @@
 
 export(MUVR)
 export(biplotPLS)
+export(getVIP)
 export(pPerm)
 export(plotMV)
 export(plotPCA)

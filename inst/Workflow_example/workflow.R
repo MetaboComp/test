@@ -11,47 +11,34 @@ nCore=detectCores()-1
 cl=makeCluster(nCore)
 registerDoParallel(cl)
 Regr_PLS_Quick=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS') # Quick'N'Dirty
-Regr_PLS_Full=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
-Regr_RF_Quick=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=nCore,nOuter=5,varRatio=0.75,method='RF') # Quick'N'Dirty
-Regr_RF_Full=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
+# Regr_PLS_Full=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
+# Regr_RF_Quick=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=nCore,nOuter=5,varRatio=0.75,method='RF') # Quick'N'Dirty
+# Regr_RF_Full=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
 stopCluster(cl)
-
+plotVAL(Regr_PLS_Quick)
+plotMV(Regr_PLS_Quick,model='mid')
+plotVIP(Regr_PLS_Quick,model='mid')
 
 # Classification examples using "mosquito" data
 rm(list=ls())
 library(doParallel)
 library(MUVR)
 data("mosquito")
+#  Xotu=Microbiota OTU (16S rDNA) from mosquitos captured in 3 different villages in Burkina Faso
+#  Yotu=Villages of capture
 
 ## RF classification
 nCore=detectCores()-1
 cl=makeCluster(nCore)
 registerDoParallel(cl)
-Class_PLS_Quick=MUVR(X=Xotu2,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS') # Quick'N'Dirty
-Class_PLS_Full=MUVR(X=Xotu2,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
 Class_RF_Quick=MUVR(X=Xotu,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='RF') # Quick'N'Dirty
-Class_RF_Full=MUVR(X=Xotu,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
+# Class_RF_Full=MUVR(X=Xotu,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
+# Class_PLS_Quick=MUVR(X=Xotu,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS') # Quick'N'Dirty
+# Class_PLS_Full=MUVR(X=Xotu,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
 stopCluster(cl)
-
 plotVAL(Class_PLS_Quick)
 plotMV(Class_PLS_Quick)
 
-## PLS classification
-cl=makeCluster(3)
-registerDoParallel(cl)
-MA.pls=MVWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='AUROC')
-MA.test=testWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='AUROC')
-MM.pls=MVWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='MISS')
-MM.test=testWrap(X=Xotu2[Yotu!='VK7',],Y=factor(Yotu[Yotu!='VK7']),nRep=12,method='PLS',varRatio=0.7,fitness='MISS')
-stopCluster(cl)
-png(filename='Exclude/class.png')
-par(mfrow=c(2,2))
-par(mar=c(4,4,0,0)+.5)
-plotVAL(MM.pls)
-plotVAL(MA.pls)
-plotVAL(MM.test)
-plotVAL(MA.test)
-dev.off()
 
 ## Multilevel ClinDiff
 data("clinDiff")

@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.957 | 2017-05-22 | Added `getVIP`
 0.0.956 | 2017-05-18 | removed old nzv code in plsInner and MUVR
 0.0.955 | 2017-04-20 | `plsInner` now decreases ncomp if producing NAs. Also cleaned up some code in `MUVR`
 0.0.954 | 2017-03-09 | Added `biplotPLS`
