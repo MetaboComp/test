@@ -1,4 +1,4 @@
-#' PLS model in inner CV loop 
+#' PLS model in inner CV loop
 #'
 #' Called from Wrapper
 #' @param xTrain Training data (samples as rows; variables as columns)
@@ -11,7 +11,7 @@
 #' @param mode PLS method (defaults to regression, see 'mixOmics' for details)
 #'
 #' @return An object containing:
-#' @return (`miss`, `auc` or `rmsep`) A fitness metric 
+#' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `nComp` Optimised number of components within range (1:comp)
 #' @return `vip` VIP rankings
 #' @export
@@ -19,12 +19,12 @@
 plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
   cond=TRUE
   while(cond) {
-    if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE) else 
+    if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE) else
       plsModIn=pls(xTrain,yTrain,ncomp=comp,mode=mode,near.zero.var=TRUE)
     yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
     if (any(yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE
   }
-  if(!is.matrix(yValInner)) yValInner=as.matrix(yValInner)
+  if(!DA & !is.matrix(yValInner)) yValInner=as.matrix(yValInner)
   returnIn=list()
   if (DA) {
     if (fitness=='MISS') {
@@ -44,7 +44,7 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
       misClass=apply(yClassInner,2,function(x) sum(x!=yVal))
       returnIn$miss=min(misClass,na.rm=T)
       nComp=which.min(misClass)
-    } 
+    }
     if (fitness=='AUROC') {
       # cat(' auc',count)
       auc=apply(yValInner,2,function(x) roc(yVal,x)$auc)

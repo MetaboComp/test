@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.959 | 2017-06-20 | Fixed plsInner error with DA and matrix format
 0.0.958 | 2017-06-01 | Fixed plsInner 'drop' error
 0.0.957 | 2017-05-22 | Added `getVIP`
 0.0.956 | 2017-05-18 | removed old nzv code in plsInner and MUVR
