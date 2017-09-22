@@ -379,7 +379,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     yPred=cbind(yPred,apply(yPredMid,1,mean)[1:nrow(X)])
     yPred=cbind(yPred,apply(yPredMax,1,mean)[1:nrow(X)])
     colnames(yPred)=c('min','mid','max')
-    rownames(yPred)=ID
+    rownames(yPred)=paste(1:nSamp,ID,sep='_ID')
   }
   modelReturn$yPred=yPred
   if (DA) {
@@ -398,7 +398,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       yClass[,mo]=classPred
     }
     names(miss)=colnames(yClass)=c('min','mid','max')
-    rownames(yClass)=ID
+    rownames(yClass)=paste(1:nSamp,ID,sep='_ID')
     # Report
     modelReturn$yClass=yClass
     modelReturn$miss=miss
@@ -408,7 +408,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     modelReturn$miss=apply(modelReturn$yClass,2,function(x) sum(x!=Y))
     modelReturn$auc=apply(yPred,2,function(x) roc(Y,x)$auc)
     colnames(modelReturn$yClass)=names(modelReturn$miss)=names(modelReturn$auc)=c('min','mid','max')
-    rownames(modelReturn$yClass)=ID
+    rownames(modelReturn$yClass)=paste(1:nSamp,ID,sep='_ID')
   }
   # Average VIP ranks over repetitions
   VIP=apply(VIPRepMin,1,mean)

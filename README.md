@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.960 | 2017-09-22 | Fixed bug with PLS-DA and no successful model -> return NA. Added `cut` to plotVIP and minor fix in MUVR
 0.0.959 | 2017-06-20 | Fixed plsInner error with DA and matrix format
 0.0.958 | 2017-06-01 | Fixed plsInner 'drop' error
 0.0.957 | 2017-05-22 | Added `getVIP`
