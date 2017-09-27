@@ -14,6 +14,7 @@ plotVAL=function(MVObj) {
   for (r in 1:nRep) {
     matlines(count,t(VAL[,,r]),type='l',lty=1,col='grey')
   }
+  lines(count,apply(VAL,2,mean))
   for (i in 1:3) {
     abline(v=MVObj$nVar[i],lty=i)
   }
