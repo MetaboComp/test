@@ -21,4 +21,3 @@ Barplot of variable rankings (lower is better)
 \description{
 Regardless of MV core method, variables are sorted by rank, where lower is better. `plotVIP` produces boxplots of variable rankings for all model repetitions.
 }
-

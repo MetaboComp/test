@@ -23,4 +23,3 @@ p-value
 Side is guessed by actual value compared to median(h0).
 Test is performed on original data OR ranked for non-parametric statistics.
 }
-

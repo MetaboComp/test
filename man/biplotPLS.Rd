@@ -36,4 +36,3 @@ A PLS biplot
 \description{
 Makes a biplot of a fitted object (e.g. from a MUVR with PLS core)
 }
-

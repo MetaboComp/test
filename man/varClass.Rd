@@ -15,4 +15,3 @@ A list with names and numbers of variables: all as well as Optimal ('min' model)
 \description{
 Reports names and numbers of variables: all as well as Optimal (min model), redundant (from min up to max) and noisy (the rest)
 }
-

@@ -41,4 +41,3 @@ An object containing stuff...
 \description{
 rdCV: Wrapper for repeated double cross-validation without variable selection
 }
-

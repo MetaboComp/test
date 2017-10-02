@@ -33,4 +33,3 @@ Plot
 Plots histogram of null hypothesis (permutation) distribution, actual model fitness and cumulative p-value.
 Plot defaults to "greater than" or "smaller than" tests and cumulative probability in Student's t-distribution
 }
-

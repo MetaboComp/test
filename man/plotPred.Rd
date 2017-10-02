@@ -14,4 +14,3 @@ plotPred(Ytrue, Ypreds)
 \description{
 At present, this function only supports predictions for PLS regression type problems
 }
-

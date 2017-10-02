@@ -17,4 +17,3 @@ A pdf with plots of results from multivariate predictions
 \description{
 Plot MV object
 }
-

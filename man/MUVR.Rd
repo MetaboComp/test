@@ -48,4 +48,3 @@ A MUVR object
 \description{
 Repeated double cross validation with tuning of variables in the inner loop.
 }
-

@@ -15,4 +15,3 @@ A plot
 \description{
 Produces a plot of validation metric vs number of variables in model (inner segment)
 }
-

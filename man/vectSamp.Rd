@@ -20,4 +20,3 @@ a list with n groups containg subsampled `vect`
 Random sampling of a vector into n groups
 Bug: Sampling is faulty when length(vect) < n
 }
-

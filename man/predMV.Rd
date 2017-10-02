@@ -19,4 +19,3 @@ A pdf with plots of results from multivariate predictions
 \description{
 At present, this function only supports predictions for PLS regression type problems
 }
-
