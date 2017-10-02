@@ -19,7 +19,8 @@
 plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
   cond=TRUE
   while(cond) {
-    if (DA) plsModIn=plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE) else plsModIn=pls(xTrain,yTrain,ncomp=20,mode=mode,near.zero.var=TRUE)
+    if (DA) plsModIn=tryCatch(plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE), error=function(e) return('error')) else
+      plsModIn=tryCatch(pls(xTrain,yTrain,ncomp=comp,mode=mode,near.zero.var=TRUE), error=function(e) return('error'))
     if (any(plsModIn=='error')) comp=comp-1 else {
       yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
       if (any(yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE
