@@ -11,15 +11,15 @@
 #' @param mtry See original function (`randomForest`). Passed from wrapper.
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric 
-#' @return `vip` VIP rankings
+#' @return `vi` variable importance rankings
 #' @export
 #'
 rfInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,ntree,mtry) {
   rfModIn=randomForest(xTrain,yTrain,xVal,yVal,ntree=ntree,mtry=mtry)
   yValInner=rfModIn$test$predicted 
   returnIn=list()
-  returnIn$vip=rank(-rfModIn$importance)
-  names(returnIn$vip)=rownames(rfModIn$importance)
+  returnIn$vi=rank(-rfModIn$importance)
+  names(returnIn$vi)=rownames(rfModIn$importance)
   if (fitness=='MISS') {
     # cat(' miss',count)
     if (DA) returnIn$miss=sum(yValInner!=yVal) else {

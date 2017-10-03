@@ -5,7 +5,7 @@
 #' @param freqCut 
 #' @param uniqueCut 
 #'
-#' @return
+#' @return nzv object
 #' @export
 nearZeroVar <- function (x, freqCut = 95/5, uniqueCut = 10) {
   if (is.vector(x)) x = matrix(x, ncol = 1)

@@ -8,7 +8,7 @@
 #' @param tol 
 #' @param near.zero.var 
 #'
-#' @return
+#' @return plsda object
 #' @export
 plsda <- function(X, Y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE) {
   Y = as.factor(Y)	
@@ -29,5 +29,6 @@ plsda <- function(X, Y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = 
   
   result$ind.mat = ind.mat
   result$names$Y = levels(Y)
+  class(result) = "plsdaMUVR"
   return(invisible(result))	
 }

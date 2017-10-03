@@ -3,7 +3,7 @@
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
 #' @param object pls(da) object
 #'
-#' @return
+#' @return vip object
 #' @export
 vip <- function(object) {
   #-- initialisation des matrices --#

@@ -30,9 +30,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   # Start timer
   start.time=proc.time()[3]
   # Check indata
-  if (dim(X)!=2) stop('\nError: Wrong format of X matrix.\n')
-  if (is.null(colnames(X))) stop('\nError: No column names in X matrix.\n')
-  if(any(is.na(X)) | any(is.na(Y))) stop('\nError: No missing values allowed in X or Y data.\n')
+  if (length(dim(X))!=2) stop('\nWrong format of X matrix.\n')
+  if (is.null(colnames(X))) stop('\nNo column names in X matrix.\n')
   X=as.matrix(X)
   nSamp=nrow(X)
   nVar=nVar0=ncol(X)
@@ -63,6 +62,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     fitness='MISS'
     cat('\nMultilevel -> Regression on (-1,1) & fitness=MISS')
   }
+  if (any(is.na(X)) | any(is.na(Y))) stop('\nNo missing values allowed in X or Y data.\n')
   if (!is.null(dim(Y))) {
     cat('\nY is not a vector: Return NULL')
     return(NULL)
@@ -239,8 +239,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
             rmsepIn[j,count]=inMod$rmsep
             PRESSIn[j,count]=(inMod$rmsep^2)*length(yVal)
           }
-          # Store VIPs
-          VIPInner[match(names(inMod$vip),rownames(VIPInner)),count,j]=inMod$vip
+          # Store VIs
+          VIPInner[match(names(inMod$vi),rownames(VIPInner)),count,j]=inMod$vi
         }
         ## Average inner VIP ranks before variable elimination
         VIPInAve=apply(VIPInner[,count,],1,mean)
@@ -253,7 +253,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         VALRep[i,]=colMeans(aucIn)
       } else if (fitness=='MISS') {
         fitRank=VALRep[i,]=colSums(missIn)
-        VALRep[i,]=colSums(missIn)
       }else {
         fitRank=colMeans(rmsepIn)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
@@ -285,17 +284,17 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         if (DA) plsOutMin=MUVR::plsda(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],near.zero.var=TRUE) else 
           plsOutMin=MUVR::pls(subset(xIn,select=incVarMin),yIn,ncomp=nCompOutMin[i],near.zero.var=TRUE)
         xTestMin=subset(xTest,select=incVarMin)
-        yPredMinR[testIndex]=MUVR::predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 
+        yPredMinR[testIndex]=predict(plsOutMin,newdata=xTestMin)$predict[,,nCompOutMin[i]]  # 
         # Mid model
         if (DA) plsOutMid=MUVR::plsda(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],near.zero.var=TRUE) else 
           plsOutMid=MUVR::pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],near.zero.var=TRUE)
         xTestMid=subset(xTest,select=incVarMid)
-        yPredMidR[testIndex]=MUVR::predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
+        yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid)$predict[,,nCompOutMid[i]]  # 	
         # Max model
         if (DA) plsOutMax=MUVR::plsda(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],near.zero.var=TRUE) else 
           plsOutMax=MUVR::pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],near.zero.var=TRUE)
         xTestMax=subset(xTest,select=incVarMax)
-        yPredMaxR[testIndex]=MUVR::predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
+        yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax)$predict[,,nCompOutMax[i]]  # 
         if (modReturn) {
           outMod[[i]]=list(plsOutMin,plsOutMid,plsOutMax)
         }
@@ -448,17 +447,17 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     if (DA) plsFitMin=MUVR::plsda(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),near.zero.var=TRUE) else 
       plsFitMin=MUVR::pls(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),near.zero.var=TRUE)
     if (length(plsFitMin$nzv$Position)>0) incVarMin=incVarMin[!incVarMin%in%rownames(plsFitMin$nzv$Metrics)]
-    yFitMin=MUVR::predict(plsFitMin,newdata=subset(X,select=incVarMin))$predict[,,nComp[1]]  # 
+    yFitMin=predict(plsFitMin,newdata=subset(X,select=incVarMin))$predict[,,nComp[1]]  # 
     # Mid model
     if (DA) plsFitMid=MUVR::plsda(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),near.zero.var=TRUE) else 
       plsFitMid=MUVR::pls(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),near.zero.var=TRUE)
     if (length(plsFitMid$nzv$Position)>0) incVarMid=incVarMid[!incVarMid%in%rownames(plsFitMid$nzv$Metrics)]
-    yFitMid=MUVR::predict(plsFitMid,newdata=subset(X,select=incVarMid))$predict[,,nComp[2]]  # 
+    yFitMid=predict(plsFitMid,newdata=subset(X,select=incVarMid))$predict[,,nComp[2]]  # 
     # Max model
     if (DA) plsFitMax=MUVR::plsda(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),near.zero.var=TRUE) else 
       plsFitMax=MUVR::pls(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),near.zero.var=TRUE)
     if (length(plsFitMax$nzv$Position)>0) incVarMax=incVarMax[!incVarMax%in%rownames(plsFitMax$nzv$Metrics)]
-    yFitMax=MUVR::predict(plsFitMax,newdata=subset(X,select=incVarMax))$predict[,,nComp[3]]  # 
+    yFitMax=predict(plsFitMax,newdata=subset(X,select=incVarMax))$predict[,,nComp[3]]  # 
     yFit=cbind(yFitMin,yFitMid,yFitMax)
     yRep=ncol(yFit)/3
     colnames(yFit)=rep(c('min','mid','max'),each=yRep)

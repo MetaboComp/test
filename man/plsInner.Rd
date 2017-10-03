@@ -4,7 +4,7 @@
 \alias{plsInner}
 \title{PLS model in inner CV loop}
 \usage{
-plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp, mode = "regression")
+plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp)
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}
@@ -30,7 +30,7 @@ An object containing:
 
 `nComp` Optimised number of components within range (1:comp)
 
-`vip` VIP rankings
+`vi` variable importance rankings
 }
 \description{
 Called from Wrapper

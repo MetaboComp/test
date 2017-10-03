@@ -13,16 +13,16 @@
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `nComp` Optimised number of components within range (1:comp)
-#' @return `vip` VIP rankings
+#' @return `vi` variable importance rankings
 #' @export
 #'
-plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
+plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp) {
   cond=TRUE
   while(cond) {
     if (DA) plsModIn=tryCatch(MUVR::plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE), error=function(e) return('error')) else
-      plsModIn=tryCatch(MUVR::pls(xTrain,yTrain,ncomp=comp,mode=mode,near.zero.var=TRUE), error=function(e) return('error'))
+      plsModIn=tryCatch(MUVR::pls(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE), error=function(e) return('error'))
     if (any(plsModIn=='error')) comp=comp-1 else {
-      yValInner=tryCatch(MUVR::predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
+      yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
       if (any(yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE
     } 
     if (comp==0) cond=FALSE
@@ -62,7 +62,7 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
         nComp=which.min(rmsep)
       }
     }
-    returnIn$vip=rank(-MUVR::vip(plsModIn)[,nComp])
+    returnIn$vi=rank(-MUVR::vip(plsModIn)[,nComp])
   } else {
     nComp=0
     if (fitness=='MISS') returnIn$miss=length(yVal)
