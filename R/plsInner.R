@@ -19,10 +19,10 @@
 plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
   cond=TRUE
   while(cond) {
-    if (DA) plsModIn=tryCatch(plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE), error=function(e) return('error')) else
-      plsModIn=tryCatch(pls(xTrain,yTrain,ncomp=comp,mode=mode,near.zero.var=TRUE), error=function(e) return('error'))
+    if (DA) plsModIn=tryCatch(MUVR::plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE), error=function(e) return('error')) else
+      plsModIn=tryCatch(MUVR::pls(xTrain,yTrain,ncomp=comp,mode=mode,near.zero.var=TRUE), error=function(e) return('error'))
     if (any(plsModIn=='error')) comp=comp-1 else {
-      yValInner=tryCatch(predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
+      yValInner=tryCatch(MUVR::predict(plsModIn,newdata=xVal)$predict[,,], error=function(e) return('error'))
       if (any(yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE
     } 
     if (comp==0) cond=FALSE
@@ -62,7 +62,7 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,mode='regression') {
         nComp=which.min(rmsep)
       }
     }
-    returnIn$vip=rank(-vip(plsModIn)[,nComp])
+    returnIn$vip=rank(-MUVR::vip(plsModIn)[,nComp])
   } else {
     nComp=0
     if (fitness=='MISS') returnIn$miss=length(yVal)
