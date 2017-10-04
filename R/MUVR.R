@@ -1,4 +1,4 @@
-#' MUVR: Wrapper for "Multivariate modelling with Unbiased Variable selection"
+#' MUVR: "Multivariate modelling with Unbiased Variable selection"
 #' 
 #' Repeated double cross validation with tuning of variables in the inner loop.
 #'
@@ -182,7 +182,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       ## Allocate variables for later use
       missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=cnt,dimnames=list(paste(rep('inSeg',nInner),1:nInner,sep=''),var))
       VIPInner=array(data=nVar0,dim=c(nVar0,cnt,nInner),dimnames=list(colnames(X),var,paste(rep('inSeg',nInner),1:nInner,sep='')))
-      # Restart variables
+      # Set variables
       incVar=colnames(X)
       ## Perform steps with successively fewer variables
       for (count in 1:cnt) {  # Build models with successively fewer variables. Quality metric = number of missclassifications for Validation set

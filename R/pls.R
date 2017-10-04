@@ -11,12 +11,8 @@
 #' @return pls object
 #' @export
 pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE) {
-  x = as.matrix(x)
   y = as.matrix(y)
-  n = nrow(x)
-  p = ncol(x)
-  q = ncol(y)
-  
+  x = as.matrix(x)
   # Remove variables with near zero variance 
   if(near.zero.var) {
     nzv = MUVR::nearZeroVar(x)
@@ -26,6 +22,9 @@ pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TR
       if(ncol(x)==0) stop("No more predictors after Near Zero Var has been applied!")
     }
   }
+  n = nrow(x)
+  p = ncol(x)
+  q = ncol(y)
   
   # Names
   x.names = colnames(x)
