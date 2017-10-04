@@ -18,10 +18,15 @@ predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, ...){
   q = ncol(y)
   p = ncol(x)
   
+  if (ncol(x)!=ncol(newdata) & length(object$nzv$Position)>0) {
+    newdata=newdata[,-object$nzv$Position]
+  }
   if (length(dim(newdata)) == 2) {
     if (ncol(newdata) != p)
       stop("'newdata' must be a numeric matrix with ncol = ", p, 
            " or a vector of length = ", p, ".")
+    if(!identical(colnames(x),colnames(newdata)))
+      stop("Mismatch between columns in model and newdata.")
   }
   if (length(dim(newdata)) == 0) {
     if (length(newdata) != p)
@@ -101,10 +106,15 @@ predict.plsdaMUVR=function(object, newdata, onlyPred=FALSE, ...)  {
   q = ncol(yprim)          
   p = ncol(x)
   
+  if (ncol(x)!=ncol(newdata) & length(object$nzv$Position)>0) {
+    newdata=newdata[,-object$nzv$Position]
+  }
   if (length(dim(newdata)) == 2) {
     if (ncol(newdata) != p)
       stop("'newdata' must be a numeric matrix with ncol = ", p, 
            " or a vector of length = ", p, ".")
+    if(!identical(colnames(x),colnames(newdata)))
+      stop("Mismatch between columns in model and newdata.")
   }
   if (length(dim(newdata)) == 0) {
     if (length(newdata) != p)
