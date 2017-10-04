@@ -33,6 +33,14 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   if (length(dim(X))!=2) stop('\nWrong format of X matrix.\n')
   if (is.null(colnames(X))) stop('\nNo column names in X matrix.\n')
   X=as.matrix(X)
+  if (method=='PLS') {
+    nzv=MUVR::nearZeroVar(X)
+    if (length(nzv$Position)>0) {
+      modelReturn$nzv=colnames(X)[nzv$Position]
+      X=X[,-nzv$Position]
+      cat('\n',length(nzv$Position),'variables with near zero variance detected -> removed from X and stored under $nzv')
+    }
+  }
   nSamp=nrow(X)
   nVar=nVar0=ncol(X)
   if (missing(ID)) {
