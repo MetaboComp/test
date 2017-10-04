@@ -1,6 +1,11 @@
-#' MUVR2: "Multivariate modelling with Unbiased Variable selection" reworked nVar
+#' MUVR2: "Multivariate modelling with Unbiased Variable selection" reworked nVar selection
 #' 
 #' Repeated double cross validation with tuning of variables in the inner loop.
+#' ---
+#' This version bases nVarPerRep on the entire validation matrix, which evens out some noise
+#' compared to the original MUVR algorithm, which averages over nVar hard-selected per segment.
+#' 
+#' Both versions average nVar over all repetitions for final nVar
 #'
 #' @param X Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data. For multilevel, only the positive half of the difference matrix is specified.
 #' @param Y Response vector (Dependent variable). For classification, a factor (or character) variable should be used. For multilevel, Y is calculated automatically.
@@ -33,6 +38,14 @@ MUVR2=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('A
   if (length(dim(X))!=2) stop('\nWrong format of X matrix.\n')
   if (is.null(colnames(X))) stop('\nNo column names in X matrix.\n')
   X=as.matrix(X)
+  if (method=='PLS') {
+    nzv=MUVR::nearZeroVar(X)
+    if (length(nzv$Position)>0) {
+      modelReturn$nzv=colnames(X)[nzv$Position]
+      X=X[,-nzv$Position]
+      cat('\n',length(nzv$Position),'variables with near zero variance detected -> removed from X and stored under $nzv')
+    }
+  }
   nSamp=nrow(X)
   nVar=nVar0=ncol(X)
   if (missing(ID)) {

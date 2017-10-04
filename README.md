@@ -39,6 +39,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.962 | 2017-10-04 | Fixed misindexing in pls function (nzv in now before variable allocation)
 0.0.961 | 2017-10-03 | Removed dependency on mixOmics by adapting pls functions from mixOmics v 5.2.0. Revamped MUVR.
 0.0.960 | 2017-09-22 | Fixed bug with PLS-DA and no successful model -> return NA. Added `cut` to plotVIP and minor fix in MUVR
 0.0.959 | 2017-06-20 | Fixed plsInner error with DA and matrix format
