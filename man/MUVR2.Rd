@@ -2,7 +2,7 @@
 % Please edit documentation in R/MUVR2.R
 \name{MUVR2}
 \alias{MUVR2}
-\title{MUVR2: "Multivariate modelling with Unbiased Variable selection" reworked nVar}
+\title{MUVR2: "Multivariate modelling with Unbiased Variable selection" reworked nVar selection}
 \usage{
 MUVR2(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS",
@@ -47,4 +47,10 @@ A MUVR object
 }
 \description{
 Repeated double cross validation with tuning of variables in the inner loop.
+---
+This version bases nVarPerRep on the entire validation matrix, which evens out some noise
+compared to the original MUVR algorithm, which averages over nVar hard-selected per segment.
+}
+\details{
+Both versions average nVar over all repetitions for final nVar
 }

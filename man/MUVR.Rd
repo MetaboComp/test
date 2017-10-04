@@ -2,7 +2,7 @@
 % Please edit documentation in R/MUVR.R
 \name{MUVR}
 \alias{MUVR}
-\title{MUVR: Wrapper for "Multivariate modelling with Unbiased Variable selection"}
+\title{MUVR: "Multivariate modelling with Unbiased Variable selection"}
 \usage{
 MUVR(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
   DA = FALSE, fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS",
