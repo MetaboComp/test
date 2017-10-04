@@ -3,6 +3,7 @@
 S3method(predict,plsMUVR)
 S3method(predict,plsdaMUVR)
 export(MUVR)
+export(MUVR2)
 export(biplotPLS)
 export(getVIP)
 export(nearZeroVar)

@@ -1,13 +1,15 @@
 #' Predict pls
 #'
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
-#' @param object 
-#' @param newdata 
+#'
+#' @param object a plsMUVR object
+#' @param newdata new data
+#' @param onlyPred Boolean for whether to report back predictions only (defaults to FALSE)
 #' @param ... 
 #'
 #' @return pls prediction
 #' @export
-predict.plsMUVR <-function(object, newdata,  ...){
+predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, ...){
   #-- validation des arguments --#
   if (missing(newdata)) stop("No new data available.")
   
@@ -74,21 +76,22 @@ predict.plsMUVR <-function(object, newdata,  ...){
   rownames(y.hat) = rownames(newdata)
   colnames(y.hat) = colnames(y)
   
-  return(invisible(list(predict = y.hat, variates = t.pred, B.hat = B.hat,betay=betay)))
+  if (onlyPred) return(invisible(list(predict = y.hat))) else return(invisible(list(predict = y.hat, variates = t.pred, B.hat = B.hat,betay=betay)))
 }
 
 
 #' Predict plsda
 #'
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
-#' @param object 
-#' @param newdata 
-#' @param method 
+#'
+#' @param object a plsdaMUVR object
+#' @param newdata new data
+#' @param onlyPred Boolean for whether to report back predictions only (defaults to FALSE)
 #' @param ... 
 #'
 #' @return plsda predictions
 #' @export
-predict.plsdaMUVR=function(object, newdata, method = c("all", "max.dist", "centroids.dist", "mahalanobis.dist"), ...)  {
+predict.plsdaMUVR=function(object, newdata, onlyPred=FALSE, ...)  {
   #-- validation des arguments --#
   if (missing(newdata)) stop("No new data available.")
   
@@ -148,98 +151,11 @@ predict.plsdaMUVR=function(object, newdata, method = c("all", "max.dist", "centr
     B.hat[, , h] = B
   }  #end h
   
-  G = matrix(0, nrow = q, ncol = ncomp)
-  cls = list()
-  
-  for (i in 1:q) {
-    if(ncomp > 1) {
-      G[i, ] = apply(object$variates$X[yprim[, i] == 1, , drop = FALSE], 2, mean)
-    } else {
-      G[i, ] = mean(object$variates$X[yprim[, i] == 1, ])
-    }
-  }	
-  
-  # ----    max distance -----------------
-  
-  if (any(method == "all") || any(method == "max.dist")) {
-    
-    function.pred = function(x){
-      nr = nrow(x)
-      tmp = vector("numeric", nr)
-      for(j in 1:nr){
-        tmp[j] = (which(x[j, ] == max(x[j, ]))[1])
-      }
-      return(tmp)
-    }
-    cls$max.dist = matrix(apply(y.hat, 3, function.pred), ncol = ncomp)
-    colnames(cls$max.dist) = paste(rep("comp", ncomp), 1:ncomp, sep = " ")
-  }
-  
-  # ----    centroids distance -----------------
-  
-  if (any(method == "all") || any(method == "centroids.dist")) {
-    
-    cl = matrix(nrow = nrow(newdata), ncol = ncomp)
-    
-    centroids.fun = function(x, G, h) {
-      q = nrow(G)
-      x = matrix(x, nrow = q, ncol = h, byrow = TRUE)
-      if (h > 1) {
-        d = apply((x - G[, 1:h])^2, 1, sum)
-      }
-      else {
-        d = (x - G[, 1])^2
-      }
-      cl.id = which.min(d)
-    }
-    
-    for (h in 1:ncomp) {
-      cl.id = apply(matrix(t.pred[, 1:h], ncol = h), 1, centroids.fun, G = G, h = h)
-      cl[, h] = cl.id		
-    }
-    colnames(cl) = paste(rep("comp", ncomp), 1:ncomp, sep = " ")
-    cls$centroids.dist = cl
-  }	
-  
-  # ----    mahalanobis distance -----------------
-  
-  if (any(method == "all") || any(method == "mahalanobis.dist")) {
-    
-    cl = matrix(nrow = nrow(newdata), ncol = ncomp)
-    
-    Sr.fun = function(x, G, yprim, h) {
-      q = nrow(G)
-      Xe = yprim %*% G[, 1:h]
-      Xr = object$variates$X[, 1:h] - Xe
-      Sr = t(Xr) %*% Xr / nrow(y)
-      Sr.inv = solve(Sr)
-      x = matrix(x, nrow = q, ncol = h, byrow = TRUE)
-      if (h > 1) {
-        mat = (x - G[, 1:h]) %*% Sr.inv %*% t(x - G[, 1:h])
-        d = apply(mat^2, 1, sum)
-      }
-      else {
-        d = drop(Sr.inv) * (x - G[, 1])^2
-      }
-      cl.id = which.min(d)
-    }
-    
-    for (h in 1:ncomp) {
-      cl.id = apply(matrix(t.pred[, 1:h], ncol = h), 1, Sr.fun, G = G, yprim = yprim, h = h)
-      cl[, h] = cl.id		
-    }
-    colnames(cl) = paste(rep("comp", ncomp), 1:ncomp, sep = " ")
-    cls$mahalanobis.dist = cl
-  }
-  
   #-- valeurs sortantes --#
-  if (any(method == "all")) method = "all"
   rownames(t.pred) = rownames(newdata)
   colnames(t.pred) = paste("dim", c(1:ncomp), sep = " ")
   rownames(y.hat) = rownames(newdata)
   colnames(y.hat) = colnames(y)
-  colnames(G) = paste("dim", c(1:ncomp), sep = " ")
   
-  return(invisible(list(predict = y.hat, variates = t.pred, B.hat = B.hat, 
-                        centroids = G, method = method, class = cls)))
+  if (onlyPred) return(invisible(list(predict = y.hat))) else return(invisible(list(predict = y.hat, variates = t.pred, B.hat = B.hat,betay=betay)))
 }

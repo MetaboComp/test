@@ -11,7 +11,6 @@ nearZeroVar <- function (x, freqCut = 95/5, uniqueCut = 10) {
   if (is.vector(x)) x = matrix(x, ncol = 1)
   
   freqRatio = apply(x, 2, function(data) {
-    data = na.omit(data)
     if (length(unique(data)) == length(data)){ # No duplicate
       return(1)
     } else if (length(unique(data)) == 1) { # Same value
@@ -22,7 +21,7 @@ nearZeroVar <- function (x, freqCut = 95/5, uniqueCut = 10) {
     }
   })
   
-  lunique = apply(x, 2, function(data) length(unique(data[!is.na(data)])))
+  lunique = apply(x, 2, function(data) length(unique(data)))
   percentUnique = 100 * lunique/nrow(x)
   zeroVar = (lunique == 1) | apply(x, 2, function(data) all(is.na(data)))
   

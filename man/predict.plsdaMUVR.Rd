@@ -4,15 +4,14 @@
 \alias{predict.plsdaMUVR}
 \title{Predict plsda}
 \usage{
-\method{predict}{plsdaMUVR}(object, newdata, method = c("all", "max.dist",
-  "centroids.dist", "mahalanobis.dist"), ...)
+\method{predict}{plsdaMUVR}(object, newdata, onlyPred = FALSE, ...)
 }
 \arguments{
-\item{object}{}
+\item{object}{a plsdaMUVR object}
 
-\item{newdata}{}
+\item{newdata}{new data}
 
-\item{method}{}
+\item{onlyPred}{Boolean for whether to report back predictions only (defaults to FALSE)}
 
 \item{...}{}
 }
