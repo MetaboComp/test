@@ -19,12 +19,11 @@
 plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp) {
   cond=TRUE
   while(cond) {
-    if (DA) plsModIn=tryCatch(MUVR::plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE), error=function(e) return('error')) else
-      plsModIn=tryCatch(MUVR::pls(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE), error=function(e) return('error'))
-    if (length(plsModIn)==1 & plsModIn=='error') comp=comp-1 else {
-      yValInner=tryCatch(predict(plsModIn,newdata=xVal,onlyPred=TRUE)$predict[,,], error=function(e) return('error'))
-      if ((length(yValInner)==1 & yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE
-    } 
+    yValInner=tryCatch({
+      if (DA) plsModIn=MUVR::plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE) else plsModIn=MUVR::pls(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE)
+      yValInner=predict(plsModIn,newdata=xVal,onlyPred=TRUE)$predict[,,]
+    }, error=function(e) return('error'))
+    if ((length(yValInner)==1 && yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE
     if (comp==0) cond=FALSE
   }
   returnIn=list()
