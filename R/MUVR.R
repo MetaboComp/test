@@ -432,7 +432,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   modelReturn$nVar=nVar
   if (method=='PLS') {
     # Average nComp over repetitions
-    nComp=c(mean(nCompRepMin),mean(nCompRepMid),mean(nCompRepMax))
+    nComp=c(round(mean(nCompRepMin)),round(mean(nCompRepMid)),round(mean(nCompRepMax)))
     names(nComp)=c('min','mid','max')
     modelReturn$nComp=nComp
   }
