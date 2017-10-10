@@ -57,12 +57,12 @@ plotStability=function(MVObject,model='min',VAll,nVarLim,missLim) {
     par(new=T)
     plot(miss,ylim=c(0,missLim),type='l',col='blue',lty=3,axes=F,xlab='',ylab='')
     axis(4)
-    mtext('Number of misclassifications',side=4,line = 2,col="blue")
+    mtext('Number of misclassifications',side=4,line = 2,col="blue",cex=par()$cex)
   }
   if(regr | ML) {
     par(new=T)
     plot(q2,ylim=c(0,1),type='l',col='green',lty=4,axes=F,xlab='',ylab='')
     axis(4,line=ifelse(regr,NA,4))
-    mtext('Q2',side=4,line = ifelse(regr,2,6),col="green")
+    mtext('Q2',side=4,line = ifelse(regr,2,6),col="green",cex=par()$cex)
   }
 }
