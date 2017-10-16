@@ -12,11 +12,15 @@ plotVAL=function(MVObj) {
   nRep=dim(VAL)[3]
   plot(count,count,ylim=range(VAL),xlim=range(count),log='x',type='n',bty='l',ylab=metric,xlab='Number of variables (log scale)')
   for (r in 1:nRep) {
-    matlines(count,t(VAL[,,r]),type='l',lty=1,col='grey')
+    matlines(count,t(VAL[,,r]),type='l',lty=1,col='lightgrey')
+  }
+  for (r in 1:nRep) {
+    lines(count,colMeans(VAL[,,r]),col='darkgrey')
   }
   lines(count,apply(VAL,2,mean))
   for (i in 1:3) {
-    abline(v=MVObj$nVar[i],lty=i)
+    abline(v=MVObj$nVar[i],lty=i,col=i+1)
   }
-  legend('topright',legend=c('MinModel','MidModel','MaxModel'),lty=1:3,col='black',bty='n')
+  legend('topleft',legend=c('Validation segments','Repetitions','Overall mean'),lty=1,col=c('lightgrey','darkgrey','black'),bty='n')
+  legend('topright',legend=c('MinModel','MidModel','MaxModel'),lty=1:3,col=2:4,bty='n')
 }
