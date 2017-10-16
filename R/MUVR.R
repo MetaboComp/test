@@ -428,7 +428,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   modelReturn$VIP=VIP
   modelReturn$VIPPerRep=list(minModel=VIPRepMin,midModel=VIPRepMid,maxModel=VIPRepMax)
   # Average nVar over repetitions
-  nVar=c(round(mean(varRepMin)),round(mean(varRepMid)),round(mean(varRepMax)))
+  nVar=c(round(exp(mean(log(varRepMin)))),round(exp(mean(log(varRepMid)))),round(exp(mean(log(varRepMax)))))
   names(nVar)=c('min','mid','max')
   modelReturn$nVar=nVar
   if (method=='PLS') {
