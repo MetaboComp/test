@@ -10,7 +10,7 @@ varClass(MVObject)
 \item{MVObject}{A MUVR object}
 }
 \value{
-A list with names and numbers of variables: all as well as Optimal ('min' model), Redundant (from 'min' up to 'max') and Noisy (the rest)
+A list with names and numbers of variables: all as well as Optimal (Corresponding to 'min' or minial-optimal model), Redundant (from 'min' up to 'max' or all-relevant ) and Noisy (the rest)
 }
 \description{
 Reports names and numbers of variables: all as well as Optimal (min model), redundant (from min up to max) and noisy (the rest)
