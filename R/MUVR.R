@@ -58,7 +58,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     }
     methParam$meanMeth='geom'
     methParam$returnModel='mid'
-    methParam$robust=0.15
+    methParam$robust=0.10
   }
   if (!missing(nCompMax)) methParam$compMax=nCompMax
   if (ML) {
