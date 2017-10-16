@@ -17,15 +17,23 @@ plotStability=function(MVObject,model='min',VAll,nVarLim,missLim) {
   nVar=round(MVObject$nVar[nModel])
   if(missing(VAll)) VAll=names(sort(MVObject$VIP[,nModel])[1:nVar]) # Final selection of variables
   nRep=MVObject$inData$nRep
-  nV=VA=miss=r2=q2=numeric(nRep)
+  nVRep=VARep=missRep=r2Rep=Q2rep=nV=VA=miss=r2=q2=numeric(nRep)
   for (i in 1:nRep) {
+    nVRep[i]=MVObject$nVarPerRep[[nModel]][i]
     nV[i]=round(mean(MVObject$nVarPerRep[[nModel]][1:i]))
-    VA[i]=sum(names(sort(rowMeans(MVObject$VIPPerRep[[nModel]]))[1:nV[i]])%in%VAll)
+    VARep[i]=sum(names(sort(MVObject$VIPPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
+    VA[i]=sum(names(sort(rowMeans(MVObject$VIPPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
     if(DA) {
+      predsRep=MVObject$yPredPerRep[[nModel]][,,i,drop=F]
+      missRep[i]=sum(levels(Y)[apply(predsRep,1,which.max)]!=Y)
       preds=MVObject$yPredPerRep[[nModel]][,,1:i]
       preds=apply(preds,c(1,2),mean)
       miss[i]=sum(levels(Y)[apply(preds,1,which.max)]!=Y)
     } else {
+      predsRep=MVObject$yPredPerRep[[nModel]][,i,drop=F]
+      PRESS=sum((Y-predsRep)^2)
+      TSS=sum((Y-mean(Y))^2)
+      q2Rep[i]=1-(PRESS/TSS)
       preds=MVObject$yPredPerRep[[nModel]][,1:i,drop=F]
       preds=rowMeans(preds)
       PRESS=sum((Y-preds)^2)
@@ -37,32 +45,31 @@ plotStability=function(MVObject,model='min',VAll,nVarLim,missLim) {
       miss[i]=sum(class!=Y)
     }
   }
+  VARep=VARep/length(VAll)
   VA=VA/length(VAll)
   if(missing(nVarLim)) {
     pot=10^floor(log10(max(nV)))
-    nVarLim=ceiling(max(nV)/pot)*pot
+    nVarLim=ceiling(max(c(nV,nVRep))/pot)*pot
   }
-  par(mar=c(4,8,0,ifelse(ML,8,4))+.5)
-  plot(nV,ylim=c(0,nVarLim),type='l',xlab='Number of repetitions',ylab='',axes=F)
-  box(bty='u')
-  axis(1)
-  axis(2,line=4)
-  title(ylab='Number of selected variables',line = 6)
-  par(new=T)
-  plot(VA,type='l',ylim=c(0,1),lty=2,col='red',axes=F,xlab='',ylab='')
-  axis(2)
-  title(ylab='Proportion of selected variables',line = 2,col.lab="red")
+  nPlot=ifelse(ML,4,3)
+  par(mfrow=c(nPlot,1))
+  par(mar=c(3,4,0,0)+.5)
+  plot(nVRep,ylim=c(0,nVarLim),type='l',xlab='',ylab='Number of selected variables',col='grey',bty='l')
+  lines(nV)
+  legend('bottomright',c('Per repetition','Cumulative'),col=c('grey','black'),lty=1,bty='n')
+  plot(VARep,type='l',ylim=c(0,1),col='pink',xlab='',ylab='Proportion of selected variables',bty='l')
+  lines(VA,col='red')
+  legend('bottomright',c('Per repetition','Cumulative'),col=c('pink','red'),lty=1,bty='n')
   if(DA | ML) {
     if(missing(missLim)) missLim=length(Y)
-    par(new=T)
-    plot(miss,ylim=c(0,missLim),type='l',col='blue',lty=3,axes=F,xlab='',ylab='')
-    axis(4)
-    mtext('Number of misclassifications',side=4,line = 2,col="blue",cex=par()$cex)
+    plot(missRep,ylim=c(0,missLim),type='l',col='lightblue',xlab='',ylab='Number of misclassifications',bty='l')
+    lines(miss,col='blue')
+    legend('bottomright',c('Per repetition','Cumulative'),col=c('lightblue','blue'),lty=1,bty='n')
   }
   if(regr | ML) {
-    par(new=T)
-    plot(q2,ylim=c(0,1),type='l',col='green',lty=4,axes=F,xlab='',ylab='')
-    axis(4,line=ifelse(regr,NA,4))
-    mtext('Q2',side=4,line = ifelse(regr,2,6),col="green",cex=par()$cex)
+    plot(q2rep,ylim=c(0,1),type='l',col='lightgreen',lty=4,xlab='',ylab='Q2',bty='l')
+    lines(q2,col='darkgreen')
+    legend('bottomright',c('Per repetition','Cumulative'),col=c('lightgreen','darkgreen'),lty=1,bty='n')
   }
+  mtext(text = 'Number of repetitions',side = 1,line = 2.3,cex=par()$cex)
 }
