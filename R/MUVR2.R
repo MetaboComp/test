@@ -63,6 +63,7 @@ MUVR2=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('A
     }
     methParam$meanMeth='geom'
     methParam$returnModel='mid'
+    methParam$robust=0.2
   }
   if (!missing(nCompMax)) methParam$compMax=nCompMax
   if (ML) {
@@ -269,8 +270,8 @@ MUVR2=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('A
       }else {
         fitRank=VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
-      minIndex=max(which(fitRank<=(min(fitRank)+0.15*abs(min(fitRank)))))
-      maxIndex=min(which(fitRank<=(min(fitRank)+0.15*abs(min(fitRank)))))
+      minIndex=max(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
+      maxIndex=min(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMax[i]=var[maxIndex]
@@ -338,8 +339,8 @@ MUVR2=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('A
     parReturn=list(yPredMin=yPredMinR,yPredMid=yPredMidR,yPredMax=yPredMaxR)
     if (fitness=='AUROC') fitRank=-VALRep else fitRank=VALRep
     fitRank=colMeans(fitRank)
-    minIndex=max(which(fitRank<=(min(fitRank)+0.15*abs(min(fitRank)))))
-    maxIndex=min(which(fitRank<=(min(fitRank)+0.15*abs(min(fitRank)))))
+    minIndex=max(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
+    maxIndex=min(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
     varRepMin=var[minIndex]
     varRepMax=var[maxIndex]
     if (methParam$meanMeth=='geom') varRepMid=round(exp(mean(log(c(var[minIndex],var[maxIndex])))))
@@ -439,7 +440,10 @@ MUVR2=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('A
   modelReturn$VIP=VIP
   modelReturn$VIPPerRep=list(minModel=VIPRepMin,midModel=VIPRepMid,maxModel=VIPRepMax)
   # Average nVar over repetitions
-  nVar=c(round(mean(varRepMin)),round(mean(varRepMid)),round(mean(varRepMax)))
+  if (methParam$meanMeth=='geom') {
+    nVar=c(round(exp(mean(log(varRepMin)))),round(exp(mean(log(varRepMid)))),round(exp(mean(log(varRepMax)))))
+  }
+  if (methParam$meanMeth=='arit') nVar=c(round(mean(varRepMin)),round(mean(varRepMid)),round(mean(varRepMax)))
   names(nVar)=c('min','mid','max')
   modelReturn$nVar=nVar
   if (method=='PLS') {
