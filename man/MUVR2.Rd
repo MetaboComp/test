@@ -48,7 +48,7 @@ A MUVR object
 \description{
 Repeated double cross validation with tuning of variables in the inner loop.
 ---
-This version bases nVarPerRep on the entire validation matrix, which evens out some noise
+This version bases nVarPerRep on the entire validation matrix (per repetition), which evens out some noise
 compared to the original MUVR algorithm, which averages over nVar hard-selected per segment.
 }
 \details{
