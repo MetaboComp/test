@@ -58,6 +58,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     }
     methParam$meanMeth='geom'
     methParam$returnModel='mid'
+    methParam$robust=0.15
   }
   if (!missing(nCompMax)) methParam$compMax=nCompMax
   if (ML) {
@@ -265,8 +266,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         fitRank=colMeans(rmsepIn)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
-      minIndex=max(which(fitRank<=(min(fitRank)+0.05*abs(min(fitRank)))))
-      maxIndex=min(which(fitRank<=(min(fitRank)+0.05*abs(min(fitRank)))))
+      minIndex=max(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
+      maxIndex=min(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMax[i]=var[maxIndex]
@@ -332,9 +333,9 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     }
     # Per repetition: Average outer loop variables, nComp and VIP ranks 
     parReturn=list(yPredMin=yPredMinR,yPredMid=yPredMidR,yPredMax=yPredMaxR)
-    parReturn$varRepMin=round(mean(varOutMin))
-    parReturn$varRepMid=round(mean(varOutMid))
-    parReturn$varRepMax=round(mean(varOutMax))
+    parReturn$varRepMin=round(exp(mean(log(varOutMin))))
+    parReturn$varRepMid=round(exp(mean(log(varOutMid))))
+    parReturn$varRepMax=round(exp(mean(log(varOutMax))))
     parReturn$VIPRepMin=apply(VIPOutMin,1,mean)
     parReturn$VIPRepMid=apply(VIPOutMid,1,mean)
     parReturn$VIPRepMax=apply(VIPOutMax,1,mean)

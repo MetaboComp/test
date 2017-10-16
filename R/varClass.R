@@ -3,7 +3,7 @@
 #' Reports names and numbers of variables: all as well as Optimal (min model), redundant (from min up to max) and noisy (the rest)
 #' @param MVObject A MUVR object
 #'
-#' @return A list with names and numbers of variables: all as well as Optimal ('min' model), Redundant (from 'min' up to 'max') and Noisy (the rest)
+#' @return A list with names and numbers of variables: all as well as Optimal (Corresponding to 'min' or minial-optimal model), Redundant (from 'min' up to 'max' or all-relevant ) and Noisy (the rest)
 #' @export
 #'
 varClass=function(MVObject) {
