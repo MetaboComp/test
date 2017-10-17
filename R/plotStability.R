@@ -17,7 +17,7 @@ plotStability=function(MVObject,model='min',VAll,nVarLim,missLim) {
   nVar=round(MVObject$nVar[nModel])
   if(missing(VAll)) VAll=names(sort(MVObject$VIP[,nModel])[1:nVar]) # Final selection of variables
   nRep=MVObject$inData$nRep
-  nVRep=VARep=missRep=r2Rep=Q2rep=nV=VA=miss=r2=q2=numeric(nRep)
+  nVRep=VARep=missRep=r2Rep=q2Rep=nV=VA=miss=r2=q2=numeric(nRep)
   for (i in 1:nRep) {
     nVRep[i]=MVObject$nVarPerRep[[nModel]][i]
     nV[i]=round(mean(MVObject$nVarPerRep[[nModel]][1:i]))
@@ -67,9 +67,10 @@ plotStability=function(MVObject,model='min',VAll,nVarLim,missLim) {
     legend('bottomright',c('Per repetition','Cumulative'),col=c('lightblue','blue'),lty=1,bty='n')
   }
   if(regr | ML) {
-    plot(q2rep,ylim=c(0,1),type='l',col='lightgreen',lty=4,xlab='',ylab='Q2',bty='l')
+    plot(q2Rep,ylim=c(0,1),type='l',col='lightgreen',xlab='',ylab='Q2',bty='l')
     lines(q2,col='darkgreen')
     legend('bottomright',c('Per repetition','Cumulative'),col=c('lightgreen','darkgreen'),lty=1,bty='n')
   }
   mtext(text = 'Number of repetitions',side = 1,line = 2.3,cex=par()$cex)
+  par(mfrow=c(1,1))
 }
