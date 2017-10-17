@@ -13,7 +13,7 @@ varClass=function(MVObject) {
   OR=names(sort(MVObject$VIP[,3])[1:nVarOR])
   R=OR[!OR%in%O]
   ALL=rownames(MVObject$VIP)
-  N=ALL[!ALL%in%OR]
+  N=ALL[!ALL%in%c(O,R)]
   numbers=c(length(ALL),length(O),length(R),length(N))
   names(numbers)=c('All','Optimal','Redundant','Noisy')
   return(list(ALL=ALL,Optimal=O,Redundant=R,Noisy=N,numbers=numbers))
