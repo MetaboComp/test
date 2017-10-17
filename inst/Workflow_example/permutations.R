@@ -1,121 +1,78 @@
-# Call in relevant libraries
-
 library(doParallel)
 library(MUVR)
 
-# Freelive - Regression - Permutation
+###################################################
+# Regression example using "freelive" data
+# This example is for illustration only, since this X data was obtained after variable selection
 
 rm(list=ls())
 data("freelive")
-nPerm=100
-
-### Univ
-UP_corYR=UP_R2=UP_Q2=numeric(nPerm)
-for (p in 48:nPerm) {
-  YPerm=sample(YR)
-  UP_corYR[p]=cor(YR,YPerm)
-  pUni=pUniFDR=numeric(ncol(XR))
-  for(v in 1:ncol(XR)) {
-    Xv=XR[,v]
-    rye.df=data.frame(X=Xv,Y=YPerm)
-    pUni[v]=anova(lm(Y~X,data=rye.df))[1,5]
-  }
-  pUniFDR=p.adjust(pUni,method='fdr')
-  UV=colnames(XR)[pUniFDR<0.05]
-  if (length(UV)<100) UV=colnames(XR)[pUniFDR<sort(pUniFDR)[101]]
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=MUVR(X=subset(XR,select=UV),Y=YPerm,ID=IDR,nRep=15,method='PLS',varRatio=0.75)
-  stopCluster(cl)
-  UP_R2[p]=permMod$fitMetric$R2[1]
-  UP_Q2[p]=permMod$fitMetric$Q2[1]
-}
-
-save(UP_Q2,UP_R2,UP_corYR,file='UP.rda')
-
-### sPLS-1
-sP1P_corYR=sP1P_R2=sP1P_Q2=numeric(nPerm)
+#  XRVIP=LCMS metabolomics of urine samples (selected metabolite features)
+#  YR=Dietary consumption of whole grain rye in a free living population
+#  IDR=Individual identifier (due to resampling after 2-3 months -> Dependent samples)
+nCore=detectCores()-1
+cl=makeCluster(nCore)
+registerDoParallel(cl)
+# Declare modelling parameters
+nRep=2*nCore   # Number of repetitions per actual model and permutations
+nOuter=5       # Number of validation segments
+varRatio=0.75  # Proportion of variables to keep per iteration during variable selection
+method='PLS'   # Core modelling technique
+size=1         # 1 for min, 2 for mid and 3 for max
+nPerm=10       # Number of permutations (here set to 10 for illustration; normally set to 100 and inspected afterwards (see below))
+permFit=numeric(nPerm)   # Allocate vector for permutation fitness
+# Compute actual model and extract fitness metric
+actual=MUVR(X=XRVIP,Y=YR,ID=IDR,nRep=nRep,nOuter=nOuter,varRatio=varRatio,method=method) # Quick'N'Dirty
+actualFit=actual$fitMetric$Q2[size]
 for (p in 1:nPerm) {
+  cat('\nPermutation',p,'of',nPerm)
   YPerm=sample(YR)
-  sP1P_corYR[p]=cor(YR,YPerm)
-  splsMod=mixOmics::spls(XR,YR,ncomp=3,mode='regression',keepX=c(500,500,500))
-  splsVIP=mixOmics::vip(splsMod)[,3]
-  sP1=names(splsVIP)[splsVIP>1]
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=MUVR(X=subset(XR,select=sP1),Y=YPerm,ID=IDR,nRep=15,method='PLS',varRatio=0.75)
-  stopCluster(cl)
-  sP1P_R2[p]=permMod$fitMetric$R2[1]
-  sP1P_Q2[p]=permMod$fitMetric$Q2[1]
+  perm=MUVR(X=XRVIP,Y=YPerm,ID=IDR,nRep=nRep,nOuter=nOuter,varRatio=varRatio,method=method) # Quick'N'Dirty
+  permFit[p]=perm$fitMetric$Q2[size]
 }
+stopCluster(cl)
+pPerm(actual = actualFit, h0 = permFit)
+plotPerm(actual = actualFit, h0 = permFit) # Look at histogram to assess whether Gaussian in shape 
+pPerm(actual = actualFit, h0 = permFit, type = 'non') # If not Gaussian, make a non-parametric test instead
+plotPerm(actual = actualFit, h0 = permFit, type = 'non') # If not Gaussian, make a non-parametric test instead
 
-### sPLS-2
-sP2P_corYR=sP2P_R2=sP2P_Q2=numeric(nPerm)
-for (p in 1:nPerm) {
-  YPerm=sample(YR)
-  sP2P_corYR[p]=cor(YR,YPerm)
-  sp=cv.spls(XR,YR,eta=seq(.3,.9,.1),K=1:5)
-  sp2=spls::spls(XR,YPerm,eta=sp$eta.opt,K=sp$K.opt)
-  sP2=colnames(sp2$x)[sp2$A]
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=MUVR(X=subset(XR,select=sP2),Y=YPerm,ID=IDR,nRep=15,method='PLS',varRatio=0.75)
-  stopCluster(cl)
-  sP2P_R2[p]=permMod$fitMetric$R2[1]
-  sP2P_Q2[p]=permMod$fitMetric$Q2[1]
-}
+###################################################
+# Classification examples using "mosquito" data
+rm(list=ls())
+data("mosquito")
+#  Xotu: Microbiota OTU (16S rDNA) from mosquitos captured in 3 different villages in Burkina Faso
+#  Yotu: One of three villages of capture
+nCore=detectCores()-1
+cl=makeCluster(nCore)
+registerDoParallel(cl)
+Class_RF_Quick=MUVR(X=Xotu,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='RF') # Quick'N'Dirty
+# Class_RF_Full=MUVR(X=Xotu,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
+# Class_PLS_Quick=MUVR(X=Xotu,Y=Yotu,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS') # Quick'N'Dirty
+# Class_PLS_Full=MUVR(X=Xotu,Y=Yotu,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
+stopCluster(cl)
+plotVAL(Class_RF_Quick)
+plotMV(Class_RF_Quick)
+plotVIP(Class_RF_Quick,model='min')
+plotStability(Class_RF_Quick,model='min')
 
-### Boruta
-BP_corYR=BP_R2=BP_Q2=numeric(nPerm)
-for (p in 1:nPerm) {
-  YPerm=sample(YR)
-  BP_corYR[p]=cor(YR,YPerm)
-  bor=Boruta::Boruta(XR,YPerm,holdHistory=F)
-  Bor=colnames(XR)[bor$finalDecision=='Confirmed']
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=MUVR(X=subset(XR,select=Bor),Y=YPerm,ID=IDR,nRep=15,method='PLS',varRatio=0.75)
-  stopCluster(cl)
-  BP_R2[p]=permMod$fitMetric$R2[1]
-  BP_Q2[p]=permMod$fitMetric$Q2[1]
-}
 
-### Full data
-FP_corYR=FP_R2=FP_Q2=numeric(nPerm)
-for (p in 1:nPerm) {
-  YPerm=sample(YR)
-  FP_corYR[p]=cor(YR,YPerm)
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=MUVR(X=XR,Y=YPerm,ID=IDR,nRep=15,method='PLS',varRatio=0.75)
-  stopCluster(cl)
-  FP_R2[p]=permMod$fitMetric$R2[1]
-  FP_Q2[p]=permMod$fitMetric$Q2[1]
-}
 
-### rdCV
-rP_corYR=rP_R2=rP_Q2=numeric(nPerm)
-for (p in 1:nPerm) {
-  YPerm=sample(YR)
-  rP_corYR[p]=cor(YR,YPerm)
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=rdCV(X=XR,Y=YPerm,ID=IDR,nRep=15,method='PLS')
-  stopCluster(cl)
-  rP_R2[p]=permMod$fitMetric$R2[1]
-  rP_Q2[p]=permMod$fitMetric$Q2[1]
-}
+###################################################
+# Multilevel example using "crisp" data
+rm(list=ls())
+data("crisp")
+#  crispEM: Effect matrix of 
+nCore=detectCores()-1
+cl=makeCluster(nCore)
+registerDoParallel(cl)
+ML_RF_Quick=MUVR(X=crispEM,ML=TRUE,nRep=nCore,nOuter=5,varRatio=0.75,method='RF') # Quick'N'Dirty
+# ML_RF_Full=MUVR(X=crispEM,ML=TRUE,nRep=5*nCore,nOuter=8,varRatio=0.9,method='RF') # More proper model - Also more time consuming
+# ML_PLS_Quick=MUVR(X=crispEM,ML=TRUE,nRep=nCore,nOuter=5,varRatio=0.75,method='PLS') # Quick'N'Dirty
+# ML_PLS_Full=MUVR(X=crispEM,ML=TRUE,nRep=5*nCore,nOuter=8,varRatio=0.9,method='PLS') # More proper model - Also more time consuming
+stopCluster(cl)
+plotVAL(ML_RF_Quick)
+plotMV(ML_RF_Quick)
+plotVIP(ML_RF_Quick,model='min')
+plotStability(ML_RF_Quick,model='min')
 
-### Full RF
-FR_corYR=FR_R2=FR_Q2=numeric(nPerm)
-for (p in 1:nPerm) {
-  YPerm=sample(YR)
-  FR_corYR[p]=cor(YR,YPerm)
-  cl=makeCluster(3)
-  registerDoParallel(cl)
-  permMod=MUVR(X=XR,Y=YPerm,ID=IDR,nRep=15,method='RF',varRatio=0.75)
-  stopCluster(cl)
-  FR_R2[p]=permMod$fitMetric$R2[1]
-  FR_Q2[p]=permMod$fitMetric$Q2[1]
-}
 
