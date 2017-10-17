@@ -22,6 +22,12 @@ plotVAL(Regr_PLS_Quick)
 plotMV(Regr_PLS_Quick,model='min')
 plotVIP(Regr_PLS_Quick,model='min')
 plotStability(Regr_PLS_Quick,model='min')
+head(Regr_PLS_Quick$yPred) # min, mid and max predictions side-by-side
+head(cbind(YR,Regr_PLS_Quick$yPred))
+Regr_PLS_Quick$fitMetric   # Look at fitness metrics for min, mid and max models
+Regr_PLS_Quick$nComp       # Number of components for min, mid and max models
+Regr_PLS_Quick$nVar        # Number of variables for min, mid and max models
+getVIP(Regr_PLS_Quick,model='min')   # Extract most informative variables: Lower rank is better
 
 
 
@@ -43,14 +49,17 @@ plotVAL(Class_RF_Quick)
 plotMV(Class_RF_Quick)
 plotVIP(Class_RF_Quick,model='min')
 plotStability(Class_RF_Quick,model='min')
-
+head(Class_RF_Quick$yClass) # min, mid and max predictions side-by-side
+head(cbind(Yotu,Class_RF_Quick$yClass))
+Class_RF_Quick$nVar        # Number of variables for min, mid and max models
+getVIP(Class_RF_Quick,model='min')   # Extract most informative variables: Lower rank is better
 
 
 ###################################################
 # Multilevel example using "crisp" data
 rm(list=ls())
 data("crisp")
-#  crispEM: Effect matrix of 
+#  crispEM: Effect matrix of difference (Treatment1 - Treatment2) in crossover intervention
 nCore=detectCores()-1
 cl=makeCluster(nCore)
 registerDoParallel(cl)
@@ -63,5 +72,8 @@ plotVAL(ML_RF_Quick)
 plotMV(ML_RF_Quick)
 plotVIP(ML_RF_Quick,model='min')
 plotStability(ML_RF_Quick,model='min')
-
+head(ML_RF_Quick$yClass) # min, mid and max predictions side-by-side
+head(cbind(ML_RF_Quick$inData$Y,ML_RF_Quick$yClass))
+ML_RF_Quick$nVar        # Number of variables for min, mid and max models
+getVIP(ML_RF_Quick,model='min')   # Extract most informative variables: Lower rank is better
 
