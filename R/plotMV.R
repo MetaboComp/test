@@ -36,11 +36,11 @@ plotMV=function(MVObj,model='mid') {
     }
     yClass=MVObj$yClass[,modNum]
     whichWrong=which(yClass!=Y)
-    wrongClass=as.numeric(yClass[whichWrong])
+    wrongClass=as.numeric(Y[whichWrong])
     for (w in 1:length(wrongClass)) {
       points(whichWrong[w]+classNudge[wrongClass[w]],YP[whichWrong[w],wrongClass[w]],cex=2)
     }
-    legend('topleft',legend=c(levels(Y),'misclassified'),pch=c(rep(16,length(classes)),1),col=c(classes+1,1),cex=0.8,pt.cex=c(rep(0.5,length(classes)),2))
+    legend('topleft',legend=c(levels(Y),'misclassified'),pch=c(rep(16,length(classes)),1),col=c(classes+1,1),cex=0.8,pt.cex=c(rep(0.5,length(classes)),2),bty='n')
   } else {
     YP=MVObj$yPred[,modNum]
     YPR=MVObj$yPredPerRep[[modNum]]
