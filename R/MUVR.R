@@ -109,7 +109,11 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   unik=!duplicated(ID)  # boolean of unique IDs
   unikID=ID[unik]  
   if (DA) {
+<<<<<<< HEAD
     if(nOuter>min(table(Y))) warning('\nnOuter is larger than your smallest group size. Consider lowering your nOuter to min(table(Y)).',call.=TRUE)
+=======
+    if(nOuter>min(table(Y))) warning('\nnOuter is larger than your smallest group size',call.=TRUE)
+>>>>>>> ef45aec16f1de87f4eda19444da7027bfd9fd1db
     unikY=Y[unik]  # Counterintuitive, but needed for groupings by Ynames
     Ynames=sort(unique(Y))  # Find groups
     groups=length(Ynames) # Number of groups
