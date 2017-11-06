@@ -10,7 +10,7 @@
 #' @param nInner Number of inner CV loop segments. (Defaults to nOuter-1)
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)
 #' @param DA Boolean for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
-#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)
+#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' (default) for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (see function code for details)
 #' @param ML Boolean for multilevel analysis (defaults to FALSE)
@@ -87,13 +87,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   }
   if (missing(fitness)) {
     if (DA) {
-      if (length(unique(Y))>2) {
-        fitness='MISS'
-        cat('\nMissing fitness -> MISS')
-      } else {
-        fitness='AUROC'
-        cat('\nMissing fitness -> AUROC')
-      }
+      fitness='MISS'
+      cat('\nMissing fitness -> MISS')
     } else {
       fitness='RMSEP'
       cat('\nMissing fitness -> RMSEP')
@@ -149,7 +144,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     if (logg) sink('log.txt',append=TRUE)
     if (modReturn) outMod=list()
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
-    if (DA) {
+    if (DA & identical(unikID,ID)) {
       groupTest=list()  ## Allocate list for samples within group
       for (gT in 1:groups) { 
         groupTest[[gT]]=vectSamp(groupID[[gT]],n=nOuter)  # Draw random samples within group
@@ -179,7 +174,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       xTest=X[testIndex,]
       yTest=Y[testIndex]
       inID=unikID[!unikID%in%testID]  # IDs not in test set
-      if (DA) inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
+      if (DA & identical(unikID,ID)) inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
       ## Allocate variables for later use
       missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=cnt,dimnames=list(paste(rep('inSeg',nInner),1:nInner,sep=''),var))
       VIPInner=array(data=nVar0,dim=c(nVar0,cnt,nInner),dimnames=list(colnames(X),var,paste(rep('inSeg',nInner),1:nInner,sep='')))
@@ -196,7 +191,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
           mtryIn=ifelse(DA,min(c(methParam$mtryMaxIn,floor(sqrt(nVar)))),min(c(methParam$mtryMaxIn,floor(nVar/3))))
           mtryIn=max(c(2,mtryIn))
         }
-        if (DA) {
+        if (DA & identical(unikID,ID)) {
           groupIDVal=list()
           for (g in 1:groups) { 
             groupIDVal[[g]]=inID[inY==Ynames[g]]  # Find indices per group
