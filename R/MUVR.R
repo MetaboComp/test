@@ -25,6 +25,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
   library(pROC)
   library(foreach)
   if (parallel) "%doVersion%"=get("%dopar%") else "%doVersion%"=get("%do%")
+  if (missing(method)) method='RF'
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
@@ -48,7 +49,6 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
     ID=1:nSamp
   }
   if (missing(nInner)) nInner=nOuter-1
-  if (missing(method)) method='RF'
   if (method=='RF') library(randomForest)
   if (missing(methParam)) {
     if (method=='PLS') {

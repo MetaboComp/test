@@ -64,7 +64,7 @@ biplotPLS=function(fit,comps=1:2,xCol,labPlSc=TRUE,labs,vars,labPlLo=TRUE,pchSc=
   }
   if (legPlot) {
     if (missing(xCol)) {
-      legend('topleft',legend=unique(colScLeg),pch=unique(pchSc),col=unique(colSc),bty='n')
+      legend('topright',legend=unique(colScLeg),pch=unique(pchSc),col=unique(colSc),bty='n')
     } else {
       whUnik=!duplicated(xCol)
       unik=xCol[whUnik]
@@ -76,7 +76,7 @@ biplotPLS=function(fit,comps=1:2,xCol,labPlSc=TRUE,labs,vars,labPlLo=TRUE,pchSc=
         cols=cols[n]
         unik=unik[n]
       }
-      legend('topleft',legend=signif(unik,3),fill=cols,bty='n')
+      legend('topright',legend=signif(unik,3),fill=cols,bty='n')
     }
   }
 }

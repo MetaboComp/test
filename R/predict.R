@@ -13,8 +13,8 @@ predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, ...){
   #-- validation des arguments --#
   if (missing(newdata)) stop("No new data available.")
   
-  x = object$X
-  y = object$Y
+  x = object$inData$X
+  y = object$inData$Y
   q = ncol(y)
   p = ncol(x)
   
