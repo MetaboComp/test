@@ -15,9 +15,7 @@ Install `devtools` to be able to install packages from Git repositories.
 
 Install `MUVR` package by:
 
-`devtools::install_git("https://username:password@gitlab.com/CarlBrunius/MUVR.git")`
-
-where `username` and `password` are you actual username and password for your GitLab account.
+`devtools::install_git("https://gitlab.com/CarlBrunius/MUVR.git")`
 
 In addition to functions relevant for within/between batch correction, data is provided to accurately reproduce figures from the original *Brunius et al* paper (see below).
 
