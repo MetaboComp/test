@@ -19,7 +19,6 @@ predMV=function(MVObj,newdata,model='mid') {
   nOuter=MVObj$inData$nOuter
   if (method=='PLS') {
     nComps=MVObj$nCompPerSeg[[modNum]]
-    library(mixOmics)
   } else {
     library(randomForest)
   }
@@ -32,11 +31,11 @@ predMV=function(MVObj,newdata,model='mid') {
         n=n+1
         mod=MVObj$outModels[[n]][[modNum]]
         if (method=='PLS') {
-          if (any(!mod$names$X%in%colnames(newdata))) {
+          if (any(!colnames(mod$X)%in%colnames(newdata))) {
             cat('\nMismatch variable names in model',n,': Return NULL')
             return(NULL)
           } else {
-            X=subset(newdata,select=mod$names$X)
+            X=subset(newdata,select=colnames(mod$X))
             nComp=nComps[r,i]
             yPredPerMod[,n]=predict(mod,newdata=X)$predict[,,nComp]  # 
           }
