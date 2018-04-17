@@ -5,9 +5,9 @@
 \title{MUVR: "Multivariate modelling with Unbiased Variable selection"}
 \usage{
 MUVR(X, Y, ID, nRep = 5, nOuter = 6, nInner, varRatio = 0.75,
-  DA = FALSE, fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS",
-  "RF"), nCompMax, methParam, ML = FALSE, modReturn = FALSE, logg = FALSE,
-  parallel = TRUE)
+  DA = FALSE, fitness = c("AUROC", "MISS", "BER", "RMSEP"),
+  method = c("PLS", "RF"), nCompMax, methParam, ML = FALSE,
+  modReturn = FALSE, logg = FALSE, parallel = TRUE)
 }
 \arguments{
 \item{X}{Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data. For multilevel, only the positive half of the difference matrix is specified.}

@@ -27,6 +27,9 @@ rfInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,ntree,mtry) {
       returnIn$miss=sum(yClassInner!=yVal)
     }
   } 
+  if (fitness=='BER') {
+    returnIn$ber=getBER(actual=yVal,predicted=yValInner)
+  }
   if (fitness=='AUROC') {
     # cat(' auc',count)
     returnIn$auc=auc=roc(yVal,rfModIn$test$votes[,1])$auc

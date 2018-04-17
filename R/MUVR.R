@@ -21,7 +21,7 @@
 #'
 #' @return A MUVR object
 #' @export
-MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,logg=FALSE,parallel=TRUE){
+MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','BER','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,logg=FALSE,parallel=TRUE){
   library(pROC)
   library(foreach)
   if (parallel) "%doVersion%"=get("%dopar%") else "%doVersion%"=get("%do%")
@@ -176,7 +176,7 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
       inID=unikID[!unikID%in%testID]  # IDs not in test set
       if (DA & identical(unikID,ID)) inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
       ## Allocate variables for later use
-      missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=cnt,dimnames=list(paste(rep('inSeg',nInner),1:nInner,sep=''),var))
+      missIn=berIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=cnt,dimnames=list(paste(rep('inSeg',nInner),1:nInner,sep=''),var))
       VIPInner=array(data=nVar0,dim=c(nVar0,cnt,nInner),dimnames=list(colnames(X),var,paste(rep('inSeg',nInner),1:nInner,sep='')))
       # Set variables
       incVar=colnames(X)
@@ -237,6 +237,8 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
           # Store fitness metric
           if (fitness=='MISS') {
             missIn[j,count]=inMod$miss
+          } else if (fitness=='BER') {
+            berIn[j,count]=inMod$ber
           } else if (fitness=='AUROC') {
             aucIn[j,count]=inMod$auc
           } else {
@@ -257,12 +259,15 @@ MUVR=function(X,Y,ID,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AU
         VALRep[i,]=colMeans(aucIn)
       } else if (fitness=='MISS') {
         fitRank=VALRep[i,]=colSums(missIn)
+      } else if (fitness=='BER') {
+        fitRank=VALRep[i,]=colMeans(berIn)
       }else {
         fitRank=colMeans(rmsepIn)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
-      minIndex=max(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
-      maxIndex=min(which(fitRank<=(min(fitRank)+methParam$robust*abs(min(fitRank)))))
+      fitRank=(fitRank-min(fitRank))/abs(diff(range(fitRank)))
+      minIndex=max(which(fitRank<=methParam$robust))
+      maxIndex=min(which(fitRank<=methParam$robust))
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMax[i]=var[maxIndex]

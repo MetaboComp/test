@@ -10,5 +10,6 @@ getVIP=function(MVObj,model='mid') {
   nVar=round(MVObj$nVar[nMod])
   VIPs=sort(MVObj$VIP[,nMod])[1:nVar]
   VIPs=data.frame(order=1:nVar,name=names(VIPs),rank=VIPs)
+  VIPs$name=as.character(VIPs$name)
   return(VIPs)
 }

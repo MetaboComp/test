@@ -35,6 +35,11 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp) {
         misClass=apply(classes,2,function(x) sum(x!=as.numeric(yVal)))
         returnIn$miss=min(misClass,na.rm=T)
         nComp=which.min(misClass)
+      } else if (fitness=='BER') {
+        if(comp>1) classes=apply(yValInner,c(1,3),which.max) else classes=matrix(apply(yValInner,1,which.max),ncol=1)
+        BER=apply(classes,2,function(x) getBER(actual=as.numeric(yVal),predicted=x))
+        returnIn$ber=min(BER,na.rm=T)
+        nComp=which.min(BER)
       } else {
         auc=apply(yValInner[,1,],2,function(x) roc(yVal,x)$auc)
         returnIn$auc=max(auc,na.rm=T)
