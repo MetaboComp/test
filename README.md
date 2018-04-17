@@ -37,6 +37,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.967 | 2018-04-17 | Added Balanced Error Rate as fitness metric & improved fitRank calculations
 0.0.966 | 2018-02-17 | Bug fix predict.plsMUVR
 0.0.965 | 2017-11-06 | Segmentation for DA & dependent samples -> vectSamp(unikID)
 0.0.964 | 2017-10-16 | Fixed geometric averaging for nVar in MUVR, fixed plotStability, plotVAL and workflows in inst/workflow folder
