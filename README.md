@@ -37,7 +37,7 @@ Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
 ## Version history
 version | date | comment
 :------ | :--- | :------
-0.0.968 | 2018-04-24 | Added boolean scaling option (T/F) to MUVR for whether to perform scaling to unit variance 
+0.0.968 | 2018-04-24 | Added boolean scaling option (T/F) to MUVR for whether to perform scaling to unit variance & added preProcess function
 0.0.967 | 2018-04-17 | Added Balanced Error Rate as fitness metric & improved fitRank calculations
 0.0.966 | 2018-02-17 | Bug fix predict.plsMUVR
 0.0.965 | 2017-11-06 | Segmentation for DA & dependent samples -> vectSamp(unikID)
