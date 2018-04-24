@@ -5,11 +5,12 @@
 #' @param object a plsMUVR object
 #' @param newdata new data
 #' @param onlyPred Boolean for whether to report back predictions only (defaults to FALSE)
+#' @param scale 
 #' @param ... 
 #'
 #' @return pls prediction
 #' @export
-predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, ...){
+predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, scale=TRUE, ...){
   #-- validation des arguments --#
   if (missing(newdata)) stop("No new data available.")
   
@@ -41,12 +42,17 @@ predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, ...){
   b = object$loadings$Y
   c = object$mat.c
   
-  means.x = attr(x, "scaled:center")
+  newdata = as.matrix(newdata)
+  
+  if (scale) {
+    means.x = attr(x, "scaled:center")
+    sigma.x = attr(x, "scaled:scale")
+    newdata=scale(newdata,center=means.x,scale=sigma.x)
+  }
+  
   means.y = attr(y, "scaled:center")
-  sigma.x = attr(x, "scaled:scale")
   sigma.y = attr(y, "scaled:scale")
   
-  newdata = as.matrix(newdata)
   ##- coeff de regression 
   B.hat = array(0, dim = c(p, q, ncomp))
   ##- prediction
@@ -66,12 +72,12 @@ predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, ...){
     W = a[, 1:h,drop=FALSE] %*% solve(t(c[, 1:h,drop=FALSE]) %*% a[, 1:h,drop=FALSE])
     B = W %*% drop(betay[[h]])
     
-    y.temp=scale(newdata,center=means.x,scale=sigma.x) %*% as.matrix(B) #so far: gives a prediction of y centered and scaled
+    y.temp=newdata %*% as.matrix(B) #so far: gives a prediction of y centered and scaled
     y.temp=scale(y.temp,center=FALSE,scale=1/sigma.y) #so far: gives a prediction of y centered, with the right scaling
     y.temp=scale(y.temp,center=-means.y,scale=FALSE) #so far: gives a prediction of y with the right centering and scaling
     
     y.hat[, , h] = y.temp # we add the variance and the mean of y used in object to predict
-    t.pred[, h] = scale(newdata, center = means.x, scale = sigma.x) %*% W[, h]
+    t.pred[, h] = newdata %*% W[, h]
     B.hat[, , h] = B
   }  #end h
   
@@ -96,7 +102,7 @@ predict.plsMUVR <-function(object, newdata, onlyPred=FALSE, ...){
 #'
 #' @return plsda predictions
 #' @export
-predict.plsdaMUVR=function(object, newdata, onlyPred=FALSE, ...)  {
+predict.plsdaMUVR=function(object, newdata, onlyPred=FALSE, scale=TRUE, ...)  {
   #-- validation des arguments --#
   if (missing(newdata)) stop("No new data available.")
   
@@ -129,12 +135,17 @@ predict.plsdaMUVR=function(object, newdata, onlyPred=FALSE, ...)  {
   b = object$loadings$Y
   c = object$mat.c
   
-  means.x = attr(x, "scaled:center")
+  newdata = as.matrix(newdata)
+
+  if (scale) {
+    means.x = attr(x, "scaled:center")
+    sigma.x = attr(x, "scaled:scale")
+    newdata=scale(newdata,center=means.x,scale=sigma.x)
+  }
+
   means.y = attr(y, "scaled:center")
-  sigma.x = attr(x, "scaled:scale")
   sigma.y = attr(y, "scaled:scale")
   
-  newdata = as.matrix(newdata)
   ##- coeff de regression 
   B.hat = array(0, dim = c(p, q, ncomp))
   ##- prediction
@@ -152,12 +163,12 @@ predict.plsdaMUVR=function(object, newdata, onlyPred=FALSE, ...)  {
     W = a[, 1:h,drop=FALSE] %*% solve(t(c[, 1:h,drop=FALSE]) %*% a[, 1:h,drop=FALSE])
     B = W %*% drop(betay[[h]])
     
-    y.temp=scale(newdata,center=means.x,scale=sigma.x) %*% as.matrix(B) #so far: gives a prediction of y centered and scaled
+    y.temp=newdata %*% as.matrix(B) #so far: gives a prediction of y centered and scaled
     y.temp=scale(y.temp,center=FALSE,scale=1/sigma.y) #so far: gives a prediction of y centered, with the right scaling
     y.temp=scale(y.temp,center=-means.y,scale=FALSE) #so far: gives a prediction of y with the right centering and scaling
     
     y.hat[, , h] = y.temp # we add the variance and the mean of y used in object to predict
-    t.pred[, h] = scale(newdata, center = means.x, scale = sigma.x) %*% W[, h]
+    t.pred[, h] = newdata %*% W[, h]
     B.hat[, , h] = B
   }  #end h
   

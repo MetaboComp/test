@@ -1,16 +1,18 @@
 #' PLS regression 
 #' 
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
+#'
 #' @param x 
 #' @param y 
 #' @param ncomp 
 #' @param max.iter 
 #' @param tol 
 #' @param near.zero.var 
+#' @param scale 
 #'
 #' @return pls object
 #' @export
-pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE) {
+pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE, scale = TRUE) {
   y = as.matrix(y)
   x = as.matrix(x)
   # Remove variables with near zero variance 
@@ -52,7 +54,7 @@ pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TR
   }	
   
   # Center and scale indata
-  x.temp = x = scale(x, center = TRUE, scale = TRUE)
+  if (scale) x.temp = x = scale(x, center = TRUE, scale = TRUE) else x.temp=x
   y.temp = y = scale(y, center = TRUE, scale = TRUE) 
   
   # Allocate matrices

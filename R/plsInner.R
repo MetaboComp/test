@@ -1,6 +1,7 @@
 #' PLS model in inner CV loop
 #'
 #' Called from Wrapper
+#'
 #' @param xTrain Training data (samples as rows; variables as columns)
 #' @param yTrain Training response
 #' @param xVal Validation data
@@ -8,7 +9,7 @@
 #' @param DA Logical for discriminant analysis (classification)
 #' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
 #' @param comp Max number of components to try
-#' @param mode PLS method (defaults to regression, see 'mixOmics' for details)
+#' @param scale Whether or not to scale inData (X)
 #'
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
@@ -16,12 +17,12 @@
 #' @return `vi` variable importance rankings
 #' @export
 #'
-plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp) {
+plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,scale=TRUE) {
   cond=TRUE
   while(cond) {
     yValInner=tryCatch({
-      if (DA) plsModIn=MUVR::plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE) else plsModIn=MUVR::pls(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE)
-      yValInner=predict(plsModIn,newdata=xVal,onlyPred=TRUE)$predict[,,]
+      if (DA) plsModIn=MUVR::plsda(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE,scale=scale) else plsModIn=MUVR::pls(xTrain,yTrain,ncomp=comp,near.zero.var=TRUE,scale=scale)
+      yValInner=predict(plsModIn,newdata=xVal,onlyPred=TRUE,scale=scale)$predict[,,]
     }, error=function(e) return('error'))
     if ((length(yValInner)==1 && yValInner=='error') | any(is.na(yValInner))) comp=comp-1 else cond=FALSE
     if (comp==0) cond=FALSE

@@ -4,7 +4,8 @@
 \alias{pls}
 \title{PLS regression}
 \usage{
-pls(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE)
+pls(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE,
+  scale = TRUE)
 }
 \arguments{
 \item{x}{}
@@ -18,6 +19,8 @@ pls(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE)
 \item{tol}{}
 
 \item{near.zero.var}{}
+
+\item{scale}{}
 }
 \value{
 pls object

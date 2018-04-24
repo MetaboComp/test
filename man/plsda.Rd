@@ -5,7 +5,7 @@
 \title{PLS-DA}
 \usage{
 plsda(x, y, ncomp = 2, max.iter = 500, tol = 1e-06,
-  near.zero.var = TRUE)
+  near.zero.var = TRUE, scale = TRUE)
 }
 \arguments{
 \item{x}{}
@@ -19,6 +19,8 @@ plsda(x, y, ncomp = 2, max.iter = 500, tol = 1e-06,
 \item{tol}{}
 
 \item{near.zero.var}{}
+
+\item{scale}{}
 }
 \value{
 plsda object

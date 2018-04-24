@@ -4,7 +4,8 @@
 \alias{predict.plsMUVR}
 \title{Predict pls}
 \usage{
-\method{predict}{plsMUVR}(object, newdata, onlyPred = FALSE, ...)
+\method{predict}{plsMUVR}(object, newdata, onlyPred = FALSE, scale = TRUE,
+  ...)
 }
 \arguments{
 \item{object}{a plsMUVR object}
@@ -12,6 +13,8 @@
 \item{newdata}{new data}
 
 \item{onlyPred}{Boolean for whether to report back predictions only (defaults to FALSE)}
+
+\item{scale}{}
 
 \item{...}{}
 }

@@ -4,7 +4,7 @@
 \alias{plsInner}
 \title{PLS model in inner CV loop}
 \usage{
-plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp)
+plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp, scale = TRUE)
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}
@@ -21,7 +21,7 @@ plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp)
 
 \item{comp}{Max number of components to try}
 
-\item{mode}{PLS method (defaults to regression, see 'mixOmics' for details)}
+\item{scale}{Whether or not to scale inData (X)}
 }
 \value{
 An object containing:
