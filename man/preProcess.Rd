@@ -4,7 +4,8 @@
 \alias{preProcess}
 \title{Perform matrix pre-processing}
 \usage{
-preProcess(X, offset = 0, zeroOffset = 0, trans, center, scale)
+preProcess(X, offset = 0, zeroOffset = 0, trans = "none",
+  center = "none", scale = "none")
 }
 \arguments{
 \item{X}{Data matrix with samples in rows and variables in columns}
@@ -13,11 +14,11 @@ preProcess(X, offset = 0, zeroOffset = 0, trans, center, scale)
 
 \item{zeroOffset}{Add offset to zero data (defaults to 0)}
 
-\item{trans}{If specified, accomodates 'log' or 'sqrt' transforms (default is no transformation)}
+\item{trans}{Either 'log', 'sqrt' or 'none' (default is 'none')}
 
-\item{center}{Either a logical value or a numeric vector of length equal to the number of columns of X (defaults to TRUE for mean centering).}
+\item{center}{Either 'mean', 'none' or a numeric vector of length equal to the number of columns of X (defaults to 'none').}
 
-\item{scale}{Either 'UV', 'Pareto', 'none' or a numeric vector of length equal to the number of columns of X (defaults to scaling to unit variance 'UV').}
+\item{scale}{Either 'UV', 'Pareto', 'none' or a numeric vector of length equal to the number of columns of X (defaults to 'none').}
 }
 \value{
 A pre-processed data matrix
