@@ -57,8 +57,6 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     } else {
       methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=150)
     }
-    methParam$meanMeth='geom'
-    methParam$returnModel='mid'
     methParam$robust=0.05
   }
   if (!missing(nCompMax)) methParam$compMax=nCompMax
@@ -272,8 +270,7 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
       varOutMin[i]=var[minIndex]
       varOutMax[i]=var[maxIndex]
-      if (methParam$meanMeth=='geom') varOutMid[i]=round(exp(mean(log(c(var[minIndex],var[maxIndex])))))
-      if (methParam$meanMeth=='arit') varOutMid[i]=round(mean(c(var[minIndex],var[maxIndex])))
+      varOutMid[i]=round(exp(mean(log(c(var[minIndex],var[maxIndex])))))
       midIndex=which.min(abs(var-varOutMid[i]))
       if (method=='PLS') {
         nCompOutMin[i]=round(mean(nCompIn[,minIndex]))
@@ -332,11 +329,8 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
         }
       }
     }
-    # Per repetition: Average outer loop variables, nComp and VIP ranks 
+    # Per repetition: Average outer loop predictions, VIP ranks and nComp for PLS
     parReturn=list(yPredMin=yPredMinR,yPredMid=yPredMidR,yPredMax=yPredMaxR)
-    parReturn$varRepMin=round(exp(mean(log(varOutMin))))
-    parReturn$varRepMid=round(exp(mean(log(varOutMid))))
-    parReturn$varRepMax=round(exp(mean(log(varOutMax))))
     parReturn$VIPRepMin=apply(VIPOutMin,1,mean)
     parReturn$VIPRepMid=apply(VIPOutMid,1,mean)
     parReturn$VIPRepMax=apply(VIPOutMax,1,mean)
@@ -348,7 +342,18 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
       parReturn$nCompSegMid=nCompOutMid
       parReturn$nCompSegMax=nCompOutMax
     }
-    parReturn$VAL=VALRep
+    # Validation curves
+    parReturn$VAL=VALRep 
+    # Calculate nVar per repetition
+    fitRankRep=colSums(VALRep)
+    if(fitness=='AUROC') fitRankRep=-fitRankRep
+    fitRankRep=(fitRankRep-min(fitRankRep))/abs(diff(range(fitRankRep)))
+    minIndex=max(which(fitRankRep<=methParam$robust))
+    maxIndex=min(which(fitRankRep<=methParam$robust))
+    parReturn$varRepMin=var[minIndex]
+    parReturn$varRepMid=round(exp(mean(log(c(var[minIndex],var[maxIndex])))))
+    parReturn$varRepMax=var[maxIndex]
+    # Return underlying models
     if (modReturn) parReturn$outModel=outMod
     if (logg) sink()
     return(parReturn)
@@ -428,8 +433,13 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
   colnames(VIP)=c('min','mid','max')
   modelReturn$VIP=VIP
   modelReturn$VIPPerRep=list(minModel=VIPRepMin,midModel=VIPRepMid,maxModel=VIPRepMax)
-  # Average nVar over repetitions
-  nVar=c(round(exp(mean(log(varRepMin)))),round(exp(mean(log(varRepMid)))),round(exp(mean(log(varRepMax)))))
+  # Calculate overall nVar
+  fitRankAll=apply(VAL,2,mean)
+  if(fitness=='AUROC') fitRankAll=-fitRankAll
+  fitRankAll=(fitRankAll-min(fitRankAll))/abs(diff(range(fitRankAll))) # rescale to 0-1 range
+  minIndex=max(which(fitRankAll<=methParam$robust))
+  maxIndex=min(which(fitRankAll<=methParam$robust))
+  nVar=c(var[minIndex],round(exp(mean(log(c(var[minIndex],var[maxIndex]))))),var[maxIndex])
   names(nVar)=c('min','mid','max')
   modelReturn$nVar=nVar
   if (method=='PLS') {
