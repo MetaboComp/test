@@ -13,9 +13,9 @@ preProcess=function(X,offset=0,zeroOffset=0,trans='none',center='none',scale='no
   nVar=nrow(X)
   # Add offset
   X[X==0]=zeroOffset
-  cat('\nZero offset:',zeroOffset)
+  cat('Zero offset:',zeroOffset)
   X=X+offset
-  cat('Offset:',offset)
+  cat('\nOffset:',offset)
   # Perform transformation
   trans=match.arg(trans,c('log','sqrt','none'))
   cat('\nTransformation:',trans)
