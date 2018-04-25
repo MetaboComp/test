@@ -12,10 +12,10 @@
 preProcess=function(X,offset=0,zeroOffset=0,trans='none',center='none',scale='none') {
   nVar=nrow(X)
   # Add offset
-  X=X+offset
-  cat('Offset by',offset)
   X[X==0]=zeroOffset
-  cat('\nZero offset by',zeroOffset)
+  cat('\nZero offset:',zeroOffset)
+  X=X+offset
+  cat('Offset:',offset)
   # Perform transformation
   trans=match.arg(trans,c('log','sqrt','none'))
   cat('\nTransformation:',trans)
