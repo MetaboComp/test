@@ -10,7 +10,7 @@
 #' @return A pre-processed data matrix
 #' @export
 preProcess=function(X,offset=0,zeroOffset=0,trans='none',center='none',scale='none') {
-  nVar=nrow(X)
+  nVar=ncol(X)
   # Add offset
   X[X==0]=zeroOffset
   cat('Zero offset:',zeroOffset)
