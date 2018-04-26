@@ -159,7 +159,7 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
       allTest=vectSamp(unikID,n=nOuter)
     }
     varOutMin=varOutMid=varOutMax=nCompOutMin=nCompOutMid=nCompOutMax=numeric(nOuter)
-    names(varOutMin)=names(varOutMid)=names(varOutMax)=names(nCompOutMin)=names(nCompOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
+    names(varOutMin)=names(varOutMid)=names(varOutMax)=names(nCompOutMin)=names(nCompOutMid)=names(nCompOutMax)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
     VIPOutMin=VIPOutMid=VIPOutMax=matrix(data=nVar0,nrow=nVar0,ncol=nOuter,dimnames=list(colnames(X),paste(rep('outSeg',nOuter),1:nOuter,sep='')))
     VALRep=matrix(nrow=nOuter,ncol=cnt)
     ## Perform outer loop segments -> one "majority vote" MV model per segment
@@ -264,7 +264,8 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
         fitRank=colMeans(rmsepIn)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
-      fitRank=(fitRank-min(fitRank))/abs(diff(range(fitRank)))
+      fitRank=(fitRank-min(fitRank))/abs(diff(range(fitRank))) # Rescale fitRank to range 0-1
+      if(all(is.nan(fitRank))) fitRank=rep(0,cnt) # If all VAL have same value -> reset all fitRank to 0
       minIndex=max(which(fitRank<=methParam$robust))
       maxIndex=min(which(fitRank<=methParam$robust))
       # Per outer segment: Average inner loop variables, nComp and VIP ranks 
