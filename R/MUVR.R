@@ -349,6 +349,7 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     fitRankRep=colSums(VALRep)
     if(fitness=='AUROC') fitRankRep=-fitRankRep
     fitRankRep=(fitRankRep-min(fitRankRep))/abs(diff(range(fitRankRep)))
+    if(all(is.nan(fitRankRep))) fitRankRep=rep(0,cnt) # If all VAL have same value -> reset all fitRankRep to 0
     minIndex=max(which(fitRankRep<=methParam$robust))
     maxIndex=min(which(fitRankRep<=methParam$robust))
     parReturn$varRepMin=var[minIndex]
@@ -438,6 +439,7 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
   fitRankAll=apply(VAL,2,mean)
   if(fitness=='AUROC') fitRankAll=-fitRankAll
   fitRankAll=(fitRankAll-min(fitRankAll))/abs(diff(range(fitRankAll))) # rescale to 0-1 range
+  if(all(is.nan(fitRankAll))) fitRankAll=rep(0,cnt) # If all VAL have same value -> reset all fitRankAll to 0
   minIndex=max(which(fitRankAll<=methParam$robust))
   maxIndex=min(which(fitRankAll<=methParam$robust))
   nVar=c(var[minIndex],round(exp(mean(log(c(var[minIndex],var[maxIndex]))))),var[maxIndex])
