@@ -28,7 +28,7 @@ library(devtools)
 install_git("https://gitlab.com/CarlBrunius/MUVR.git")
 ```
 
-In addition to functions relevant for within/between batch correction, data is provided to accurately reproduce figures from the original *Shi et al* paper (see below).
+In addition to functions relevant for crossvalidated, predictive multivariate modelling, the MUVR package also provides data to accurately reproduce figures from the original *Shi et al* paper.
 
 ## References
 
