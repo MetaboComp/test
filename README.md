@@ -1,10 +1,13 @@
 # MUVR
-Multivariate methods with Unbiased Variable selection in R
+Multivariate methods with Unbiased Variable selection in R  
+Associate Professor Carl Brunius  <carl.brunius@chalmers.se>
+Department of Biology and Biological Engineering
+Chalmers University of Technology www.chalmer.se
 
 ## General description
 The MUVR package allows for predictive multivariate modelling with minimally biased variable selection incorporated into a repeated double cross-validation framework. The MUVR procedure simultaneously produces both minimal-optimal and all-relevant variable selections.
 
-A tutorial on how to use the MUVR package for classification, regression and multilevel analysis can be found at this repository at [Tutorial/MUVR_Tutorial.docx] (https://gitlab.com/CarlBrunius/MUVR/blob/master/Tutorial/MUVR_Tutorial.docx)
+An easy-to-follow tutorial on how to use the MUVR package for classification, regression and multilevel analysis can be found at this repository at [Tutorial/MUVR_Tutorial.docx] (https://gitlab.com/CarlBrunius/MUVR/blob/master/Tutorial/MUVR_Tutorial.docx)
 
 In brief, MUVR proved the following functionality:
 - Types: Classification, regression and multilevel
