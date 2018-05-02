@@ -1,5 +1,5 @@
 # MUVR
-_Multivariate methods with Unbiased Variable selection in R_  
+**Multivariate methods with Unbiased Variable selection in R**  
 Associate Professor Carl Brunius  <carl.brunius@chalmers.se>  
 Department of Biology and Biological Engineering  
 Chalmers University of Technology www.chalmer.se
