@@ -2,36 +2,34 @@
 Multivariate methods with Unbiased Variable selection in R
 
 ## General description
-This is a package dedicated to predictive multivariate modelling for metabolomics.
-- Types: Classification and regression
+The MUVR package allows for predictive multivariate modelling with minimally biased variable selection incorporated into a repeated double cross-validation framework. The MUVR procedure simultaneously produces both minimal-optimal and all-relevant variable selections.
+
+A tutorial on how to use the MUVR package for classification, regression and multilevel analysis can be found at this repository at [Tutorial/MUVR_Tutorial.docx] (https://gitlab.com/CarlBrunius/MUVR/blob/master/Tutorial/MUVR_Tutorial.docx)
+
+In brief, MUVR proved the following functionality:
+- Types: Classification, regression and multilevel
 - Model cores: PLS and Random Forest
-- Data structures: Paired and unpaired
-- Validation: rdCV (Westerhuis et al 2008, Filzmoser et al 2009)
-- Variable selection: Performed internally.  
-  The unbiased VS stems from being tuned in the inner CV loop.  
+- Validation: Repeated double cross-validaiton (rdCV; Westerhuis et al 2008, Filzmoser et al 2009)
+- Variable selection: Recursive feature elimination embedded in the rdCV loop.  
 
 ## Installation
-Install `devtools` to be able to install packages from Git repositories.
+You will need to have the `devtools` R package installed. 
+```
+install.packages('devtools')
+# Make sure devtools is properly installed before installing packages from gitlab (or other repositories)
+# See instructions at https://github.com/hadley/devtools
+```
+After installing `devtools`, you can install the `MUVR` package
+```
+library(devtools)
+install_git("https://gitlab.com/CarlBrunius/MUVR.git")
+```
 
-Install `MUVR` package by:
-
-`devtools::install_git("https://gitlab.com/CarlBrunius/MUVR.git")`
-
-In addition to functions relevant for within/between batch correction, data is provided to accurately reproduce figures from the original *Brunius et al* paper (see below).
-
-## Examples of use
-MV-core       | response       | data structure | comment
-:------       | :-------       | :------------- | :------
-PLS           | regression     | unpaired       | Used in Hanhineva et al 2015 on LC-MS metabolomics data (linear code; before MUVR)
-PLS           | multilevel     | paired         | Used in 'BioDiVa', 'Satiety' and 'CRISP' projects.
-Random Forest | classification | unpaired       | Used in Buck et al 2016 on 16S microbiomics data (linear code; before MUVR)
-Random Forest | multilevel     | paired         | Used in 'BioDiVa' project.
+In addition to functions relevant for within/between batch correction, data is provided to accurately reproduce figures from the original *Shi et al* paper (see below).
 
 ## References
 
-- *Buck M, Nilsson LKJ, Brunius C, Dabire RK, Hopkins R, Terenius O, 2016. Bacterial associations reveal spatial population dynamics in Anopheles gambiae mosquitoes. Scientific Reports; Accepted.*
 - *Filzmoser P, Liebmann B, Varmuza K, 2009. Repeated double cross validation. Journal of Chemometrics 23(4), 160-171.*
-- *Hanhineva K, Brunius C, Andersson A, Marklund M, Juvonen R, Keski-Rahkonen P, Auriola S, Landberg R., 2015. Discovery of urinary biomarkers of whole grain rye intake in free-living subjects using nontargeted LC-MS metabolite profiling, Molecular Nutrition and Food Research 59(11), 2315-25.*
 - *Westerhuis JA, Hoefsloot HCJ, Smit S, Vis DJ, Smilde AK, Velzen EJJ, Duijnhoven JPM, Dorsten FA, 2008. Assessment of PLSDA cross validation. Metabolomics 4(1), 81-89.*
 
 ## Version history
