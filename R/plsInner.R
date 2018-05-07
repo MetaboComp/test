@@ -72,6 +72,7 @@ plsInner=function(xTrain,yTrain,xVal,yVal,DA,fitness,comp,scale=TRUE) {
     nComp=0
     if (fitness=='MISS') returnIn$miss=length(yVal)
     if (fitness=='AUROC') returnIn$auc=0
+    if (fitness=='BER') returnIn$ber=1
     if (fitness=='RMSEP') returnIn$rmsep=1E10
     returnIn$vip=rep(1,ncol(xTrain))
   }
