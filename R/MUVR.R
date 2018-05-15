@@ -98,7 +98,7 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     return(NULL)
   }
   ## Store indata in list for later model return
-  InData=list(X=X,Y=Y,ID=ID,scale=scale,nRep=nRep,nOuter=nOuter,nInner=nInner,varRatio=varRatio,DA=DA,fitness=fitness,method=method,methParam=methParam,ML=ML)
+  InData=list(X=X,Y=Y,ID=ID,scale=scale,nRep=nRep,nOuter=nOuter,nInner=nInner,varRatio=varRatio,DA=DA,fitness=fitness,method=method,methParam=methParam,ML=ML,parallel=parallel)
   ## Sort sampling based in subjects and not index
   unik=!duplicated(ID)  # boolean of unique IDs
   unikID=ID[unik]  
@@ -487,19 +487,19 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     rownames(yFit)=ID
     modelReturn$Fit=list(yFit=yFit,plsFitMin=plsFitMin,plsFitMid=plsFitMid,plsFitMax=plsFitMax)
   } else {
-    rfFitMin=randomForest(subset(X,select=incVarMin),Y)
+    rfFitMin=suppressWarnings(randomForest(subset(X,select=incVarMin),Y)) # suppress warnings for ML (regression against fewer than 5 unique values)
     if (DA) {
       yFitMin=rfFitMin$votes
     } else {
       yFitMin=rfFitMin$predicted
     }
-    rfFitMid=randomForest(subset(X,select=incVarMid),Y)
+    rfFitMid=suppressWarnings(randomForest(subset(X,select=incVarMid),Y)) # suppress warnings for ML (regression against fewer than 5 unique values)
     if (DA) {
       yFitMid=rfFitMid$votes
     } else {
       yFitMid=rfFitMid$predicted
     }
-    rfFitMax=randomForest(subset(X,select=incVarMax),Y)
+    rfFitMax=suppressWarnings(randomForest(subset(X,select=incVarMax),Y)) # suppress warnings for ML (regression against fewer than 5 unique values)
     if (DA) {
       yFitMax=rfFitMax$votes
     } else {
