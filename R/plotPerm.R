@@ -22,7 +22,7 @@ plotPerm=function(actual,h0,xlab=NULL,side=c('greater','smaller'),type=c('t','no
   if(missing(xlim)) {
     if(side=='smaller') xlim=c(0,max(h0)) else xlim=c(min(h0),1) 
   }
-  (h=hist(h0,breaks,xlim=xlim,ylim=ylim,main=NULL,axes=F,xlab=xlab))
+  (h=hist(h0,breaks,xlim=xlim,ylim=ylim,main=NULL,axes=F,xlab=xlab,freq=FALSE))
   h2=max(h$counts)*.75
   axis(1,pos=0)
   if(side=='smaller') axis(2,pos=0,las=1) else axis(2,pos=h$breaks[1],las=1)
