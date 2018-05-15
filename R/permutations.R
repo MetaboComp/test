@@ -54,7 +54,7 @@ permutations=function(MVObj,nPerm=50,nRep,nOuter,varRatio,parallel) {
   h0=matrix(ncol=3,nrow=nPerm)
   colnames(h0)=c('Min','Mid','Max')
   for (p in 1:nPerm) {
-    cat('\n',name,'permutation',p,'of',nPerm,'\n')
+    cat('\n"',name,' permutation ',p,' of ',nPerm,'\n',sep = '')
     permMod=MUVR(X=X, Y=YPerm, ID=ID, scale=scale, DA=DA, ML=ML, nRep=nRep, nOuter=nOuter, nInner=nInner, varRatio=varRatio, fitness=fitness, method=method, methParam=methParam, parallel=parallel)
     if (any(class(MVObj)=='Regression')) h0[p,]=permMod$fitMetric$Q2 else h0[p,]=permMod$miss
     nowTime=proc.time()[3]
