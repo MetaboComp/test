@@ -5,7 +5,8 @@
 \title{Plot for comparison of actual model fitness vs permutation}
 \usage{
 plotPerm(actual, h0, xlab = NULL, side = c("greater", "smaller"),
-  type = c("t", "non"), xlim, ylim = NULL, breaks = "Sturges", pos)
+  type = c("t", "non"), xlim, ylim = NULL, breaks = "Sturges", pos,
+  main = NULL)
 }
 \arguments{
 \item{actual}{Actual model fitness (e.g. Q2, AUROC or number of misclassifications)}
@@ -25,6 +26,8 @@ plotPerm(actual, h0, xlab = NULL, side = c("greater", "smaller"),
 \item{breaks}{Choice of user-specified histogram breaks (if default is not adequate)}
 
 \item{pos}{Choice of position of p-value label (if default is not adequate)}
+
+\item{main}{Choice of user-specified plot title}
 }
 \value{
 Plot

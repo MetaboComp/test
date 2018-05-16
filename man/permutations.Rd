@@ -23,7 +23,11 @@ permutations(MVObj, nPerm = 50, nRep, nOuter, varRatio, parallel)
 A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
 }
 \description{
-Make permutations with data and default settings from an actual MUVR object
+This function will extract data and parameter settings from a MUVR object and run standard permutations.
+This will fit a standard case of multivariate predictive modelling in either a regression, classification or multilevel case.
+However, if an analysis has a complex sample dependency which requires constrained permutation of your response vector 
+or if a variable pre-selection is performed for decreased computational burden, then permutaion loops should be constructed manually.
+In those cases, View(permutations) can be a first start from which to build custom solutions for permutation analysis.
 }
 \examples{
 library(MUVR)

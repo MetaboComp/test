@@ -38,7 +38,8 @@ In addition to functions relevant for crossvalidated, predictive multivariate mo
 ## Version history
 version | date | comment
 :------ | :--- | :------
-0.0.970 | 2018-05-07 | bugfix plsInner/BER for comp=0 (i.e. not modellable data)
+0.0.971 | 2018-05-15 | Added permutations() and permutationPlot()
+0.0.970 | 2018-05-07 | Bugfix plsInner/BER for comp=0 (i.e. not modellable data)
 0.0.969 | 2018-05-02 | Fixed fitRankRep and fitRankAll similar to fitRank (NA-problem)
 0.0.968 | 2018-04-24 | Added boolean scaling option (T/F) to MUVR for whether to perform scaling to unit variance & added preProcess function
 0.0.967 | 2018-04-17 | Added Balanced Error Rate as fitness metric & improved fitRank calculations

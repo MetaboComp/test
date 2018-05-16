@@ -6,7 +6,7 @@
 \usage{
 permutationPlot(MVObj, permMatrix, model = "Mid", type = c("t", "non"),
   side = c("greater", "smaller"), pos, xlab = NULL, xlim, ylim = NULL,
-  breaks = "Sturges")
+  breaks = "Sturges", main = NULL)
 }
 \arguments{
 \item{MVObj}{A MUVR object}
@@ -21,13 +21,15 @@ permutationPlot(MVObj, permMatrix, model = "Mid", type = c("t", "non"),
 
 \item{pos}{which side of actual to put p-value on}
 
-\item{xlab}{choice of custom xlabel}
+\item{xlab}{optional xlabel}
 
-\item{xlim}{choice of custom x-range}
+\item{xlim}{optional x-range}
 
-\item{ylim}{choice of custom y-range}
+\item{ylim}{otional y-range}
 
-\item{breaks}{choice of custom histogram breaks (defaults to 'sturges')}
+\item{breaks}{optional custom histogram breaks (defaults to 'sturges')}
+
+\item{main}{optional plot title (or TRUE for autoname)}
 }
 \value{
 A permutation plot

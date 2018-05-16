@@ -11,10 +11,12 @@
 #' @param xlim Choice of user-specified x-limits (if default is not adequate)
 #' @param ylim Choice of user-specified y-limits (if default is not adequate)
 #' @param breaks Choice of user-specified histogram breaks (if default is not adequate)
+#' @param main Choice of user-specified plot title
 #' @param pos Choice of position of p-value label (if default is not adequate)
+#'
 #' @return Plot
 #' @export
-plotPerm=function(actual,h0,xlab=NULL,side=c('greater','smaller'),type=c('t','non'),xlim,ylim=NULL,breaks='Sturges',pos) {
+plotPerm=function(actual,h0,xlab=NULL,side=c('greater','smaller'),type=c('t','non'),xlim,ylim=NULL,breaks='Sturges',pos, main=NULL) {
   if(missing(side)) side=ifelse(actual<median(h0),'smaller','greater')
   if(missing(type)) type='t'
   if(missing(pos)) pos=ifelse(side=='smaller',4,2)
@@ -22,7 +24,7 @@ plotPerm=function(actual,h0,xlab=NULL,side=c('greater','smaller'),type=c('t','no
   if(missing(xlim)) {
     if(side=='smaller') xlim=c(0,max(h0)) else xlim=c(min(h0),1) 
   }
-  (h=hist(h0,breaks,xlim=xlim,ylim=ylim,main=NULL,axes=F,xlab=xlab,freq=FALSE))
+  (h=hist(h0,breaks,xlim=xlim,ylim=ylim,axes=F,xlab=xlab,freq=FALSE,main=main))
   h2=max(h$density)*.75
   axis(1,pos=0)
   if(side=='smaller') axis(2,pos=0,las=1) else axis(2,pos=h$breaks[1],las=1)

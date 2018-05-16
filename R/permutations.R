@@ -1,5 +1,10 @@
 #' Make permutations with data and default settings from an actual MUVR object
-#'
+#' 
+#' This function will extract data and parameter settings from a MUVR object and run standard permutations.
+#' This will fit a standard case of multivariate predictive modelling in either a regression, classification or multilevel case.
+#' However, if an analysis has a complex sample dependency which requires constrained permutation of your response vector 
+#' or if a variable pre-selection is performed for decreased computational burden, then permutaion loops should be constructed manually.
+#' In those cases, View(permutations) can be a first start from which to build custom solutions for permutation analysis.
 #' @param MVObj A MUVR obvject
 #' @param nPerm number of permutations to run
 #' @param nRep number of repetitions for each permutation (defaults to value of actual model)
@@ -54,7 +59,7 @@ permutations=function(MVObj,nPerm=50,nRep,nOuter,varRatio,parallel) {
   h0=matrix(ncol=3,nrow=nPerm)
   colnames(h0)=c('Min','Mid','Max')
   for (p in 1:nPerm) {
-    cat('\n"',name,' permutation ',p,' of ',nPerm,'\n',sep = '')
+    cat('\n"',name,'" permutation ',p,' of ',nPerm,'\n',sep = '')
     permMod=MUVR(X=X, Y=YPerm, ID=ID, scale=scale, DA=DA, ML=ML, nRep=nRep, nOuter=nOuter, nInner=nInner, varRatio=varRatio, fitness=fitness, method=method, methParam=methParam, parallel=parallel)
     if (any(class(MVObj)=='Regression')) h0[p,]=permMod$fitMetric$Q2 else h0[p,]=permMod$miss
     nowTime=proc.time()[3]
