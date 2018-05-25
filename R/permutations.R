@@ -48,11 +48,9 @@ permutations=function(MVObj,nPerm=50,nRep,nOuter,varRatio,parallel) {
   } else nInner=nOuter-1
   if(missing(varRatio)) varRatio=MVObj$inData$varRatio
   if(missing(parallel)) parallel=MVObj$inData$parallel
-  YPerm=sample(Y)
   if(ML) {
     nSamp=nrow(X)/2
     X=X[1:nSamp,]
-    YPerm=YPerm[1:nSamp]
     ID=ID[1:nSamp]
   }
   startTime=proc.time()[3]
@@ -60,6 +58,7 @@ permutations=function(MVObj,nPerm=50,nRep,nOuter,varRatio,parallel) {
   colnames(h0)=c('Min','Mid','Max')
   for (p in 1:nPerm) {
     cat('\n"',name,'" permutation ',p,' of ',nPerm,'\n',sep = '')
+    if (ML) YPerm=sample(c(-1,1),size=nSamp,replace=TRUE) else YPerm=sample(Y)
     permMod=MUVR(X=X, Y=YPerm, ID=ID, scale=scale, DA=DA, ML=ML, nRep=nRep, nOuter=nOuter, nInner=nInner, varRatio=varRatio, fitness=fitness, method=method, methParam=methParam, parallel=parallel)
     if (any(class(MVObj)=='Regression')) h0[p,]=permMod$fitMetric$Q2 else h0[p,]=permMod$miss
     nowTime=proc.time()[3]
