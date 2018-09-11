@@ -4,15 +4,17 @@
 \alias{plotMV}
 \title{Plot MV object}
 \usage{
-plotMV(MVObj, model = "mid")
+plotMV(MVObj, model = "mid", factCols, sampLabels)
 }
 \arguments{
 \item{MVObj}{An `MVobject` obtained from the MVWrap function}
 
 \item{model}{What type of model to plot ('min', 'mid' or 'max'). Defaults to 'mid'.}
+
+\item{factCols}{An optional vector with colors for the factor levels (in the same order as the levels)}
 }
 \value{
-A pdf with plots of results from multivariate predictions
+A plot of results from multivariate predictions
 }
 \description{
 Plot MV object

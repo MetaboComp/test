@@ -5,8 +5,8 @@
 \title{rdCV: Wrapper for repeated double cross-validation without variable selection}
 \usage{
 rdCV(X, Y, ID, nRep = 5, nOuter = 6, nInner, DA = FALSE,
-  fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS", "RF"), methParam,
-  ML = FALSE, modReturn = FALSE, logg = FALSE)
+  fitness = c("AUROC", "MISS", "RMSEP"), method = c("PLS", "RF"),
+  methParam, ML = FALSE, modReturn = FALSE, logg = FALSE)
 }
 \arguments{
 \item{X}{Independent variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data. For ML, X is upper half only (X1-X2)}

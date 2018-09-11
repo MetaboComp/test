@@ -4,8 +4,8 @@
 \alias{predict.plsMUVR}
 \title{Predict pls}
 \usage{
-\method{predict}{plsMUVR}(object, newdata, onlyPred = FALSE, scale = TRUE,
-  ...)
+\method{predict}{plsMUVR}(object, newdata, onlyPred = FALSE,
+  scale = TRUE, ...)
 }
 \arguments{
 \item{object}{a plsMUVR object}

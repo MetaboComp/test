@@ -5,8 +5,8 @@
 \title{Plot permutation analysis using actual model and permutations()}
 \usage{
 permutationPlot(MVObj, permMatrix, model = "Mid", type = c("t", "non"),
-  side = c("greater", "smaller"), pos, xlab = NULL, xlim, ylim = NULL,
-  breaks = "Sturges", main = NULL)
+  side = c("greater", "smaller"), pos, xlab = NULL, xlim,
+  ylim = NULL, breaks = "Sturges", main = NULL)
 }
 \arguments{
 \item{MVObj}{A MUVR object}
