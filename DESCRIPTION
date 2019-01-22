@@ -1,6 +1,6 @@
 Package: MUVR
 Title: Multivariate methods with Unbiased Variable selection in R
-Version: 0.0.971
+Version: 0.0.972
 Author: Carl Brunius <carl.brunius@slu.se>
 Description: This is a package dedicated to predictive multivariate modelling
     for metabolomics. Types: Classification and regression. methods: PLS and Random
@@ -16,4 +16,5 @@ Imports:
     foreach
 License: GPL-2
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
+Encoding: UTF-8

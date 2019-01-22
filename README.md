@@ -38,6 +38,7 @@ In addition to functions relevant for crossvalidated, predictive multivariate mo
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.972 | 2019-01-22 | Added ylim to plotMV()
 0.0.971 | 2018-05-15 | Added permutations() and permutationPlot()
 0.0.970 | 2018-05-07 | Bugfix plsInner/BER for comp=0 (i.e. not modellable data)
 0.0.969 | 2018-05-02 | Fixed fitRankRep and fitRankAll similar to fitRank (NA-problem)

@@ -3,10 +3,12 @@
 #' @param MVObj An `MVobject` obtained from the MVWrap function
 #' @param model What type of model to plot ('min', 'mid' or 'max'). Defaults to 'mid'.
 #' @param factCols An optional vector with colors for the factor levels (in the same order as the levels)
+#' @param sampLabels Sample labels (optional; implemented for classification)
+#' @param ylim Optional for imposing y-limits for regression and classification analysis
 #'
 #' @return A plot of results from multivariate predictions
 #' @export
-plotMV=function(MVObj,model='mid',factCols,sampLabels) {
+plotMV=function(MVObj,model='mid',factCols,sampLabels,ylim=NULL) {
   if (!any(class(MVObj)=='MVObject')) {
     cat('\nWrong object class: Return NULL')
     return(NULL)
@@ -23,7 +25,8 @@ plotMV=function(MVObj,model='mid',factCols,sampLabels) {
   if (class(MVObj)[3]=='Regression') {
     YP=MVObj$yPred[,modNum]
     YPR=MVObj$yPredPerRep[[modNum]]
-    matplot(Y,YPR,pch=20,xlab='Original Y',ylab='Predicted Y',col='grey',bty='l',cex=0.5)
+    if (is.null(ylim)) ylim <- range(YPR)
+    matplot(Y,YPR,pch=20,xlab='Original Y',ylab='Predicted Y',col='grey',bty='l',cex=0.5, ylim=ylim)
     points(Y,YP,pch=20)
     reg=lm(YP~Y)
     abline(reg)
@@ -31,6 +34,7 @@ plotMV=function(MVObj,model='mid',factCols,sampLabels) {
   } else if (class(MVObj)[3]=='Classification') {
     YP=MVObj$yPred[[modNum]]
     YPR=MVObj$yPredPerRep[[modNum]]
+    if (is.null(ylim)) ylim <- range(YPR)
     classes=1:length(levels(Y))
     if(missing(factCols)) factCols=classes+1
     if(length(factCols)!=length(classes)) {
@@ -38,7 +42,7 @@ plotMV=function(MVObj,model='mid',factCols,sampLabels) {
       factCols=classes+1
     }
     classNudge=0.2*((classes-mean(classes))/(mean(classes)-1))
-    plot(1:nSamp,Y,type='n',ylim=range(YPR),xlab='',ylab='Class prediction probability',xaxt='n')
+    plot(1:nSamp,Y,type='n',ylim=ylim,xlab='',ylab='Class prediction probability',xaxt='n')
     axis(1,at=1:length(Y),labels = sampLabels,las=3)
     for(cl in classes) {
       matpoints((1:nSamp)+classNudge[cl],YPR[,cl,],pch=20,col=factCols[cl],cex=0.5)

@@ -4,7 +4,7 @@
 \alias{plotMV}
 \title{Plot MV object}
 \usage{
-plotMV(MVObj, model = "mid", factCols, sampLabels)
+plotMV(MVObj, model = "mid", factCols, sampLabels, ylim = NULL)
 }
 \arguments{
 \item{MVObj}{An `MVobject` obtained from the MVWrap function}
@@ -12,6 +12,10 @@ plotMV(MVObj, model = "mid", factCols, sampLabels)
 \item{model}{What type of model to plot ('min', 'mid' or 'max'). Defaults to 'mid'.}
 
 \item{factCols}{An optional vector with colors for the factor levels (in the same order as the levels)}
+
+\item{sampLabels}{Sample labels (optional; implemented for classification)}
+
+\item{ylim}{Optional for imposing y-limits for regression and classification analysis}
 }
 \value{
 A plot of results from multivariate predictions
