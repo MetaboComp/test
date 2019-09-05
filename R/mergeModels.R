@@ -1,7 +1,7 @@
 mergeModels=function(MV1,MV2) {
   if(any(class(MV1)=='Multilevel')|any(class(MV1)=='Classification')) {
     cat('\nNot yet supported')
-    break()
+    stop()
   }
   in1=MV1$inData
   in2=MV2$inData

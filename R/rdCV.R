@@ -255,7 +255,7 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
       yIn=Y[!testIndex]
       if (method=='PLS'){
         if (DA) plsOut=plsda(xIn,yIn,ncomp=nCompOut[i]) else 
-          plsOut=pls(xIn,yIn,ncomp=nCompOut[i],mode=methParam$mode)
+          plsOut=pls(xIn,yIn,ncomp=nCompOut[i])
         if (length(plsOut$nzv$Position)>0) removeVar=rownames(plsOut$nzv$Metrics) else removeVar=NA
         incVar=colnames(X)[!colnames(X)%in%removeVar]
         xTest=subset(xTest,select=incVar)
@@ -336,7 +336,7 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
   ## Build overall "Fit" method for calculating R2 and visualisations
   if (method=='PLS'){
     if (DA) plsFit=plsda(X,Y,ncomp=round(nComp)) else 
-      plsFit=pls(X,Y,ncomp=round(nComp),mode=methParam$mode)
+      plsFit=pls(X,Y,ncomp=round(nComp))
     if (length(plsFit$nzv$Position)>0) removeVar=rownames(plsFit$nzv$Metrics) else removeVar=NA
     incVar=colnames(X)[!colnames(X)%in%removeVar]
     yFit=predict(plsFit,newdata=subset(X,select=incVar))$predict[,,round(nComp)]  # 

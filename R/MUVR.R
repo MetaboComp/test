@@ -10,12 +10,12 @@
 #' @param nOuter Number of outer CV loop segments. (Defaults to 6)
 #' @param nInner Number of inner CV loop segments. (Defaults to nOuter-1)
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)
-#' @param DA Boolean for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
+#' @param DA Boolean for Classification (discriminant analysis) (By default, if Y is numeric -> DA=FALSE. If Y is factor (or character) -> DA=TRUE) 
 #' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' (default) for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (see function code for details)
 #' @param ML Boolean for multilevel analysis (defaults to FALSE)
-#' @param modReturn Boolean for returning outer segment models (defaults to FALSE)
+#' @param modReturn Boolean for returning outer segment models (defaults to FALSE). Setting modReturn=TRUE is required for making MUVR predictions using predMV().
 #' @param nCompMax Option to choose max number of PLS components (default is 5)
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
@@ -24,6 +24,8 @@
 #' @export
 MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','BER','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,logg=FALSE,parallel=TRUE){
   library(pROC)
+  
+  # Parallel processing
   library(foreach)
   if (parallel) "%doVersion%"=get("%dopar%") else "%doVersion%"=get("%do%")
   if (missing(method)) method='RF'
@@ -31,10 +33,13 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
   modelReturn=list(call=match.call())
   # Start timer
   start.time=proc.time()[3]
-  # Check indata
+  
+  # Rough check indata
   if (length(dim(X))!=2) stop('\nWrong format of X matrix.\n')
   if (is.null(colnames(X))) stop('\nNo column names in X matrix.\n')
   X=as.matrix(X)
+  
+  # Remove nearZeroVariance variables for PLS
   if (method=='PLS') {
     nzv=MUVR::nearZeroVar(X)
     if (length(nzv$Position)>0) {
@@ -43,23 +48,34 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
       cat('\n',length(nzv$Position),'variables with near zero variance detected -> removed from X and stored under $nzv')
     }
   }
+  
+  # Number of samples and variables 
   nSamp=nrow(X)
   nVar=nVar0=ncol(X)
+  # Sample identifiers
   if (missing(ID)) {
     cat('\nMissing ID -> Assume all unique (i.e. sample independence)')
     ID=1:nSamp
   }
+  
+  # Sort out internal modelling parameters
   if (missing(nInner)) nInner=nOuter-1
   if (method=='RF') library(randomForest)
+  # methParams
   if (missing(methParam)) {
     if (method=='PLS') {
-      methParam=list(compMax=ifelse(nVar<5,nVar,5))
+      methParam=list(compMax=5)
     } else {
       methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=150)
     }
     methParam$robust=0.05
   }
-  if (!missing(nCompMax)) methParam$compMax=nCompMax
+  if (method=='PLS') {
+    if (!missing(nCompMax)) methParam$compMax=nCompMax # Override with nCompMax from function call
+    if (nVar<methParam$compMax) methParam$compMax <- nVar # nCompMax cannot be larger than number of variables!
+  }
+  
+  # Set up for multilevel analysis
   if (ML) {
     X=rbind(X,-X)
     if (missing(Y)) Y=rep(-1,nSamp)
@@ -70,11 +86,15 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     fitness='MISS'
     cat('\nMultilevel -> Regression on (-1,1) & fitness=MISS')
   }
+  
+  # No Missingness allowed
   if (any(is.na(X)) | any(is.na(Y))) stop('\nNo missing values allowed in X or Y data.\n')
   if (!is.null(dim(Y))) {
     cat('\nY is not a vector: Return NULL')
     return(NULL)
   }
+  
+  # DA / Classification
   if (is.character(Y)) Y=factor(Y)
   if (is.factor(Y)) {
     cat('\nY is factor -> Classification (',length(unique(Y)),' classes)',sep='')
@@ -84,6 +104,7 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     Y=as.factor(Y)
     cat('\nDA=TRUE -> Y as factor -> Classification (',length(unique(Y)),' classes)',sep='')
   }
+  # Check fitness criterion
   if (missing(fitness)) {
     if (DA) {
       fitness='MISS'
@@ -93,13 +114,17 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
       cat('\nMissing fitness -> RMSEP')
     }
   }
+  
+  # Sanity check
   if (nrow(X)!=length(Y)) {
     cat('\nMust have same nSamp in X and Y: Return NULL')
     return(NULL)
   }
+  
   ## Store indata in list for later model return
   InData=list(X=X,Y=Y,ID=ID,scale=scale,nRep=nRep,nOuter=nOuter,nInner=nInner,varRatio=varRatio,DA=DA,fitness=fitness,method=method,methParam=methParam,ML=ML,parallel=parallel)
-  ## Sort sampling based in subjects and not index
+
+  ## Sort sampling based on subjects and not index
   unik=!duplicated(ID)  # boolean of unique IDs
   unikID=ID[unik]  
   if (DA) {
@@ -117,11 +142,14 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     yPredMin=yPredMid=yPredMax=matrix(nrow=length(Y),ncol=nRep,dimnames=list(ID,paste('Rep',1:nRep,sep='')))
     yPredMinR=yPredMidR=yPredMaxR=numeric(length(Y))
   }
+  
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
   varRepMin=varRepMid=varRepMax=nCompRepMin=nCompRepMid=nCompRepMax=missRep=numeric(nRep)
   names(varRepMin)=names(varRepMid)=names(varRepMax)=names(nCompRepMin)=names(nCompRepMid)=names(nCompRepMax)=names(missRep)=paste(rep('rep',nRep),1:nRep,sep='')
   nCompSegMin=nCompSegMid=nCompSegMax=matrix(nrow=nRep,ncol=nOuter,dimnames=list(paste('repetition',1:nRep,sep=''),paste('segment',1:nOuter,sep='')))
   VIPRepMin=VIPRepMid=VIPRepMax=matrix(data=nVar0,nrow=nVar0,ncol=nRep,dimnames=list(colnames(X),paste(rep('rep',nRep),1:nRep,sep='')))
+  
+  # Figure out number of iterations in inner CV loop
   var=numeric()
   cnt=0
   while (nVar>1) {  
@@ -129,13 +157,18 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
     var=c(var,nVar)
     nVar=floor(varRatio*nVar)
   }
+  
+  # Allocate array for validation results
   VAL=array(dim=c(nOuter,cnt,nRep),dimnames=list(paste('outSeg',1:nOuter,paste=''),var,paste(rep('rep',nRep),1:nRep,sep='')))
+  
   ## Choose package/core algorithm according to chosen method
   packs=c('pROC')
   if(method=='RF') packs=c(packs,'randomForest')
   exports='vectSamp'
+  
+  
   ## Start repetitions
-  # reps=list()
+  # reps=list() # 2+2 lines for pseudomanual troubleshooting
   # for (r in 1:nRep){
   reps=foreach(r=1:nRep, .packages=packs, .export=exports) %doVersion% {
     # r=1
@@ -307,19 +340,19 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
           outMod[[i]]=list(plsOutMin,plsOutMid,plsOutMax)
         }
       } else {
-        rfOutMin=randomForest(x=subset(xIn,select=incVarMin),y=yIn,xtest=subset(xTest,select=incVarMin),ytest=yTest,keep.forest=TRUE)
+        rfOutMin=randomForest(x=subset(xIn,select=incVarMin),y=yIn,xtest=subset(xTest,select=incVarMin),ytest=yTest,ntree=methParam$ntreeOut,keep.forest=TRUE)
         if (DA) {
           yPredMinR[testIndex,]=rfOutMin$test$votes
         } else {
           yPredMinR[testIndex]=rfOutMin$test$predicted
         }
-        rfOutMid=randomForest(x=subset(xIn,select=incVarMid),y=yIn,xtest=subset(xTest,select=incVarMid),ytest=yTest,keep.forest=TRUE)
+        rfOutMid=randomForest(x=subset(xIn,select=incVarMid),y=yIn,xtest=subset(xTest,select=incVarMid),ytest=yTest,ntree=methParam$ntreeOut,keep.forest=TRUE)
         if (DA) {
           yPredMidR[testIndex,]=rfOutMid$test$votes
         } else {
           yPredMidR[testIndex]=rfOutMid$test$predicted
         }
-        rfOutMax=randomForest(x=subset(xIn,select=incVarMax),y=yIn,xtest=subset(xTest,select=incVarMax),ytest=yTest,keep.forest=TRUE)
+        rfOutMax=randomForest(x=subset(xIn,select=incVarMax),y=yIn,xtest=subset(xTest,select=incVarMax),ytest=yTest,ntree=methParam$ntreeOut,keep.forest=TRUE)
         if (DA) {
           yPredMaxR[testIndex,]=rfOutMax$test$votes
         } else {

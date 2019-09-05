@@ -25,19 +25,20 @@ install.packages('devtools')
 After installing `devtools`, you can install the `MUVR` package
 ```
 library(devtools)
-install_git("https://gitlab.com/CarlBrunius/MUVR.git")
+install_gitlab("CarlBrunius/MUVR")
 ```
 
-In addition to functions relevant for crossvalidated, predictive multivariate modelling, the MUVR package also provides data to accurately reproduce figures from the original *Shi et al* paper.
+In addition to functions relevant for crossvalidated, predictive multivariate modelling, the MUVR package also provides data to accurately reproduce figures from the original *Shi et al* paper (below).
 
 ## References
-
-- *Filzmoser P, Liebmann B, Varmuza K, 2009. Repeated double cross validation. Journal of Chemometrics 23(4), 160-171.*
-- *Westerhuis JA, Hoefsloot HCJ, Smit S, Vis DJ, Smilde AK, Velzen EJJ, Duijnhoven JPM, Dorsten FA, 2008. Assessment of PLSDA cross validation. Metabolomics 4(1), 81-89.*
+- *Shi L, Westerhuis JA, Rosén J, Landberg R, Brunius C 2019. Variable selection and validation in multivariate modelling. Bioinformatics. 2019, 35(6), 972–80.*
+- *Filzmoser P, Liebmann B, Varmuza K 2009. Repeated double cross validation. Journal of Chemometrics 23(4), 160-171.*
+- *Westerhuis JA, Hoefsloot HCJ, Smit S, Vis DJ, Smilde AK, Velzen EJJ, Duijnhoven JPM, Dorsten FA 2008. Assessment of PLSDA cross validation. Metabolomics 4(1), 81-89.*
 
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.973 | 2019-09-05 | Added customParams() for tweaking inner modelling parameters (robustness limit, nComp (PLS), ntreeIn, mtryMaxIn, ntreeOut - so far not mtryMaxOut)
 0.0.972 | 2019-01-22 | Added ylim to plotMV()
 0.0.971 | 2018-05-15 | Added permutations() and permutationPlot()
 0.0.970 | 2018-05-07 | Bugfix plsInner/BER for comp=0 (i.e. not modellable data)
