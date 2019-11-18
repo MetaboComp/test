@@ -436,9 +436,9 @@ MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fi
   if (DA) {
     auc=matrix(nrow=3,ncol=length(levels(Y)),dimnames=list(c('min','mid','max'),levels(Y)))
     for (cl in 1:length(levels(Y))) {
-      auc[1,cl]=roc(Y==(levels(Y)[cl]),yPred[['min']][,cl])$auc
-      auc[2,cl]=roc(Y==(levels(Y)[cl]),yPred[['mid']][,cl])$auc
-      auc[3,cl]=roc(Y==(levels(Y)[cl]),yPred[['max']][,cl])$auc
+      auc[1,cl]=roc(Y==(levels(Y)[cl]),yPred[['min']][,cl], quiet = TRUE)$auc
+      auc[2,cl]=roc(Y==(levels(Y)[cl]),yPred[['mid']][,cl], quiet = TRUE)$auc
+      auc[3,cl]=roc(Y==(levels(Y)[cl]),yPred[['max']][,cl], quiet = TRUE)$auc
     }
     # Classify predictions
     miss=numeric(3)

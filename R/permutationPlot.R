@@ -32,7 +32,7 @@
 #' stopCluster(cl)
 #' permutationPlot(R12ML,permR12)
 permutationPlot=function(MVObj,permMatrix,model='Mid',type=c('t','non'),side=c('greater','smaller'),pos,xlab=NULL,xlim,ylim=NULL,breaks='Sturges',main=NULL) {
-  nModel=ifelse(model=='Min',1,ifelse(model=='Mid',2,3))
+  nModel=ifelse(model%in%c('Min', 'min'),1,ifelse(model%in%c('Mid', 'mid'),2,3))
   if (any(class(MVObj)=='Regression')) {
     actual=MVObj$fitMetric$Q2[nModel] 
     if (missing(xlab)) xlab='Q2'
