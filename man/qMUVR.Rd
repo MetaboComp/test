@@ -5,7 +5,7 @@
 \title{qMUVR: Wrapper for speedy access to MUVR (autosetup of parallelization)}
 \usage{
 qMUVR(X, Y, ML = F, method = "RF", varRatio = 0.65, nCore,
-  repMult = 1, nOuter = 5)
+  repMult = 1, nOuter = 5, ...)
 }
 \arguments{
 \item{X}{X-data}
@@ -23,6 +23,8 @@ qMUVR(X, Y, ML = F, method = "RF", varRatio = 0.65, nCore,
 \item{repMult}{Multiplier of cores -> nRep = repMult * nCore}
 
 \item{nOuter}{Number of outer segments}
+
+\item{...}{}
 }
 \value{
 MUVR object

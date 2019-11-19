@@ -7,7 +7,7 @@
 MUVR(X, Y, ID, scale = TRUE, nRep = 5, nOuter = 6, nInner,
   varRatio = 0.75, DA = FALSE, fitness = c("AUROC", "MISS", "BER",
   "RMSEP"), method = c("PLS", "RF"), nCompMax, methParam, ML = FALSE,
-  modReturn = FALSE, logg = FALSE, parallel = TRUE)
+  modReturn = FALSE, logg = FALSE, parallel = TRUE, ...)
 }
 \arguments{
 \item{X}{Predictor variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data. For multilevel, only the positive half of the difference matrix is specified.}

@@ -22,7 +22,7 @@
 #'
 #' @return A MUVR object
 #' @export
-MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','BER','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,logg=FALSE,parallel=TRUE){
+MUVR=function(X,Y,ID,scale=TRUE,nRep=5,nOuter=6,nInner,varRatio=0.75,DA=FALSE,fitness=c('AUROC','MISS','BER','RMSEP'),method=c('PLS','RF'),nCompMax,methParam,ML=FALSE,modReturn=FALSE,logg=FALSE,parallel=TRUE, ...){
   library(pROC)
   
   # Parallel processing
