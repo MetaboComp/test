@@ -16,16 +16,17 @@ In brief, MUVR proved the following functionality:
 - Variable selection: Recursive feature elimination embedded in the rdCV loop.  
 
 ## Installation
-You will need to have the `devtools` R package installed. 
+- You will need to have installed R (https://www.r-project.org/)
+- Normally, you will want to work in RStudio (https://rstudio.com/) or some other IDE
+
+You also need to have the `remotes` R package installed. Just run the following from an R script or type it directly at the R console (normally the lower left window in RStudio):
 ```
-install.packages('devtools')
-# Make sure devtools is properly installed before installing packages from gitlab (or other repositories)
-# See instructions at https://github.com/hadley/devtools
+install.packages('remotes')
 ```
-After installing `devtools`, you can install the `MUVR` package
+When `remotes` is installed, you can install the `MUVR` package by running:
 ```
-library(devtools)
-install_gitlab("CarlBrunius/MUVR")
+library(remotes)
+install_gitlab('CarlBrunius/MPCourse')
 ```
 
 In addition to functions relevant for crossvalidated, predictive multivariate modelling, the MUVR package also provides data to accurately reproduce figures from the original *Shi et al* paper (below).
