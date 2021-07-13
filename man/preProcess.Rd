@@ -4,8 +4,14 @@
 \alias{preProcess}
 \title{Perform matrix pre-processing}
 \usage{
-preProcess(X, offset = 0, zeroOffset = 0, trans = "none",
-  center = "none", scale = "none")
+preProcess(
+  X,
+  offset = 0,
+  zeroOffset = 0,
+  trans = "none",
+  center = "none",
+  scale = "none"
+)
 }
 \arguments{
 \item{X}{Data matrix with samples in rows and variables in columns}

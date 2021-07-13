@@ -4,8 +4,14 @@
 \alias{customParams}
 \title{Make custom parameters for MUVR internal modelling}
 \usage{
-customParams(method = c("RF", "PLS"), robust = 0.05, ntreeIn = 150,
-  ntreeOut = 300, mtryMaxIn = 150, compMax = 5)
+customParams(
+  method = c("RF", "PLS"),
+  robust = 0.05,
+  ntreeIn = 150,
+  ntreeOut = 300,
+  mtryMaxIn = 150,
+  compMax = 5
+)
 }
 \arguments{
 \item{method}{PLS or RF (default)}

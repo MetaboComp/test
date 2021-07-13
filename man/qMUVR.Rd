@@ -4,8 +4,17 @@
 \alias{qMUVR}
 \title{qMUVR: Wrapper for speedy access to MUVR (autosetup of parallelization)}
 \usage{
-qMUVR(X, Y, ML = F, method = "RF", varRatio = 0.65, nCore,
-  repMult = 1, nOuter = 5, ...)
+qMUVR(
+  X,
+  Y,
+  ML = F,
+  method = "RF",
+  varRatio = 0.65,
+  nCore,
+  repMult = 1,
+  nOuter = 5,
+  ...
+)
 }
 \arguments{
 \item{X}{X-data}

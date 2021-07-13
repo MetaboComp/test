@@ -4,8 +4,19 @@
 \alias{biplotPLS}
 \title{PLS biplot}
 \usage{
-biplotPLS(fit, comps = 1:2, xCol, labPlSc = TRUE, labs, vars,
-  labPlLo = TRUE, pchSc = 16, colSc, colLo = 2, supLeg = FALSE)
+biplotPLS(
+  fit,
+  comps = 1:2,
+  xCol,
+  labPlSc = TRUE,
+  labs,
+  vars,
+  labPlLo = TRUE,
+  pchSc = 16,
+  colSc,
+  colLo = 2,
+  supLeg = FALSE
+)
 }
 \arguments{
 \item{fit}{A PLS fit (e.g. from MVObject$Fit[[2]])}
