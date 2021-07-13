@@ -95,7 +95,9 @@ MUVR <- function(X,
   
   # Set up default internal modelling parameters
   if (missing(nInner)) nInner <- nOuter - 1 # Default value for inner segments
+  
   # methParams
+  if(any(names(list(...)) == 'nCompMax')) stop('`nCompMax` is deprecated. Use customParams() and the methParam argument in MUVR instead.')
   if (missing(methParam)) {
     if (method == 'PLS') {
       methParam <- list(compMax = 5)
