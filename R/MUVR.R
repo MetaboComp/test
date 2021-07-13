@@ -419,7 +419,8 @@ MUVR <- function(X,
           # Store VIs
           VIPInner[match(names(inMod$vi), rownames(VIPInner)), count, j] <- inMod$vi
         }
-        ## Average inner VIP ranks before variable elimination
+        
+        # Average inner VIP ranks before variable elimination - Tweak for `keeps`
         VIPInAve <- apply(VIPInner[, count, ], 1, mean)
         if (count < cnt) {
           incVar <- names(VIPInAve[order(VIPInAve)])[1:var[count + 1]] # Extract the names of the variables kept for the next iteration 
