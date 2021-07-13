@@ -4,9 +4,18 @@
 \alias{plotPerm}
 \title{Plot for comparison of actual model fitness vs permutation}
 \usage{
-plotPerm(actual, h0, xlab = NULL, side = c("greater", "smaller"),
-  type = c("t", "non"), xlim, ylim = NULL, breaks = "Sturges", pos,
-  main = NULL)
+plotPerm(
+  actual,
+  h0,
+  xlab = NULL,
+  side = c("greater", "smaller"),
+  type = c("t", "non"),
+  xlim,
+  ylim = NULL,
+  breaks = "Sturges",
+  pos,
+  main = NULL
+)
 }
 \arguments{
 \item{actual}{Actual model fitness (e.g. Q2, AUROC or number of misclassifications)}

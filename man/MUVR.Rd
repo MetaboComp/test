@@ -15,8 +15,7 @@ MUVR(
   varRatio = 0.75,
   DA = FALSE,
   fitness = c("AUROC", "MISS", "BER", "RMSEP"),
-  method = c("PLS", "RF"),
-  nCompMax,
+  method = c("PLS", " RF"),
   methParam,
   ML = FALSE,
   modReturn = FALSE,
@@ -47,8 +46,6 @@ MUVR(
 \item{fitness}{Fitness function for model tuning (choose either 'AUROC' or 'MISS' (default) for classification; or 'RMSEP' (default) for regression.)}
 
 \item{method}{Multivariate method. Supports 'PLS' and 'RF' (default)}
-
-\item{nCompMax}{Option to choose max number of PLS components (default is 5)}
 
 \item{methParam}{List with parameter settings for specified MV method (see function code for details)}
 
