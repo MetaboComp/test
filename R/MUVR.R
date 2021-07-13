@@ -10,12 +10,12 @@
 #' @param nOuter Number of outer CV loop segments. (Defaults to 6)
 #' @param nInner Number of inner CV loop segments. (Defaults to nOuter-1)
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)
-#' @param DA Boolean for Classification (discriminant analysis) (By default, if Y is numeric -> DA=FALSE. If Y is factor (or character) -> DA=TRUE) 
+#' @param DA Boolean for Classification (discriminant analysis) (By default, if Y is numeric -> DA = FALSE. If Y is factor (or character) -> DA = TRUE) 
 #' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' (default) for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (see function code for details)
 #' @param ML Boolean for multilevel analysis (defaults to FALSE)
-#' @param modReturn Boolean for returning outer segment models (defaults to FALSE). Setting modReturn=TRUE is required for making MUVR predictions using predMV().
+#' @param modReturn Boolean for returning outer segment models (defaults to FALSE). Setting modReturn = TRUE is required for making MUVR predictions using predMV().
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
 #'
