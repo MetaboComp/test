@@ -26,7 +26,7 @@ install.packages('remotes')
 When `remotes` is installed, you can install the `MUVR` package by running:
 ```
 library(remotes)
-install_gitlab('CarlBrunius/MPCourse')
+install_gitlab('CarlBrunius/MUVR')
 ```
 
 In addition to functions relevant for crossvalidated, predictive multivariate modelling, the MUVR package also provides data to accurately reproduce figures from the original *Shi et al* paper (below).
