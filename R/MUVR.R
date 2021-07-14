@@ -1,5 +1,5 @@
 #' MUVR: "Multivariate modelling with Unbiased Variable selection"
-#' 
+#'
 #' Repeated double cross validation with tuning of variables in the inner loop.
 #'
 #' @param X Predictor variables. NB: Variables (columns) must have names/unique identifiers. NAs not allowed in data. For multilevel, only the positive half of the difference matrix is specified.
@@ -10,7 +10,7 @@
 #' @param nOuter Number of outer CV loop segments. (Defaults to 6)
 #' @param nInner Number of inner CV loop segments. (Defaults to nOuter-1)
 #' @param varRatio Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)
-#' @param DA Boolean for Classification (discriminant analysis) (By default, if Y is numeric -> DA = FALSE. If Y is factor (or character) -> DA = TRUE) 
+#' @param DA Boolean for Classification (discriminant analysis) (By default, if Y is numeric -> DA = FALSE. If Y is factor (or character) -> DA = TRUE)
 #' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' (default) for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (see function code for details)
@@ -19,7 +19,7 @@
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
 #'
-#' @return 
+#' @return
 #' A MUVR object
 #' @export
 MUVR <- function(X,
@@ -36,33 +36,33 @@ MUVR <- function(X,
                  methParam,
                  ML = FALSE,
                  modReturn = FALSE,
-                 logg = FALSE,
-                 parallel = TRUE, 
+                 logg=FALSE,
+                 parallel = TRUE,
                  ...) {
 
   # Start timer
   start.time <- proc.time()[3]
-  
+
   # Initialise modelReturn with function call
   modelReturn <- list(call = match.call())
-  
+
   # Default core modelling method
   if (missing(method)) method <- 'RF'
-  
+
   # Call in relevant package(s)
   library(pROC)
   library(foreach)
   if (method == 'RF') library(randomForest)
-  
+
   # Parallel processing
   if (parallel) "%doVersion%" <- get("%dopar%") else "%doVersion%" <- get("%do%")
-  
+
   # Rough check indata
   if (length(dim(X)) != 2) stop('\nWrong format of X matrix.\n')
   if (is.null(colnames(X))) stop('\nNo column names in X matrix.\n')
   X <- as.matrix(X) # PROBLEM: Will not work for factor variables BUT it will work for PLS with one-hot
   # I don't know how much of a problem data frames are from a time perspective. Check matrix vs DF on same dataset for time difference.
-  
+
   # Remove nearZeroVariance variables for PLS
   if (method == 'PLS') {
     nzv <- MUVR::nearZeroVar(X) # Function borrowed from mixOmics
@@ -72,30 +72,30 @@ MUVR <- function(X,
       cat('\n',length(nzv$Position),'variables with near zero variance detected -> removed from X and stored under $nzv')
     }
   }
-  
-  # Number of samples and variables 
+
+  # Number of samples and variables
   nSamp <- nrow(X)
   nVar <- nVar0 <- ncol(X)
-  
+
   # Sample identifiers; Assume independence if ID is not specified
   if (missing(ID)) {
     cat('\nMissing ID -> Assume all unique (i.e. sample independence)')
     ID <- 1:nSamp
   }
-  
+
   # Figure out number of iterations in inner CV loop
   # Gets tweaked for "keeps"
   var <- numeric()
   cnt <- 0
-  while (nVar > 1) {  
+  while (nVar > 1) {
     cnt <- cnt + 1
     var <- c(var, nVar)
     nVar <- floor(varRatio * nVar)
   }
-  
+
   # Set up default internal modelling parameters
   if (missing(nInner)) nInner <- nOuter - 1 # Default value for inner segments
-  
+
   # methParams
   if(any(names(list(...)) == 'nCompMax')) stop('`nCompMax` is deprecated. Use customParams() and the methParam argument in MUVR instead.')
   if (missing(methParam)) {
@@ -109,7 +109,7 @@ MUVR <- function(X,
     }
     methParam$robust <- 0.05
   }
-  
+
   # Set up for multilevel analysis
   if (ML) {
     X <- rbind(X, -X)
@@ -121,14 +121,14 @@ MUVR <- function(X,
     fitness <- 'MISS'
     cat('\nMultilevel -> Regression on (-1,1) & fitness = MISS')
   }
-  
+
   # No missingness allowed - Please perform imputations before running MUVR
   if (any(is.na(X)) | any(is.na(Y))) stop('\nNo missing values allowed in X or Y data.\n')
   if (!is.null(dim(Y))) {
     cat('\nY is not a vector: Return NULL')
     return(NULL)
   }
-  
+
   # DA / Classification
   if (is.character(Y)) Y <- factor(Y)
   if (is.factor(Y)) {
@@ -139,7 +139,7 @@ MUVR <- function(X,
     Y <- as.factor(Y)
     cat('\nDA = TRUE -> Y as factor -> Classification (',length(unique(Y)),' classes)', sep = '')
   }
-  
+
   # Check fitness criterion
   if (missing(fitness)) {
     if (DA) {
@@ -150,7 +150,7 @@ MUVR <- function(X,
       cat('\nMissing fitness -> RMSEP')
     }
   }
-  
+
   # Additional sanity check
   if (nrow(X) != length(Y)) stop('\nMust have same nSamp in X and Y: Return NULL')
 
@@ -179,7 +179,7 @@ MUVR <- function(X,
     Ynames <- sort(unique(Y))  # Find groups
     groups <- length(Ynames) # Number of groups
     groupID <- list()  # Allocate list for indices of groups
-    for (g in 1:groups) { 
+    for (g in 1:groups) {
       groupID[[g]] <- unikID[unikY == Ynames[g]]  # Find indices per group
     }
     # Allocate final predictions for min mid and max models
@@ -195,17 +195,17 @@ MUVR <- function(X,
                                                   dimnames = list(ID, levels(Y)))
   } else { # I.e. for regression and ML
     # Allocate final predictions for min mid and max models
-    yPredMin <- yPredMid <- yPredMax <- matrix(nrow = length(Y), # Like above but matrix instead of array, since there are not multiple classes 
+    yPredMin <- yPredMid <- yPredMax <- matrix(nrow = length(Y), # Like above but matrix instead of array, since there are not multiple classes
                                                ncol = nRep,
-                                               dimnames = list(ID, paste('Rep', 1:nRep, sep = ''))) 
+                                               dimnames = list(ID, paste('Rep', 1:nRep, sep = '')))
     # Allocate predictions per repetition
     yPredMinR <- yPredMidR <- yPredMaxR <- numeric(length(Y)) # Like above but lacking columns (repetitions) -> numeric vector
   }
-  
+
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
   missRep <- numeric(nRep)
   names(missRep) <- paste(rep('rep',nRep), 1:nRep, sep = '')
-  varRepMin <- varRepMid <- varRepMax <- nCompRepMin <- nCompRepMid <- nCompRepMax <- missRep 
+  varRepMin <- varRepMid <- varRepMax <- nCompRepMin <- nCompRepMid <- nCompRepMax <- missRep
   nCompSegMin <- nCompSegMid <- nCompSegMax <- matrix(nrow = nRep,
                                                       ncol = nOuter,
                                                       dimnames = list(paste('repetition', 1:nRep, sep = ''),
@@ -215,46 +215,46 @@ MUVR <- function(X,
                                                 ncol = nRep,
                                                 dimnames = list(colnames(X),
                                                                 paste(rep('rep', nRep), 1:nRep, sep = '')))
-  
+
   # Allocate array for validation results
   VAL <- array(dim = c(nOuter, cnt, nRep),
                dimnames = list(paste('outSeg', 1:nOuter, paste=''),
                                var,
                                paste(rep('rep',nRep),1:nRep,sep='')))
-  
+
   # Choose package/core algorithm according to chosen method
   # And prepare for exporting them in 'foreach' (below)
   packs <- c('pROC')
   if(method == 'RF') packs <- c(packs, 'randomForest')
   exports <- 'vectSamp'
 
-  
-  ####################################################  
+
+  ####################################################
   ## Start repetitions
-  ####################################################  
-  
+  ####################################################
+
   # For manual debugging purposes
   # reps=list()
-  # for (r in 1:nRep){  
-  
+  # for (r in 1:nRep){
+
   reps <- foreach(r = 1:nRep, .packages = packs, .export = exports) %doVersion% {
-    
+
     # For manual debugging purposes
-    # r <- 1 
+    # r <- 1
     # r <- r + 1
-    
+
     # Send intermediate outputs to log file: Not a pretty output. For debugging purposes only.
-    if (logg) sink('log.txt', append = TRUE) 
+    if (logg) sink('log.txt', append = TRUE)
     # Intermediate info output
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
-    
+
     # Allocate output for models (i.e. for later prediction of external samples)
-    if (modReturn) outMod <- list() 
+    if (modReturn) outMod <- list()
 
     # PERFORM SEGMENTATION INTO OUTER SEGMENTS
     if (DA & identical(unikID, ID)) {
       groupTest <- list()  ## Allocate list for samples within group
-      for (gT in 1:groups) { 
+      for (gT in 1:groups) {
         groupTest[[gT]] <- vectSamp(groupID[[gT]], n = nOuter)  # Draw random samples within group
       }
       allTest <- groupTest[[1]] # Add 1st groups to 'Master' sample of all groups
@@ -267,7 +267,7 @@ MUVR <- function(X,
     } else {
       allTest <- vectSamp(unikID, n=nOuter)
     }
-    
+
     # Allocate intermediate output objects
     nCompOutMax <- numeric(nOuter)
     names(nCompOutMax) <- paste(rep('outSeg', nOuter), 1:nOuter, sep = '')
@@ -280,29 +280,29 @@ MUVR <- function(X,
     VALRep <- matrix(nrow = nOuter, ncol = cnt)
 
     # Perform outer loop segments -> one "majority vote" MV model per segment
-    for (i in 1:nOuter) {   
-      
+    for (i in 1:nOuter) {
+
       # For manual debugging purposes
-      # i <- 1 
+      # i <- 1
       # i <- i + 1
-      
+
       # Intermediate info output
       cat('\n Segment ',i,' (variables):',sep='') # Counter
-      
+
       # Draw out test set
       testID <- allTest[[i]] # Draw out segment = holdout set BASED ON UNIQUE ID
       testIndex <- ID%in%testID # Boolean for samples corresponding to unique test IDs
       xTest=X[testIndex,]
       yTest=Y[testIndex]
-      
+
       # Inner data (not in test)
       inID <- unikID[!unikID%in%testID]  # IDs not in test set
       if (DA & identical(unikID,ID)) inY <- unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
-      
+
       # Allocate fitness variables for the inner data
       missIn <- berIn <- aucIn <- rmsepIn <- PRESSIn <- nCompIn <- matrix(nrow = nInner,
                                                                           ncol = cnt,
-                                                                          dimnames = list(paste(rep('inSeg', nInner), 1:nInner, sep = ''), 
+                                                                          dimnames = list(paste(rep('inSeg', nInner), 1:nInner, sep = ''),
                                                                                           var))
       # Allocate VIP variable for the inner data
       VIPInner <- array(data = nVar0,
@@ -312,37 +312,37 @@ MUVR <- function(X,
                                         paste(rep('inSeg', nInner), 1:nInner, sep = '')))
       # Set initial inclusion list of variables to all variables
       incVar <- colnames(X)
-      
+
       # Perform steps with successively fewer variables
-      for (count in 1:cnt) {  # Build models with successively fewer variables. 
-        
+      for (count in 1:cnt) {  # Build models with successively fewer variables.
+
         # For manual debugging purposes
         # count <- 1 # for testing
         # count <- count + 1
-        
+
         # Intermediate info output
         cat(nVar)
-        
+
         # Extract the number of variables at the present count (according to the count loop before the foreach loop)
         nVar <- var[count]
-        
+
         # Tweak method parameters for low number of variables
         if (method == 'PLS') comp <- min(c(nVar, methParam$compMax)) # nComp cannot be > nVar
         if (method=='RF') {
-          mtryIn <- ifelse(DA, 
+          mtryIn <- ifelse(DA,
                            min(c(methParam$mtryMaxIn,floor(sqrt(nVar)))), # Standard but with upper limit
-                           min(c(methParam$mtryMaxIn,floor(nVar/3)))) # Standard but with upper limit 
+                           min(c(methParam$mtryMaxIn,floor(nVar/3)))) # Standard but with upper limit
           mtryIn <- max(c(2,mtryIn)) # Lower limit
         }
-        
+
         # PERFORM SEGMENTATION INTO INNER SEGMENTS
         if (DA & identical(unikID,ID)) {
           groupIDVal <- list()
-          for (g in 1:groups) { 
+          for (g in 1:groups) {
             groupIDVal[[g]] <- inID[inY == Ynames[g]]  # Find indices per group
           }
           groupVal <- list()  ## Allocate list for samples within group
-          for (gV in 1:groups) { 
+          for (gV in 1:groups) {
             groupVal[[gV]] <- vectSamp(groupIDVal[[gV]], n = nInner)  # Draw random samples within group
           }
           allVal = groupVal[[1]] # Add 1st groups to 'Master' sample of all groups
@@ -355,35 +355,35 @@ MUVR <- function(X,
         } else {
           allVal <- vectSamp(inID, n = nInner)
         }
-        
+
         # Perform inner CV loop
         for (j in 1:nInner) {
-          
+
           # For manual debugging purposes
-          # j <- 1 
+          # j <- 1
           # j <- j + 1
-          
+
           # Intermediate info output
           cat('.') # Counter
-          
+
           # Extract validation segment
           valID <- allVal[[j]] # Extract IDs
           valIndex <- ID %in% valID # Corresponding observations
           xVal <- X[valIndex,]
           xVal <- subset(xVal, select = incVar) # limit to the current selection of variables (selection below)
           yVal <- Y[valIndex]
-          
+
           # Extract training data
           trainID <- inID[!inID %in% valID] # The inner but not validation IDs
           trainIndex <- ID %in% trainID # Corresponding observations
           xTrain <- X[trainIndex,]
           xTrain <- subset(xTrain, select = incVar) # limit to the current selection of variables (selection below)
           yTrain <- Y[trainIndex]
-          
+
           # For debugging
           # sum(trainIndex,valIndex,testIndex)
           # trainIndex|valIndex|testIndex
-          
+
           # Make inner model
           if (method == 'PLS') {
             inMod <- MUVR::plsInner(xTrain,
@@ -405,7 +405,7 @@ MUVR <- function(X,
                                    ntree = methParam$ntreeIn,
                                    mtry = mtryIn)
           }
-          
+
           # Store fitness metric
           if (fitness == 'MISS') {
             missIn[j, count] <- inMod$miss
@@ -417,20 +417,20 @@ MUVR <- function(X,
             rmsepIn[j, count] <- inMod$rmsep
             PRESSIn[j, count] <- (inMod$rmsep ^ 2) * length(yVal) # Is this really correct???
           }
-          
+
           # Store VIs
           VIPInner[match(names(inMod$vi), rownames(VIPInner)), count, j] <- inMod$vi
         }
-        
+
         # Average inner VIP ranks before variable elimination - Tweak for `keeps`
         VIPInAve <- apply(VIPInner[, count, ], 1, mean)
         if (count < cnt) {
-          incVar <- names(VIPInAve[order(VIPInAve)])[1:var[count + 1]] # Extract the names of the variables kept for the next iteration 
+          incVar <- names(VIPInAve[order(VIPInAve)])[1:var[count + 1]] # Extract the names of the variables kept for the next iteration
         }
       }
-      
-      # PER OUTER SEGMENT: 
-      
+
+      # PER OUTER SEGMENT:
+
       # Store fitness curves and construct fitness rank curves for the different "counts"
       if (fitness == 'AUROC') {
         fitRank <- colMeans(-aucIn)
@@ -444,45 +444,45 @@ MUVR <- function(X,
         VALRep[i,] <- sqrt(colSums(PRESSIn) / sum(!testIndex))
       }
       # Rescale fitRank to range 0 (best) - 1 (worst)
-      fitRank=(fitRank-min(fitRank))/abs(diff(range(fitRank))) 
+      fitRank=(fitRank-min(fitRank))/abs(diff(range(fitRank)))
       # BugCatch: If all VAL have NaN value -> reset all fitRank to 0
-      if(all(is.nan(fitRank))) fitRank <- rep(0,cnt) 
-      
+      if(all(is.nan(fitRank))) fitRank <- rep(0,cnt)
+
       # Extract index of min and max models (remember that counts and nVar go in opposite direction!)
       minIndex <- max(which(fitRank <= methParam$robust))
       maxIndex <- min(which(fitRank <= methParam$robust))
-      
+
       # nVar at min, mid and max
       varOutMin[i] <- var[minIndex]
       varOutMax[i] <- var[maxIndex]
       varOutMid[i] <- round(exp(mean(log(c(var[minIndex], var[maxIndex]))))) # Geometric mean of min and max
-      
+
       # midIndex is closest to nVarMid
       midIndex <- which.min(abs(var - varOutMid[i]))
-      
+
       # For PLS, extract number of components
       if (method == 'PLS') {
         nCompOutMin[i] <- round(mean(nCompIn[, minIndex]))
         nCompOutMid[i] <- round(mean(nCompIn[, midIndex]))
         nCompOutMax[i] <- round(mean(nCompIn[, maxIndex]))
       }
-      
+
       # Average VIP ranks
       VIPOutMin[, i] <- apply(VIPInner[, minIndex,], 1, mean)
       VIPOutMid[, i] <- apply(VIPInner[, midIndex,], 1, mean)
       VIPOutMax[, i] <- apply(VIPInner[, maxIndex,], 1, mean)
-      
+
       # Build outer model for min, mid and max and predict YTEST
       # Extract all inner data
       xIn <- X[!testIndex, ] # Perform Validation on all samples except holdout set
       yIn <- Y[!testIndex]
-      
+
       # Determine consensus choice of included variables for min mid and max
       incVarMin <- rownames(VIPOutMin)[rank(VIPOutMin[,i]) <= varOutMin[i]]
       incVarMid <- rownames(VIPOutMid)[rank(VIPOutMid[,i]) <= varOutMid[i]]
       incVarMax <- rownames(VIPOutMax)[rank(VIPOutMax[,i]) <= varOutMax[i]]
-      
-      # Consensus models for PLS 
+
+      # Consensus models for PLS
       if (method == 'PLS'){
         # Build min model
         if (DA) {
@@ -490,7 +490,7 @@ MUVR <- function(X,
                                    yIn,
                                    ncomp = nCompOutMin[i],
                                    near.zero.var = TRUE,
-                                   scale=scale) 
+                                   scale=scale)
         } else {
           plsOutMin <- MUVR::pls(subset(xIn,select = incVarMin),
                                  yIn,
@@ -503,17 +503,17 @@ MUVR <- function(X,
         # Extract predictions
         yPredMinR[testIndex] <- predict(plsOutMin,
                                         newdata = xTestMin,
-                                        scale = scale)$predict[, , nCompOutMin[i]]  # 
+                                        scale = scale)$predict[, , nCompOutMin[i]]  #
         # Mid model - Update similar to "Build min model" above
-        if (DA) plsOutMid=MUVR::plsda(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],near.zero.var=TRUE,scale=scale) else 
+        if (DA) plsOutMid=MUVR::plsda(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],near.zero.var=TRUE,scale=scale) else
           plsOutMid=MUVR::pls(subset(xIn,select=incVarMid),yIn,ncomp=nCompOutMid[i],near.zero.var=TRUE,scale=scale)
         xTestMid=subset(xTest,select=incVarMid)
-        yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid,scale=scale)$predict[,,nCompOutMid[i]]  # 	
+        yPredMidR[testIndex]=predict(plsOutMid,newdata=xTestMid,scale=scale)$predict[,,nCompOutMid[i]]  #
         # Max model - Update similar to "Build min model" above
-        if (DA) plsOutMax=MUVR::plsda(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],near.zero.var=TRUE,scale=scale) else 
+        if (DA) plsOutMax=MUVR::plsda(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],near.zero.var=TRUE,scale=scale) else
           plsOutMax=MUVR::pls(subset(xIn,select=incVarMax),yIn,ncomp=nCompOutMax[i],near.zero.var=TRUE,scale=scale)
         xTestMax=subset(xTest,select=incVarMax)
-        yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax,scale=scale)$predict[,,nCompOutMax[i]]  # 
+        yPredMaxR[testIndex]=predict(plsOutMax,newdata=xTestMax,scale=scale)$predict[,,nCompOutMax[i]]  #
         if (modReturn) {
           outMod[[i]]=list(plsOutMin,plsOutMid,plsOutMax)
         }
@@ -541,9 +541,9 @@ MUVR <- function(X,
         }
       }
     }
-    
-    # PER REPETITION: 
-    
+
+    # PER REPETITION:
+
     # Average outer loop predictions, VIP ranks and nComp for PLS
     parReturn=list(yPredMin=yPredMinR,yPredMid=yPredMidR,yPredMax=yPredMaxR)
     parReturn$VIPRepMin=apply(VIPOutMin,1,mean)
@@ -558,7 +558,7 @@ MUVR <- function(X,
       parReturn$nCompSegMax=nCompOutMax
     }
     # Validation curves
-    parReturn$VAL=VALRep 
+    parReturn$VAL=VALRep
     # Calculate nVar per repetition
     fitRankRep=colSums(VALRep)
     if(fitness=='AUROC') fitRankRep=-fitRankRep
@@ -575,8 +575,8 @@ MUVR <- function(X,
     return(parReturn)
     # reps[[r]]=parReturn
   }
-  
-  
+
+
   # Unpack the different repetitions
   if (modReturn) outMods=list()
   for (r in 1:nRep) {
@@ -603,7 +603,7 @@ MUVR <- function(X,
     VAL[,,r]=reps[[r]]$VAL
     if (modReturn) outMods=c(outMods,reps[[r]]$outModel)
   }
-  # Average predictions 
+  # Average predictions
   if (DA) {
     yPred=list()
     yPred[['min']]=apply(yPredMin,c(1,2),mean)
@@ -684,20 +684,20 @@ MUVR <- function(X,
   incVarMax=names(VIP[rank(VIP[,3])<=round(nVar[3]),3])
   if (method=='PLS'){
     # Min model
-    if (DA) plsFitMin=MUVR::plsda(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),near.zero.var=TRUE,scale=scale) else 
+    if (DA) plsFitMin=MUVR::plsda(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),near.zero.var=TRUE,scale=scale) else
       plsFitMin=MUVR::pls(subset(X,select=incVarMin),Y,ncomp=round(nComp[1]),near.zero.var=TRUE,scale=scale)
     if (length(plsFitMin$nzv$Position)>0) incVarMin=incVarMin[!incVarMin%in%rownames(plsFitMin$nzv$Metrics)]
-    yFitMin=predict(plsFitMin,newdata=subset(X,select=incVarMin),scale=scale)$predict[,,nComp[1]]  # 
+    yFitMin=predict(plsFitMin,newdata=subset(X,select=incVarMin),scale=scale)$predict[,,nComp[1]]  #
     # Mid model
-    if (DA) plsFitMid=MUVR::plsda(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),near.zero.var=TRUE,scale=scale) else 
+    if (DA) plsFitMid=MUVR::plsda(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),near.zero.var=TRUE,scale=scale) else
       plsFitMid=MUVR::pls(subset(X,select=incVarMid),Y,ncomp=round(nComp[2]),near.zero.var=TRUE,scale=scale)
     if (length(plsFitMid$nzv$Position)>0) incVarMid=incVarMid[!incVarMid%in%rownames(plsFitMid$nzv$Metrics)]
-    yFitMid=predict(plsFitMid,newdata=subset(X,select=incVarMid),scale=scale)$predict[,,nComp[2]]  # 
+    yFitMid=predict(plsFitMid,newdata=subset(X,select=incVarMid),scale=scale)$predict[,,nComp[2]]  #
     # Max model
-    if (DA) plsFitMax=MUVR::plsda(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),near.zero.var=TRUE,scale=scale) else 
+    if (DA) plsFitMax=MUVR::plsda(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),near.zero.var=TRUE,scale=scale) else
       plsFitMax=MUVR::pls(subset(X,select=incVarMax),Y,ncomp=round(nComp[3]),near.zero.var=TRUE,scale=scale)
     if (length(plsFitMax$nzv$Position)>0) incVarMax=incVarMax[!incVarMax%in%rownames(plsFitMax$nzv$Metrics)]
-    yFitMax=predict(plsFitMax,newdata=subset(X,select=incVarMax),scale=scale)$predict[,,nComp[3]]  # 
+    yFitMax=predict(plsFitMax,newdata=subset(X,select=incVarMax),scale=scale)$predict[,,nComp[3]]  #
     yFit=cbind(yFitMin,yFitMid,yFitMax)
     yRep=ncol(yFit)/3
     colnames(yFit)=rep(c('min','mid','max'),each=yRep)
