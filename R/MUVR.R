@@ -63,6 +63,123 @@ MUVR <- function(X,
   X <- as.matrix(X) # PROBLEM: Will not work for factor variables BUT it will work for PLS with one-hot
   # I don't know how much of a problem data frames are from a time perspective. Check matrix vs DF on same dataset for time difference.
 
+
+
+
+
+
+  ###########################################################################
+  #To test the scenario when X has factor and charactor when using PLS
+  #add one factor and one character variable(freelive data X, which originally has 112 numeric samples and 1147 observations)
+  #factor varaible has 3 factors(nearzero varianece),character variable has 7 categories
+  #factor_variable<-as.factor(c(rep(33,105),rep(44,3),rep(55,4)))
+  # character_variable<-c(rep("one",16),rep("two",16),rep("three",16),rep("four",16),rep("five",16),rep("six",16),rep("seven",16))
+  #  X=XRVIP
+  #  X<-as.data.frame(X)
+  #  X<-cbind(X,
+  #        factor_variable,
+  #        character_variable)
+  #check again by using class(X[,1148])
+  #
+
+  #################################################################################
+  # One-hot expansion of factor variables for PLS,these are the code to add in the model
+  #This means that X need to checked manually to make sure each variable class is correct
+  #filter the variables that are factors and character first
+  X<-as.data.frame(X)
+  if (method == "PLS") {
+    cat("This is PLS. All variables are transformed to numeric")
+    #find factor and character
+    X[,which(sapply(X, class) %in% c('factor'))]
+    X[,which(sapply(X, class) %in% c('character'))]
+    #store names
+    X_factor_names<-colnames(X)[which(sapply(X, class) %in% c('factor'))]
+    X_character_names<-colnames(X)[which(sapply(X, class) %in% c('character'))]
+    #transform character in to factor a
+
+    X_character_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('character'))])
+
+    if(ncol(X_character_frame)!=0)
+    {for (c in 1:ncol(X_character_frame))
+    {X_character_frame[,c]<-as.factor(X_character_frame[,c])}
+    }
+    colnames(X_character_frame)<-X_character_names
+    ##put factor and previous character in to one data frame and game them previous names
+    X_factor_frame<-cbind(as.data.frame(X[,which(sapply(X, class) %in% c('factor'))]),X_character_frame)
+
+    colnames(X_factor_frame)<-c(X_factor_names,X_character_names)
+    ##orginal numeric frame
+    X_numeric_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('numeric'))])
+
+    ##test how many levels a factor have, if=0 >5}
+    if(ncol(X_factor_frame)==0)
+    {paste("all variables are numeric")
+    }else{
+      paste(ncol(X_factor_frame),"non-numeric variables")
+      ###a is the list of the names of vairables to be built
+      a<-list()
+      for(n in 1:ncol(X_factor_frame))
+      {if(length(levels(X_factor_frame[,n]))>5)
+      {paste(colnames(X_factor_frame)[n],"has",length(levels(X_factor_frame[,n])),"levels, which is too many")}
+        a[[n]]<-character()
+
+        for (m in 1:length(levels(X_factor_frame[,n])))
+        {a[[n]][m]<-paste0(colnames(X_factor_frame)[n],"_","level","_",
+                           ##NOT sort the level by alphabet order
+                           levels(factor(X_factor_frame[,n], as.character(unique(X_factor_frame[,n]))))[m])
+        }
+
+      }
+      ##b is the list of 0/1 matrix of each variable
+      b<-list()
+      for(n in 1:ncol(X_factor_frame))
+      {b[[n]]<-data.frame(row.names=c(1:nrow(X_factor_frame)))
+      for(i in 1:length(levels(X_factor_frame[,n])))
+      {b[[n]]<-cbind(b[[n]],X_factor_frame[,n])
+      }
+
+      for(m in 1:length(levels(X_factor_frame[,n])))
+      { for(z in 1:nrow(X_factor_frame))
+      {if(b[[n]][z,m]==as.factor(levels(factor(X_factor_frame[,n], as.character(unique(X_factor_frame[,n]))))[m]))
+      {b[[n]][z,m]=as.numeric(1)
+      }else{
+        b[[n]][z,m]=as.numeric(0)}
+      }
+
+      }
+      }
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   # Remove nearZeroVariance variables for PLS
   if (method == 'PLS') {
     nzv <- MUVR::nearZeroVar(X) # Function borrowed from mixOmics
