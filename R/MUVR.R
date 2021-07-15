@@ -186,14 +186,13 @@ MUVR <- function(X,
 #  X<-new_X_matrix  This could be used if we decide to use X for all the following code
 
   if (method == 'PLS') {
-    nzv <- MUVR::nearZeroVar(X) # Function borrowed from mixOmics
+    nzv <- MUVR::nearZeroVar(new_X_matrix) # Function borrowed from mixOmics
     if (length(nzv$Position) > 0) {
-      modelReturn$nzv <- colnames(X)[nzv$Position]
-      X <- X[, -nzv$Position]
+      modelReturn$nzv <- colnames(new_X_matrix)[nzv$Position]
+      new_X_matrix <- new_X_matrix[, -nzv$Position]
       cat('\n',length(nzv$Position),'variables with near zero variance detected -> removed from X and stored under $nzv')
     }
   }
-
 
 
 ############################################################################################################
