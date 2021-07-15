@@ -72,14 +72,15 @@ MUVR <- function(X,
   #To test the scenario when X has factor and charactor when using PLS
   #add one factor and one character variable(freelive data X, which originally has 112 numeric samples and 1147 observations)
   #factor varaible has 3 factors(nearzero varianece),character variable has 7 categories
-  #factor_variable<-as.factor(c(rep(33,105),rep(44,3),rep(55,4)))
-  # character_variable<-c(rep("one",16),rep("two",16),rep("three",16),rep("four",16),rep("five",16),rep("six",16),rep("seven",16))
+  # factor_variable<-as.factor(c(rep(33,105),rep(44,3),rep(55,4)))
+  # character_variable<-c(rep("one",16),rep("two",16),rep("three",16),
+  #                       rep("four",16),rep("five",16),rep("six",16),rep("seven",16))
   #  X=XRVIP
   #  X<-as.data.frame(X)
   #  X<-cbind(X,
   #        factor_variable,
   #        character_variable)
-  #check again by using class(X[,1148])
+  #   check again by using class(X[,1148])
   #
 
   #################################################################################
@@ -114,7 +115,10 @@ MUVR <- function(X,
     ##test how many levels a factor have, if=0 >5}
     if(ncol(X_factor_frame)==0)
     {paste("all variables are numeric")
+
     }else{
+
+
       paste(ncol(X_factor_frame),"non-numeric variables")
       ###a is the list of the names of vairables to be built
       a<-list()
@@ -132,55 +136,55 @@ MUVR <- function(X,
       }
       ##b is the list of 0/1 matrix of each variable
       b<-list()
+      c<-list()
       for(n in 1:ncol(X_factor_frame))
       {b[[n]]<-data.frame(row.names=c(1:nrow(X_factor_frame)))
+      c[[n]]<-data.frame(row.names=c(1:nrow(X_factor_frame)))
       for(i in 1:length(levels(X_factor_frame[,n])))
       {b[[n]]<-cbind(b[[n]],X_factor_frame[,n])
+      c[[n]]<-cbind(b[[n]],X_factor_frame[,n])
       }
+      c[[n]]<-matrix(data=0,
+                     nrow=nrow(X_factor_frame),
+                     ncol=length(levels(X_factor_frame[,n])))
 
       for(m in 1:length(levels(X_factor_frame[,n])))
       { for(z in 1:nrow(X_factor_frame))
-      {if(b[[n]][z,m]==as.factor(levels(factor(X_factor_frame[,n], as.character(unique(X_factor_frame[,n]))))[m]))
-      {b[[n]][z,m]=as.numeric(1)
-      }else{
-        b[[n]][z,m]=as.numeric(0)}
+       {if(b[[n]][z,m]==as.factor(levels(factor(X_factor_frame[,n], as.character(unique(X_factor_frame[,n]))))[m]))
+        {c[[n]][z,m]=1
+        }
+       }
       }
+      #Now we can summarize a bit
+      # a is the list of new name of all the new variables that will be used
+      # b is an intermediate step to use to check for error
+      # c is the new 0-1 matrix
+      # What needs to be done now is to combine a and c
+
+      rownames(c[[n]])<-rownames(X)
+      colnames(c[[n]])<-a[[n]]
 
       }
-      }
+      #Now I need to combine the c matrix with original X dataset X_numeric_frame
+      new_X_frame<-X_numeric_frame
+      for(h in 1:length(c)){new_X_frame<-cbind(new_X_frame,c[[h]])}
+
+        }  ##This is where else end
+
+}   ##this is where method=="PLS" ends
+##X_numeric_frame is the data frame that only has original numeirc variable
+##new_X_frame is the result of one hot coding, it is a dataframe though
+  new_X_matrix<-as.matrix(new_X_frame)
+  View(new_X_matrix)
+##Now new_X_frame becomes a matrix that contains original numeric variables and transformed non-numeric variable into one hot coding
 
 
 
+#########################################################################################################
+########################################################################################################
+# Remove nearZeroVariance variables for PLS
+#  X<-new_X_matrix  This could be used if we decide to use X for all the following code
 
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  # Remove nearZeroVariance variables for PLS
   if (method == 'PLS') {
     nzv <- MUVR::nearZeroVar(X) # Function borrowed from mixOmics
     if (length(nzv$Position) > 0) {
@@ -189,6 +193,13 @@ MUVR <- function(X,
       cat('\n',length(nzv$Position),'variables with near zero variance detected -> removed from X and stored under $nzv')
     }
   }
+
+
+
+############################################################################################################
+############################################################################################################
+
+
 
   # Number of samples and variables
   nSamp <- nrow(X)
