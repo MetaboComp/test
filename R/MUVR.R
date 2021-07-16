@@ -68,9 +68,9 @@ MUVR <- function(X,
   # X <- as.matrix(X) # PROBLEM: Will not work for factor variables BUT it will work for PLS with one-hot
   # I don't know how much of a problem data frames are from a time perspective. Check matrix vs DF on same dataset for time difference.
 
-  # One-hot expansion of factor variables for PLS
-    if (method == "PLS") {
-      cat('yes this is PLS - for checking / debugging - remove when it works!')
+  # One-hot expansion of factor variables
+    if (methParam$oneHot) {
+      cat('For checking / debugging - remove when it works!')
       whFactor <- which(sapply(as.data.frame(X), class) %in% c('factor', 'character'))
       if (length(whFactor) > 0) {
         for (f in whFactor) {
@@ -85,7 +85,7 @@ MUVR <- function(X,
   }
   
   # Remove nearZeroVariance variables for PLS
-  if (method == 'PLS') {
+  if (methParam$NZV) {
     nzv <- MUVR::nearZeroVar(X) # Function borrowed from mixOmics
     if (length(nzv$Position) > 0) {
       modelReturn$nzv <- colnames(X)[nzv$Position]
@@ -123,15 +123,15 @@ MUVR <- function(X,
   
   # methParams
   if(any(names(list(...)) == 'nCompMax')) stop('`nCompMax` is deprecated. Use customParams() and the methParam argument in MUVR instead.')
-  if (missing(methParam)) methParam <-  customParams(method = 'RF')
+  if (missing(methParam)) methParam <- customParams(method = method)
   
   # Set up randomForest package
   if (method == 'RF') {
-    if (methParam$method == 'randomForest') {
+    if (methParam$rfMethod == 'randomForest') {
       library(randomForest)
-    } else if (methParam$method == 'ranger') {
+    } else if (methParam$rfMethod == 'ranger') {
       library(ranger)
-    # } else if (methParam$method == 'Rborist') {
+    # } else if (methParam$rfMethod == 'Rborist') {
       # library(Rborist)
     } else stop('Random Forest method incorrectly specified in methParam')
   }
@@ -248,7 +248,7 @@ MUVR <- function(X,
   # Choose package/core algorithm according to chosen method
   # And prepare for exporting them in 'foreach' (below)
   packs <- c('pROC')
-  if(method == 'RF') packs <- c(packs, methParam$method)
+  if(method == 'RF') packs <- c(packs, methParam$rfMethod)
   exports <- 'vectSamp'
   
   
@@ -429,7 +429,7 @@ MUVR <- function(X,
                                    fitness,
                                    mtry = mtryIn,
                                    ntree = methParam$ntreeIn,
-                                   method = methParam$method)
+                                   method = methParam$rfMethod)
           } else {
             stop('No other core modelling techniques available at present.')
           }
@@ -589,7 +589,7 @@ MUVR <- function(X,
                            DA = DA,
                            ntree = methParam$ntreeOut,
                            keep.forest = TRUE,
-                           method = methParam$method)
+                           method = methParam$rfMethod)
         # min predictions
         if (DA) yPredMinR[testIndex,] <- rfOutMin$predicted else yPredMinR[testIndex] <- rfOutMin$predicted
         
@@ -601,7 +601,7 @@ MUVR <- function(X,
                            DA = DA,
                            ntree = methParam$ntreeOut,
                            keep.forest = TRUE,
-                           method = methParam$method)
+                           method = methParam$rfMethod)
         # mid predictions
         if (DA) yPredMidR[testIndex,] <- rfOutMid$predicted else yPredMidR[testIndex] <- rfOutMid$predicted
         
@@ -613,7 +613,7 @@ MUVR <- function(X,
                            DA = DA,
                            ntree = methParam$ntreeOut,
                            keep.forest = TRUE,
-                           method = methParam$method)
+                           method = methParam$rfMethod)
         # max predictions
         if (DA) yPredMaxR[testIndex,] <- rfOutMax$predicted else yPredMaxR[testIndex] <- rfOutMax$predicted
         
@@ -911,7 +911,7 @@ MUVR <- function(X,
     rfFitMin <- suppressWarnings(rfPred(xTrain = subset(X, select = incVarMin),
                                         yTrain = Y,
                                         DA = DA,
-                                        method = methParam$method))
+                                        method = methParam$rfMethod))
     yFitMin <- rfFitMin$fit
     ######################
     # RF Mid fit-predict
@@ -919,7 +919,7 @@ MUVR <- function(X,
     rfFitMid <- suppressWarnings(rfPred(xTrain = subset(X, select = incVarMid),
                                         yTrain = Y,
                                         DA = DA,
-                                        method = methParam$method))
+                                        method = methParam$rfMethod))
     yFitMid <- rfFitMid$fit
     ######################
     # RF Max fit-predict
@@ -927,7 +927,7 @@ MUVR <- function(X,
     rfFitMax <- suppressWarnings(rfPred(xTrain = subset(X, select = incVarMax),
                                         yTrain = Y,
                                         DA = DA,
-                                        method = methParam$method))
+                                        method = methParam$rfMethod))
     yFitMax <- rfFitMax$fit
     # Combine fit-predictions
     yFit <- cbind(yFitMin, yFitMid, yFitMax)

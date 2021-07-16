@@ -4,7 +4,6 @@
 #' @param predicted Vector of predicted classifications of samples
 #'
 #' @return Balanced Error Rate (BER)
-#' @export
 #'
 getBER=function (actual, predicted) 
 {

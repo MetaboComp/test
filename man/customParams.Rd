@@ -10,7 +10,10 @@ customParams(
   ntreeIn = 150,
   ntreeOut = 300,
   mtryMaxIn = 150,
-  compMax = 5
+  compMax = 5,
+  oneHot,
+  NZV,
+  rfMethod
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ customParams(
 \item{mtryMaxIn}{RF parameter: Max number of variables to sample from at each node in the inner CV loop (defaults to 150). Will be further limited by standard RF rules (see randomForest documentation)}
 
 \item{compMax}{PLS parameter: Maximum number of PLS components (defaults to 5)}
+
+\item{oneHot}{}
+
+\item{NZV}{}
+
+\item{rfMethod}{}
 }
 \value{
 a `methParam` object

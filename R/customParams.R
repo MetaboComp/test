@@ -2,12 +2,16 @@
 #' 
 #' Custom parameters can be set in the function call or by manually setting "slots" in the resulting methParam object
 #' Pls note that, at present, there is no mtryMax for the outer (consensus) loop in effect
+#'
 #' @param method PLS or RF (default)
 #' @param robust Robustness (slack) criterion for determining min and max knees (defaults to 0.05)
 #' @param ntreeIn RF parameter: Number of trees in inner cross-validation loop models (defaults to 150)
 #' @param ntreeOut RF parameter: Number of trees in outer (consensus) cross-validation loop models (defaults to 300)
 #' @param mtryMaxIn RF parameter: Max number of variables to sample from at each node in the inner CV loop (defaults to 150). Will be further limited by standard RF rules (see randomForest documentation)
 #' @param compMax PLS parameter: Maximum number of PLS components (defaults to 5)
+#' @param rfMethod 
+#' @param oneHot 
+#' @param NZV 
 #'
 #' @return a `methParam` object
 #' @export
@@ -26,7 +30,11 @@ customParams <- function(method = c('RF','PLS'),
                          ntreeIn = 150, 
                          ntreeOut = 300, 
                          mtryMaxIn = 150, 
-                         compMax = 5) {
+                         compMax = 5,
+                         oneHot,
+                         NZV,
+                         rfMethod) {
+  
   # Allocate methParam object
   methParam <- list(robust=robust)
   
@@ -36,12 +44,32 @@ customParams <- function(method = c('RF','PLS'),
   # Fix shorthand for different RF implementations
   if(method == 'randomForest') {
     method <- 'RF'
-    methParam$method <- 'randomForest'
+    methParam$rfMethod <- 'randomForest'
   }
   if(method == 'ranger') {
     method <- 'RF'
-    methParam$method <- 'ranger'
+    methParam$rfMethod <- 'ranger'
   }
+  
+  # Default oneHot values per method
+  if(missing(oneHot)) {
+    if (method == 'PLS') {
+      oneHot <- TRUE
+    } else if(method == 'RF') {
+      oneHot <- FALSE
+    } else stop('other methods not implemented')
+  }
+  methParam$oneHot <- oneHot
+  
+  # Default oneHot values per method
+  if(missing(NZV)) {
+    if (method == 'PLS') {
+      NZV <- TRUE
+    } else if(method == 'RF') {
+      NZV <- FALSE
+    } else stop('other methods not implemented')
+  }
+  methParam$NZV <- NZV
   
   #########################
   # Default RF parameters
@@ -52,7 +80,7 @@ customParams <- function(method = c('RF','PLS'),
     methParam$ntreeOut <- ntreeOut
     methParam$mtryMaxIn <- mtryMaxIn
     # default RF implementation
-    if (is.null(methParam$method)) methParam$method <- 'randomForest'
+    if (is.null(methParam$rfMethod)) methParam$rfMethod <- 'randomForest'
   } else if (method=='PLS') {
 
     #########################
