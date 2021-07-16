@@ -4,7 +4,7 @@
 \alias{rfInner}
 \title{RF model in inner CV loop}
 \usage{
-rfInner(xTrain, yTrain, xVal, yVal, DA, fitness, ntree, mtry)
+rfInner(xTrain, yTrain, xVal, yVal, DA, fitness, ntree, mtry, method)
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}
@@ -22,6 +22,8 @@ rfInner(xTrain, yTrain, xVal, yVal, DA, fitness, ntree, mtry)
 \item{ntree}{See original function (`randomForest`). Passed from wrapper.}
 
 \item{mtry}{See original function (`randomForest`). Passed from wrapper.}
+
+\item{method}{Choice of Random Forest implementation (randomForest, ranger or Rborist). Passed from wrapper.}
 }
 \value{
 An object containing:

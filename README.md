@@ -39,6 +39,7 @@ In addition to functions relevant for crossvalidated, predictive multivariate mo
 ## Version history
 version | date | comment
 :------ | :--- | :------
+0.0.974 | 2021-07-16 | Cleaned up & commented MUVR code, added ranger implementation (modified rfInner, added rfPred)
 0.0.973 | 2019-09-05 | Added customParams() for tweaking inner modelling parameters (robustness limit, nComp (PLS), ntreeIn, mtryMaxIn, ntreeOut - so far not mtryMaxOut)
 0.0.972 | 2019-01-22 | Added ylim to plotMV()
 0.0.971 | 2018-05-15 | Added permutations() and permutationPlot()

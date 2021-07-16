@@ -2,7 +2,7 @@
 % Please edit documentation in R/MUVR.R
 \name{MUVR}
 \alias{MUVR}
-\title{MUVR: "Multivariate modelling with Unbiased Variable selection"}
+\title{MUVR: "Multivariate modeling with Unbiased Variable selection"}
 \usage{
 MUVR(
   X,
@@ -31,13 +31,13 @@ MUVR(
 
 \item{ID}{Subject identifier (for sampling by subject; Assumption of independence if not specified)}
 
-\item{scale}{If TRUE, the predictor variable matrix is scaled to unit variance for PLS modelling.}
+\item{scale}{If TRUE, the predictor variable matrix is scaled to unit variance for PLS modeling.}
 
 \item{nRep}{Number of repetitions of double CV. (Defaults to 5)}
 
 \item{nOuter}{Number of outer CV loop segments. (Defaults to 6)}
 
-\item{nInner}{Number of inner CV loop segments. (Defaults to nOuter-1)}
+\item{nInner}{Number of inner CV loop segments. (Defaults to nOuter - 1)}
 
 \item{varRatio}{Ratio of variables to include in subsequent inner loop iteration. (Defaults to 0.75)}
 
@@ -59,7 +59,11 @@ MUVR(
 }
 \value{
 A MUVR object
+Further description necessary!!!
 }
 \description{
 Repeated double cross validation with tuning of variables in the inner loop.
+}
+\examples{
+# An example script is necessary - with NOT RUN
 }

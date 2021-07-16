@@ -21,15 +21,47 @@
 #' methParam <- customParams('RF')
 #' methParam$ntreeOut <- 50
 #' methParam
-customParams <- function(method=c('RF','PLS'), robust=0.05, ntreeIn=150, ntreeOut=300, mtryMaxIn=150, compMax=5) {
-  if(missing(method)) method <- 'RF'
+customParams <- function(method = c('RF','PLS'), 
+                         robust = 0.05, 
+                         ntreeIn = 150, 
+                         ntreeOut = 300, 
+                         mtryMaxIn = 150, 
+                         compMax = 5) {
+  # Allocate methParam object
   methParam <- list(robust=robust)
-  if (method=='PLS') {
-    methParam$compMax <- compMax
-  } else {
+  
+  # Random Forest as default method
+  if(missing(method)) method <- 'RF'
+  
+  # Fix shorthand for different RF implementations
+  if(method == 'randomForest') {
+    method <- 'RF'
+    methParam$method <- 'randomForest'
+  }
+  if(method == 'ranger') {
+    method <- 'RF'
+    methParam$method <- 'ranger'
+  }
+  
+  #########################
+  # Default RF parameters
+  #########################
+  
+  if (method=='RF'){
     methParam$ntreeIn <- ntreeIn
     methParam$ntreeOut <- ntreeOut
     methParam$mtryMaxIn <- mtryMaxIn
+    # default RF implementation
+    if (is.null(methParam$method)) methParam$method <- 'randomForest'
+  } else if (method=='PLS') {
+
+    #########################
+    # Default PLS parameters
+    #########################
+    
+    methParam$compMax <- compMax
+  } else {
+    stop('Other core methods not yet incorporated into MUVR.')
   }
   return(methParam)
 }
