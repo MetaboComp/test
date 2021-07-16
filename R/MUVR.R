@@ -72,14 +72,20 @@ MUVR <- function(X,
   #To test the scenario when X has factor and charactor when using PLS
   #add one factor and one character variable(freelive data X, which originally has 112 numeric samples and 1147 observations)
   #factor varaible has 3 factors(nearzero varianece),character variable has 7 categories
-  # factor_variable<-as.factor(c(rep(33,105),rep(44,3),rep(55,4)))
-  # character_variable<-c(rep("one",16),rep("two",16),rep("three",16),
+  # factor_variable1<-as.factor(c(rep(33,105),rep(44,3),rep(55,4)))
+  #factor_variable2<-as.factor(c(rep("AB",20),rep("CD",10),rep("EF",30),
+  #                           rep("GH",15),rep("IJ",25),rep("KL",12)))
+  #factor_variable3<-as.factor(c(rep("Tessa",25),rep("Olle",30),rep("Yan",12),
+  #                            rep("Calle",25),rep("Elisa",20)))
+  # character_variable1<-c(rep("one",16),rep("two",16),rep("three",16),
   #                       rep("four",16),rep("five",16),rep("six",16),rep("seven",16))
+  #  character_variable2<-c(rep("yes",28),rep("no",28),
+  #                          rep("yes",28),rep("no",28))
   #  X=XRVIP
   #  X<-as.data.frame(X)
   #  X<-cbind(X,
-  #        factor_variable,
-  #        character_variable)
+  #        factor_variable1,factor_variable2,factor_variable3,
+  #        character_variable1,character_variable2)
   #   check again by using class(X[,1148])
   #
 
