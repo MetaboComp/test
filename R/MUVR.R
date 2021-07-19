@@ -22,6 +22,9 @@
 #' @return
 #' A MUVR object
 #' @export
+#'
+#' @examples
+##########################################################################
 MUVR <- function(X,
                  Y,
                  ID,
@@ -39,39 +42,48 @@ MUVR <- function(X,
                  logg=FALSE,
                  parallel = TRUE,
                  ...) {
-
+########################################################################
   # Start timer
   start.time <- proc.time()[3]
 
   # Initialise modelReturn with function call
   modelReturn <- list(call = match.call())
 
-  # Default core modelling method
-  if (missing(method)) method <- 'RF'
-
-  # Call in relevant package(s)
-  library(pROC)
-  library(foreach)
-  if (method == 'RF') library(randomForest)
-
-  # Parallel processing
+##########################################################################
+# Parallel processing
   if (parallel) "%doVersion%" <- get("%dopar%") else "%doVersion%" <- get("%do%")
 
-  # Rough check indata
+# Rough check indata
   if (length(dim(X)) != 2) stop('\nWrong format of X matrix.\n')
   if (is.null(colnames(X))) stop('\nNo column names in X matrix.\n')
-  X <- as.matrix(X) # PROBLEM: Will not work for factor variables BUT it will work for PLS with one-hot
-  # I don't know how much of a problem data frames are from a time perspective. Check matrix vs DF on same dataset for time difference.
+
+##################################################################################
+# Default core modelling method
+  if (missing(method)) method <- 'RF'
+
+# Call in relevant package(s)
+  library(pROC)
+  library(foreach)
+
+  if (method == 'RF') library(randomForest)
+
+
+################################################################
+
+    X <- as.matrix(X)
+#Time difference: After one hot coding.
+#If X is used as a data frame,
+#If X is used as a matrix,
 
 
 
 
 
 
-  ###########################################################################
+###########################################################################
   #To test the scenario when X has factor and charactor when using PLS
   #add one factor and one character variable(freelive data X, which originally has 112 numeric samples and 1147 observations)
-  #factor varaible has 3 factors(nearzero varianece),character variable has 7 categories
+  #factor varaible has 3,6,5factors(nearzero varianece),character variable has 7,4 categories
   # factor_variable1<-as.factor(c(rep(33,105),rep(44,3),rep(55,4)))
   #factor_variable2<-as.factor(c(rep("AB",20),rep("CD",10),rep("EF",30),
   #                           rep("GH",15),rep("IJ",25),rep("KL",12)))
@@ -81,82 +93,180 @@ MUVR <- function(X,
   #                       rep("four",16),rep("five",16),rep("six",16),rep("seven",16))
   #  character_variable2<-c(rep("yes",28),rep("no",28),
   #                          rep("yes",28),rep("no",28))
+  #  logical_variable1<-c(rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,32))
+  #  logical_variable2<-c(rep(TRUE,28),rep(FALSE,28),rep(TRUE,28),rep(FALSE,28))
   #  X=XRVIP
   #  X<-as.data.frame(X)
   #  X<-cbind(X,
   #        factor_variable1,factor_variable2,factor_variable3,
-  #        character_variable1,character_variable2)
+  #        character_variable1,character_variable2,
+  #         logical_variable1,logical_variable2)
   #   check again by using class(X[,1148])
   #
 
   #################################################################################
   # One-hot expansion of factor variables for PLS,these are the code to add in the model
-  #This means that X need to checked manually to make sure each variable class is correct
-  #filter the variables that are factors and character first
-  X<-as.data.frame(X)
+  #This means that X need to be checked manually to make sure each variable class is correct(character,factor, numeric,logical)
+  # X should be a DATA FRAME in the beginning, which contains correct information of the variable class
+
+  if(ncol(X[,which(sapply(X, class) %in% c('factor','character','logical'))])==0)
+  {X<-as.matrix(X)
+  cat("all",ncol(X),"variables are numeric")
+  }else{
+
+####
+  #If PLS, change factor, character and logical variable to one hot coding
+
+
   if (method == "PLS") {
     cat("This is PLS. All variables are transformed to numeric")
-    #find factor and character
+    #find factor and character and logical variable
     X[,which(sapply(X, class) %in% c('factor'))]
     X[,which(sapply(X, class) %in% c('character'))]
+    X[,which(sapply(X, class) %in% c('logical'))]
     #store names
     X_factor_names<-colnames(X)[which(sapply(X, class) %in% c('factor'))]
     X_character_names<-colnames(X)[which(sapply(X, class) %in% c('character'))]
-    #transform character in to factor a
+    X_logical_names<-colnames(X)[which(sapply(X, class) %in% c('logical'))]
 
+
+#######
+
+    #transform character variable into integer and store them in a dataframe
     X_character_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('character'))])
 
     if(ncol(X_character_frame)!=0)
-    {for (c in 1:ncol(X_character_frame))
+    {cat("There are",ncol(X_character_frame),"character variables")
+    for (c in 1:ncol(X_character_frame))
     {X_character_frame[,c]<-as.factor(X_character_frame[,c])}
     }
+    rm(c)
     colnames(X_character_frame)<-X_character_names
-    ##put factor and previous character in to one data frame and game them previous names
-    X_factor_frame<-cbind(as.data.frame(X[,which(sapply(X, class) %in% c('factor'))]),X_character_frame)
 
+    if(ncol(X_character_frame)!=0)
+    {cat("There are",ncol(X_factor_frame),"factor variables")}
+####
+    ##put factor variables and factor-transformed character variables in to one data frame and give them previous names
+    X_factor_frame<-cbind(as.data.frame(X[,which(sapply(X, class) %in% c('factor'))]),X_character_frame)
     colnames(X_factor_frame)<-c(X_factor_names,X_character_names)
-    ##orginal numeric frame
+
+    ##original numeric frame
     X_numeric_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('numeric'))])
 
-    ##test how many levels a factor have, if=0 >5}
+    ######
+    #transform logical variable into integer and store them in a data frame
+    X_logical_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('logical'))])
+    if(ncol(X_logical_frame)!=0)
+    {paste("There are",ncol(X_logical_frame),"logical variables")
+      for (c in 1:ncol(X_logical_frame))
+      {for(d in 1:nrow(X_logical_frame)){if(X_logical_frame[d,c]==T){X_logical_frame[d,c]=1
+      }else{X_logical_frame[d,c]=0}
+      }
+      }
+      rm(c)
+      rm(d)
+      for (c in 1:ncol(X_logical_frame))
+      {X_logical_frame[,c]<-as.factor(X_logical_frame[,c])}
+    }
+    rm(c)
+
+
+
     if(ncol(X_factor_frame)==0)
-    {paste("all variables are numeric")
+    {cat("There are no factor,character or logical variables")
 
     }else{
 
+      cat(ncol(X_factor_frame),"non-numeric variables")
 
-      paste(ncol(X_factor_frame),"non-numeric variables")
-      ###a is the list of the names of vairables to be built
-      a<-list()
+      X_factor3_name<-character()
+      X_factor3_frame<-data.frame(row.names=rownames(X))
       for(n in 1:ncol(X_factor_frame))
-      {if(length(levels(X_factor_frame[,n]))>5)
-      {paste(colnames(X_factor_frame)[n],"has",length(levels(X_factor_frame[,n])),"levels, which is too many")}
+      {if(length(levels(X_factor_frame[,n]))>2)
+      {X_factor3_frame<-cbind(X_factor3_frame,X_factor_frame[,n])
+      X_factor3_name<-c(X_factor3_name,colnames(X_factor_frame)[n])}
+      }
+      colnames(X_factor3_frame)<-X_factor3_name
+
+      ## When levels==0,1,2,there is no need for one hot encoding
+#####
+      ## when levels==2
+      X_factor2_name<-character()
+      X_factor2_frame<-data.frame(row.names=rownames(X))
+      for(n in 1:ncol(X_factor_frame))
+      {if(length(levels(X_factor_frame[,n]))==2)
+        {X_factor2_frame<-cbind(X_factor2_frame,X_factor_frame[,n])
+        X_factor2_name<-c(X_factor2_name,colnames(X_factor_frame)[n])}
+      }
+      colnames(X_factor2_frame)<-X_factor2_name
+####
+      X_numeric2_frame<-matrix(0L,nrow=nrow(X_factor2_frame),ncol=ncol(X_factor2_frame))
+      for(i in 1:ncol(X_factor2_frame))
+        {for(j in 1:nrow(X_factor2_frame))
+           {if(X_factor2_frame[j,i]==levels(X_factor2_frame[,i])[1])
+              {X_numeric2_frame[j,i]=0
+              }else{X_numeric2_frame[j,i]=1}
+        }
+
+      }
+
+###
+      }
+
+      ######
+
+      X_factor1_name<-character()
+      X_factor1_frame<-data.frame(row.names=rownames(X))
+      for(n in 1:ncol(X_factor_frame))
+      {if(length(levels(X_factor_frame[,n]))==1)
+      {X_factor1_frame<-cbind(X_factor1_frame,X_factor_frame[,n])
+      X_factor1_name<-c(X_factor1_name,colnames(X_factor_frame)[n])}
+      }
+      colnames(X_factor1_frame)<-X_factor1_name
+
+      X_factor0_name<-character()
+      X_factor0_frame<-data.frame(row.names=rownames(X))
+      for(n in 1:ncol(X_factor_frame))
+      {if(length(levels(X_factor_frame[,n]))==0)
+      {X_factor0_frame<-cbind(X_factor0_frame,X_factor_frame[,n])
+      X_factor0_name<-c(X_factor0_name,colnames(X_factor_frame)[n])}
+      }
+      colnames(X_factor2_frame)<-X_factor0_name
+
+
+
+
+      ###a is the list of the names of variables to be built
+      a<-list()
+      for(n in 1:ncol(X_factor3_frame))
+      {if(length(levels(X_factor3_frame[,n]))>5)
+      {cat(colnames(X_factor3_frame)[n],"has",length(levels(X_factor3_frame[,n])),"levels, which is too many")}
         a[[n]]<-character()
 
-        for (m in 1:length(levels(X_factor_frame[,n])))
-        {a[[n]][m]<-paste0(colnames(X_factor_frame)[n],"_","level","_",
+        for (m in 1:length(levels(X_factor3_frame[,n])))
+        {a[[n]][m]<-cat(colnames(X_factor3_frame)[n],"_","level","_",
                            ##NOT sort the level by alphabet order
-                           levels(factor(X_factor_frame[,n], as.character(unique(X_factor_frame[,n]))))[m])
+                           levels(factor(X_factor3_frame[,n], as.character(unique(X_factor3_frame[,n]))))[m])
         }
 
       }
       ##b is the list of 0/1 matrix of each variable
       b<-list()
       c<-list()
-      for(n in 1:ncol(X_factor_frame))
-      {b[[n]]<-data.frame(row.names=c(1:nrow(X_factor_frame)))
-      c[[n]]<-data.frame(row.names=c(1:nrow(X_factor_frame)))
-      for(i in 1:length(levels(X_factor_frame[,n])))
-      {b[[n]]<-cbind(b[[n]],X_factor_frame[,n])
-      c[[n]]<-cbind(b[[n]],X_factor_frame[,n])
+      for(n in 1:ncol(X_factor3_frame))
+      {b[[n]]<-data.frame(row.names=c(1:nrow(X_factor3_frame)))
+      c[[n]]<-data.frame(row.names=c(1:nrow(X_factor3_frame)))
+      for(i in 1:length(levels(X_factor3_frame[,n])))
+      {b[[n]]<-cbind(b[[n]],X_factor3_frame[,n])
+      c[[n]]<-cbind(b[[n]],X_factor3_frame[,n])
       }
       c[[n]]<-matrix(data=0,
-                     nrow=nrow(X_factor_frame),
-                     ncol=length(levels(X_factor_frame[,n])))
+                     nrow=nrow(X_factor3_frame),
+                     ncol=length(levels(X_factor3_frame[,n])))
 
-      for(m in 1:length(levels(X_factor_frame[,n])))
-      { for(z in 1:nrow(X_factor_frame))
-       {if(b[[n]][z,m]==as.factor(levels(factor(X_factor_frame[,n], as.character(unique(X_factor_frame[,n]))))[m]))
+      for(m in 1:length(levels(X_factor3_frame[,n])))
+      { for(z in 1:nrow(X_factor3_frame))
+       {if(b[[n]][z,m]==as.factor(levels(factor(X_factor3_frame[,n], as.character(unique(X_factor3_frame[,n]))))[m]))
         {c[[n]][z,m]=1
         }
        }
@@ -174,28 +284,38 @@ MUVR <- function(X,
       #Now I need to combine the c matrix with original X dataset X_numeric_frame
       new_X_frame<-X_numeric_frame
       for(h in 1:length(c)){new_X_frame<-cbind(new_X_frame,c[[h]])}
+      if(length(ncol(X_numeric2_frame))!=0)
+      {for(h in 1:length(ncol(X_numeric2_frame))){new_X_frame<-cbind(new_X_frame,X_numeric2_frame[,h])}}
+      if(length(ncol(X_numeric1_frame))!=0)
+      {for(h in 1:length(ncol(X_numeric1_frame))){new_X_frame<-cbind(new_X_frame,X_numeric1_frame[,h])}}
+      if(length(ncol(X_numeric1_frame))!=0)
+      {for(h in 1:length(ncol(X_numeric0_frame))){new_X_frame<-cbind(new_X_frame,X_numeric0_frame[,h])}}
+      if(length(ncol(X_logical_frame))!=0)
+      {for(h in 1:length(ncol(X_logical_frame))){new_X_frame<-cbind(new_X_frame,X_logical_frame[,h])}}
 
-        }  ##This is where else end
+       }  ##This is where else end
 
 }   ##this is where method=="PLS" ends
+  }
 ##X_numeric_frame is the data frame that only has original numeirc variable
 ##new_X_frame is the result of one hot coding, it is a dataframe though
   new_X_matrix<-as.matrix(new_X_frame)
   View(new_X_matrix)
 ##Now new_X_frame becomes a matrix that contains original numeric variables and transformed non-numeric variable into one hot coding
-
+#new_X_matrix 112 samples,1168 variables (include 0/1 variables after one hot coding)
+#new_X_frame  112 samples, 1168 variables
 
 
 #########################################################################################################
 ########################################################################################################
 # Remove nearZeroVariance variables for PLS
-#  X<-new_X_matrix  This could be used if we decide to use X for all the following code
+#  X<-new_X_matrix  or X<-new_X_frame This could be used if we decide to use X for all the following code
 
   if (method == 'PLS') {
-    nzv <- MUVR::nearZeroVar(new_X_matrix) # Function borrowed from mixOmics
+    nzv <- MUVR::nearZeroVar(X) # Function borrowed from mixOmics
     if (length(nzv$Position) > 0) {
-      modelReturn$nzv <- colnames(new_X_matrix)[nzv$Position]
-      new_X_matrix <- new_X_matrix[, -nzv$Position]
+      modelReturn$nzv <- colnames(X)[nzv$Position]
+      X <-X[, -nzv$Position]
       cat('\n',length(nzv$Position),'variables with near zero variance detected -> removed from X and stored under $nzv')
     }
   }
