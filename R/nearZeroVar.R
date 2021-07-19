@@ -1,33 +1,40 @@
 #' Identify variables with nea zero variance
 #'
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
-#' @param x 
-#' @param freqCut 
-#' @param uniqueCut 
+#' @param x
+#' @param freqCut
+#' @param uniqueCut
 #'
 #' @return nzv object
 #' @export
-nearZeroVar <- function (x, freqCut = 95/5, uniqueCut = 10) {
+#'
+nearZeroVar <- function (x, freqCut = 95/5, uniqueCut = 10)
+{
   if (is.vector(x)) x = matrix(x, ncol = 1)
-  
-  freqRatio = apply(x, 2, function(data) {
-    if (length(unique(data)) == length(data)){ # No duplicate
+  ###To apply the function on each column of the matrix
+  freqRatio = apply(x, 2, function(vectorX) {
+    if (length(unique(vectorX)) == length(vectorX)){ # No duplicate
       return(1)
-    } else if (length(unique(data)) == 1) { # Same value
+    } else if (length(unique(vectorX)) == 1) { # Same value
       return(0)
     } else {
-      t = table(data)
+      t = table(vectorX)
       return(max(t, na.rm = TRUE)/max(t[-which.max(t)], na.rm = TRUE))
+      ###number of the most frequent one in the table divide the number of the second frequent one
     }
   })
-  
-  lunique = apply(x, 2, function(data) length(unique(data)))
+  ##find the number of unique categories in each column of the matrix: lunique (a vector of ncol length)
+
+  lunique = apply(x, 2, function(vectorX) length(unique(vectorX)))
   percentUnique = 100 * lunique/nrow(x)
-  zeroVar = (lunique == 1) | apply(x, 2, function(data) all(is.na(data)))
-  
+  zeroVar = (lunique == 1) | apply(x, 2, function(vectorX) all(is.na(vectorX)))
+  ###If all element are same value or if all element are NA, the variable is defined as zero variance
+
   out = list()
+  ##the position number of the zero variance column
   out$Position = which((freqRatio > freqCut & percentUnique <= uniqueCut) | zeroVar)
   names(out$Position) = NULL
+  ##Out metrics only record frequent ratio and percentage unique of the nzv variables
   out$Metrics = data.frame(freqRatio = freqRatio, percentUnique = percentUnique)
   out$Metrics = out$Metrics[out$Position, ]
   out
