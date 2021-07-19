@@ -89,17 +89,20 @@ MUVR <- function(X,
   #                           rep("GH",15),rep("IJ",25),rep("KL",12)))
   #factor_variable3<-as.factor(c(rep("Tessa",25),rep("Olle",30),rep("Yan",12),
   #                            rep("Calle",25),rep("Elisa",20)))
+  # factor_variable4<-as.factor(c(rep(NA,112)))
   # character_variable1<-c(rep("one",16),rep("two",16),rep("three",16),
   #                       rep("four",16),rep("five",16),rep("six",16),rep("seven",16))
   #  character_variable2<-c(rep("yes",28),rep("no",28),
   #                          rep("yes",28),rep("no",28))
-  #  logical_variable1<-c(rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,32))
+  # character_variable3<-c(rep("Hahahah",112))
+  #  character_variable4<-as.character(c(rep(NA,112)))
+  # logical_variable1<-c(rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,32))
   #  logical_variable2<-c(rep(TRUE,28),rep(FALSE,28),rep(TRUE,28),rep(FALSE,28))
   #  X=XRVIP
   #  X<-as.data.frame(X)
   #  X<-cbind(X,
-  #        factor_variable1,factor_variable2,factor_variable3,
-  #        character_variable1,character_variable2,
+  #        factor_variable1,factor_variable2,factor_variable3,factor_variable4,
+  #        character_variable1,character_variable2,character_variable3,character_variable4,
   #         logical_variable1,logical_variable2)
   #   check again by using class(X[,1148])
   #
@@ -137,15 +140,18 @@ MUVR <- function(X,
 
     if(ncol(X_character_frame)!=0)
     {cat("There are",ncol(X_character_frame),"character variables")
+
     for (c in 1:ncol(X_character_frame))
     {X_character_frame[,c]<-as.factor(X_character_frame[,c])}
     }
     rm(c)
     colnames(X_character_frame)<-X_character_names
+########
+    X_factor_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('factor'))])
 
-    if(ncol(X_character_frame)!=0)
+    if(ncol(X_factor_frame)!=0)
     {cat("There are",ncol(X_factor_frame),"factor variables")}
-####
+
     ##put factor variables and factor-transformed character variables in to one data frame and give them previous names
     X_factor_frame<-cbind(as.data.frame(X[,which(sapply(X, class) %in% c('factor'))]),X_character_frame)
     colnames(X_factor_frame)<-c(X_factor_names,X_character_names)
@@ -165,15 +171,13 @@ MUVR <- function(X,
       }
       rm(c)
       rm(d)
-      for (c in 1:ncol(X_logical_frame))
-      {X_logical_frame[,c]<-as.factor(X_logical_frame[,c])}
+
     }
-    rm(c)
 
 
 
-    if(ncol(X_factor_frame)==0)
-    {cat("There are no factor,character or logical variables")
+    if(ncol(X_factor_frame)+ncol(X_logical_frame)==0)
+    {cat("There are no factor,character and logical variables")
 
     }else{
 
@@ -209,21 +213,31 @@ MUVR <- function(X,
         }
 
       }
-
+      colnames(X_numeric2_frame)<-X_factor2_name
 ###
-      }
 
-      ######
+
+      ######When levels==1
 
       X_factor1_name<-character()
       X_factor1_frame<-data.frame(row.names=rownames(X))
       for(n in 1:ncol(X_factor_frame))
       {if(length(levels(X_factor_frame[,n]))==1)
-      {X_factor1_frame<-cbind(X_factor1_frame,X_factor_frame[,n])
-      X_factor1_name<-c(X_factor1_name,colnames(X_factor_frame)[n])}
+        {X_factor1_frame<-cbind(X_factor1_frame,X_factor_frame[,n])
+        X_factor1_name<-c(X_factor1_name,colnames(X_factor_frame)[n])}
       }
       colnames(X_factor1_frame)<-X_factor1_name
 
+      X_numeric1_frame<-matrix(0L,nrow=nrow(X_factor1_frame),ncol=ncol(X_factor1_frame))
+      for(i in 1:ncol(X_factor1_frame))
+      {for(j in 1:nrow(X_factor1_frame))
+        {if(X_factor1_frame[j,i]==levels(X_factor1_frame[,i])[1])
+          {X_numeric1_frame[j,i]=1}
+        }
+      }
+      colnames(X_numeric1_frame)<-X_factor1_name
+######
+      ###When levels==0, which means all elements are NA, I transfromed all of them to -999
       X_factor0_name<-character()
       X_factor0_frame<-data.frame(row.names=rownames(X))
       for(n in 1:ncol(X_factor_frame))
@@ -231,8 +245,17 @@ MUVR <- function(X,
       {X_factor0_frame<-cbind(X_factor0_frame,X_factor_frame[,n])
       X_factor0_name<-c(X_factor0_name,colnames(X_factor_frame)[n])}
       }
-      colnames(X_factor2_frame)<-X_factor0_name
+      colnames(X_factor0_frame)<-X_factor0_name
 
+
+      X_numeric0_frame<-matrix(0L,nrow=nrow(X_factor0_frame),ncol=ncol(X_factor0_frame))
+      for(i in 1:ncol(X_factor0_frame))
+      {for(j in 1:nrow(X_factor0_frame)){X_numeric0_frame[j,i]=-999}
+      }
+      colnames(X_numeric0_frame)<-X_factor0_name
+
+
+    }
 
 
 
@@ -240,11 +263,11 @@ MUVR <- function(X,
       a<-list()
       for(n in 1:ncol(X_factor3_frame))
       {if(length(levels(X_factor3_frame[,n]))>5)
-      {cat(colnames(X_factor3_frame)[n],"has",length(levels(X_factor3_frame[,n])),"levels, which is too many")}
+      {cat(colnames(X_factor3_frame)[n],"has",length(levels(X_factor3_frame[,n])),"levels, which is too many   ")}
         a[[n]]<-character()
 
         for (m in 1:length(levels(X_factor3_frame[,n])))
-        {a[[n]][m]<-cat(colnames(X_factor3_frame)[n],"_","level","_",
+        {a[[n]][m]<-paste0(colnames(X_factor3_frame)[n],"_","level","_",
                            ##NOT sort the level by alphabet order
                            levels(factor(X_factor3_frame[,n], as.character(unique(X_factor3_frame[,n]))))[m])
         }
@@ -284,18 +307,15 @@ MUVR <- function(X,
       #Now I need to combine the c matrix with original X dataset X_numeric_frame
       new_X_frame<-X_numeric_frame
       for(h in 1:length(c)){new_X_frame<-cbind(new_X_frame,c[[h]])}
-      if(length(ncol(X_numeric2_frame))!=0)
-      {for(h in 1:length(ncol(X_numeric2_frame))){new_X_frame<-cbind(new_X_frame,X_numeric2_frame[,h])}}
-      if(length(ncol(X_numeric1_frame))!=0)
-      {for(h in 1:length(ncol(X_numeric1_frame))){new_X_frame<-cbind(new_X_frame,X_numeric1_frame[,h])}}
-      if(length(ncol(X_numeric1_frame))!=0)
-      {for(h in 1:length(ncol(X_numeric0_frame))){new_X_frame<-cbind(new_X_frame,X_numeric0_frame[,h])}}
-      if(length(ncol(X_logical_frame))!=0)
-      {for(h in 1:length(ncol(X_logical_frame))){new_X_frame<-cbind(new_X_frame,X_logical_frame[,h])}}
+      new_X_frame<-cbind(new_X_frame,
+                           X_numeric2_frame,
+                          X_numeric1_frame,
+                           X_numeric0_frame,
+                          X_logical_frame)
 
-       }  ##This is where else end
+       }  ##This is where method=="PLS"ends
 
-}   ##this is where method=="PLS" ends
+}   ##this is where else ends
   }
 ##X_numeric_frame is the data frame that only has original numeirc variable
 ##new_X_frame is the result of one hot coding, it is a dataframe though
