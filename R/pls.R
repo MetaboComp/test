@@ -1,21 +1,26 @@
-#' PLS regression 
-#' 
+#' PLS regression
+#'
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
 #'
-#' @param x 
-#' @param y 
-#' @param ncomp 
-#' @param max.iter 
-#' @param tol 
-#' @param near.zero.var 
-#' @param scale 
+#' @param x
+#' @param y
+#' @param ncomp
+#' @param max.iter
+#' @param tol
+#' @param near.zero.var
+#' @param scale
 #'
 #' @return pls object
 #' @export
-pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TRUE, scale = TRUE) {
+pls <- function(x, y, ncomp = 2,
+                max.iter = 500,
+                tol = 1e-06,
+                near.zero.var = TRUE,
+                scale = TRUE)
+  {
   y = as.matrix(y)
   x = as.matrix(x)
-  # Remove variables with near zero variance 
+  # Remove variables with near zero variance
   if(near.zero.var) {
     nzv = MUVR::nearZeroVar(x)
     if (length(nzv$Position > 0)) {
@@ -27,7 +32,7 @@ pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TR
   n = nrow(x)
   p = ncol(x)
   q = ncol(y)
-  
+
   # Names
   x.names = colnames(x)
   if (is.null(x.names)) {
@@ -51,17 +56,17 @@ pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TR
   if (is.null(ind.names)) {
     ind.names = 1:n
     rownames(x) = rownames(y) = ind.names
-  }	
-  
+  }
+
   # Center and scale indata
   if (scale) x.temp = x = scale(x, center = TRUE, scale = TRUE) else x.temp=x
-  y.temp = y = scale(y, center = TRUE, scale = TRUE) 
-  
+  y.temp = y = scale(y, center = TRUE, scale = TRUE)
+
   # Allocate matrices
   mat.t = mat.u = matrix(nrow = n, ncol = ncomp)
   mat.a = mat.c = matrix(nrow = p, ncol = ncomp)
   mat.b = mat.d = matrix(nrow = q, ncol = ncomp)
-  
+
   # Iterate pls components h
   iter=NULL
   for (h in 1:ncomp) {
@@ -76,10 +81,10 @@ pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TR
     iterh = 1
     #-- convergence of a  --#
     repeat{
-      a = t(x.temp) %*% u 
+      a = t(x.temp) %*% u
       a = a / drop(sqrt(crossprod(a)))
       t = x.temp %*% a / drop(crossprod(a))
-      b = t(y.temp) %*% t 
+      b = t(y.temp) %*% t
       b = b / drop(sqrt(crossprod(b)))
       u = y.temp %*% b / drop(crossprod(b))
       if (crossprod(a - a.old) < tol) break
@@ -90,11 +95,11 @@ pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TR
     }
     #-- deflation --#
     c = crossprod(x.temp, t) / drop(crossprod(t))
-    x.temp = x.temp - t %*% t(c)   
+    x.temp = x.temp - t %*% t(c)
     #-- mode regression --#
     d = crossprod(y.temp, t) / drop(crossprod(t))
     y.temp = y.temp - t %*% t(d)
-    
+
     mat.t[, h] = t
     mat.u[, h] = u
     mat.a[, h] = a
@@ -102,15 +107,15 @@ pls <- function(x, y, ncomp = 2, max.iter = 500, tol = 1e-06, near.zero.var = TR
     mat.c[, h] = c
     mat.d[, h] = d
     iter=c(iter,iterh) #save the number of iteration per component
-  } 
+  }
   #-- valeurs sortantes --#
   rownames(mat.a) = rownames(mat.c) = x.names
   rownames(mat.b) = y.names
   rownames(mat.t) = rownames(mat.u) = ind.names
   comp = paste("comp", 1:ncomp)
   colnames(mat.t) = colnames(mat.u) = comp
-  colnames(mat.a) = colnames(mat.b) = colnames(mat.c) = comp 
-  result = list(X = x, Y = y, ncomp = ncomp, mat.c = mat.c, variates = list(X = mat.t, Y = mat.u), 
+  colnames(mat.a) = colnames(mat.b) = colnames(mat.c) = comp
+  result = list(X = x, Y = y, ncomp = ncomp, mat.c = mat.c, variates = list(X = mat.t, Y = mat.u),
                 loadings = list(X = mat.a, Y = mat.b), tol = tol, max.iter = max.iter, iter=iter)
   if (near.zero.var == TRUE) result$nzv = nzv
   class(result) = "plsMUVR"
