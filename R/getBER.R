@@ -5,7 +5,7 @@
 #'
 #' @return Balanced Error Rate (BER)
 #'
-getBER=function (actual, predicted) 
+getBER=function (actual, predicted)
 {
   if (length(actual) != length(predicted)) stop ("Mismatch in length of arguments")
   if (!is.factor(actual)) actual = factor(actual)
@@ -17,11 +17,13 @@ getBER=function (actual, predicted)
   for (i in 1:nlevs) {
     whLev.i = which(actual == levs[i])
     for (j in 1:nlevs) confMat[i, j] = sum(predicted[whLev.i] == levs[j], na.rm = TRUE)
+    #if i=1,j=2 confMat is the number of the obs actual in group 1, but predicted in group 2
     confMat[i, nlevs + 1] = sum(is.na(predicted[whLev.i]))
   }
   if (sum(is.na(predicted)) == 0) confMat = confMat[, -(nlevs + 1)]
   confMat.wrong = confMat
   diag(confMat.wrong) = 0
   BER = sum(apply(confMat.wrong, 1, sum, na.rm = TRUE)/apply(confMat, 1, sum, na.rm = TRUE), na.rm = TRUE)/nlevs
+  ##balance error rate
   return(BER)
 }

@@ -95,13 +95,14 @@ customParams <- function(method = c('RF','PLS','randomForest','ranger'),
     methParam$rfMethod <- 'ranger'
   }}
 
-
+if (method=="PLS"&oneHot==F){stop("PLS method must use oneHot encoding. ")}
+if (method=="PLS"&NZV==F){stop("PLS method must use near zero variance. ")}
 
   #########################
   # Default RF parameters
+  # For PLS oneHot and NZV can only be true, for RF, the default value is set as T but can be changed to F
   #########################
-  if (method=="PLS"&oneHot==F){stop("PLS method must use oneHot encoding. ")}
-  if (method=="PLS"&NZV==F){stop("PLS method must use near zero variance. ")}
+
   if (method=='RF'){
     methParam$ntreeIn <- ntreeIn
     methParam$ntreeOut <- ntreeOut
