@@ -1,4 +1,4 @@
-#' RF model in inner CV loop 
+#' RF model in inner CV loop
 #'
 #' Called from Wrapper
 #'
@@ -13,9 +13,9 @@
 #' @param mtry See original function (`randomForest`). Passed from wrapper.
 #'
 #' @return An object containing:
-#' @return (`miss`, `auc` or `rmsep`) A fitness metric 
+#' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `vi` variable importance rankings
-#' @export
+#'
 #'
 rfInner <- function(xTrain,
                     yTrain,
@@ -24,11 +24,11 @@ rfInner <- function(xTrain,
                     DA,
                     fitness,
                     ntree,
-                    mtry, 
+                    mtry,
                     method) {
   # Allocate return object
   returnIn <- list()
-  
+
   # Different functions for different RF implementations
   if(method == 'randomForest') {
     rfModIn <- randomForest(xTrain,
@@ -37,17 +37,32 @@ rfInner <- function(xTrain,
                             yVal,
                             ntree = ntree,
                             mtry = mtry)
+    #ntree: Number of trees to grow. This should not be set to too small a number,
+    #to ensure that every input row gets predicted at least a few times.
+    #mtry: Number of variables randomly sampled as candidates at each split. Note that the default values
+    #are different for classification (sqrt(p) where p is number of variables in x) and regression (p/3)
+
     # Extract predictions
-    yValInner <- rfModIn$test$predicted 
+    yValInner <- rfModIn$test$predicted
+
     # Variable importance rank
     returnIn$vi <- rank(-rfModIn$importance)
     names(returnIn$vi) <- rownames(rfModIn$importance)
+    #Importance:a matrix with nclass + 2 (for classification) or two (for regression) columns.
+    #For classification, the first nclass columns are the class-specific measures computed as mean descrease in accuracy.
+    #The nclass + 1st column is the mean descrease in accuracy over all classes.
+    #The last column is the mean decrease in Gini index.
+    #For Regression, the first column is the mean decrease in accuracy and the second the mean decrease in MSE.
+    #If importance=FALSE, the last measure is still returned as a vector
+
   } else if(method == 'ranger') {
     rfModIn <- ranger(x = xTrain,
                       y = yTrain,
                       num.trees = ntree,
                       importance = 'impurity',
                       # respect.unordered.factors = 'order', # Sort this out as "ifany"
+                      #The 'impurity' measure is the Gini index for classification, the variance of the
+                      #responses for regression and the sum of test statistics (see splitrule) for survival.
                       mtry = mtry)
     # Extract predictions
     yValInner <- predict(rfModIn, data = xVal)$predictions
@@ -56,21 +71,56 @@ rfInner <- function(xTrain,
   } else {
     stop('other RF methods not yet implemented')
   }
+
+
+#####################################################################################################
+#In the main MUVR model, for the relationship with Y data type and DA value:
+#When DA=T, y is factor, run
+#When DA=T, y is numeric, y is transformed to factor. Is there a step in the main MUVR that check for the maximum number of classes?
+#When Y is factor, DA must be T
+#When Y is numeric, DA=F, run
+#No combination of DA=F and Y is factor
+#
+#Here I have some questions
+# From what I understand, MISS, BER, AUROC are for classifications, RSMEP is for regression
+#Problem1: When fitness is MISS,
+#       yValInner could be more than 2 category and the value could vary, Why set 0 as the cut off for predicted values?
+#
+#Problem 2: When fitness is BER, what if Y is numeric (continuous data)?
+#Problem 3: When fitness is AUROC,what if Y is numeirc
+#Problem 4: When fitness is RMSEP, what is Y is factor?
+#
+#Problem 5: when method=randomForest, yValInner <- rfModIn$test$predicted, what about $voted for classification
+#Problem 6:What is the Difference between rfInner and rfPredict? For me the only differences seems to be that rfInner calculated the fitness
+#######################################################################################################################################
+
+
   if (fitness == 'MISS') {
     # cat(' miss',count)
-    if (DA) returnIn$miss <- sum(yValInner != yVal) else {
-      yClassInner <- ifelse(yValInner > 0, 1, -1)
+    if (DA) returnIn$miss <- sum(yValInner != yVal)
+     else {
+      yClassInner <- ifelse(yValInner > 0, 1, -1)   #####classification binary??????Why?????
       returnIn$miss <- sum(yClassInner != yVal)
     }
-  } 
+  }
+
   if (fitness == 'BER') {
-    returnIn$ber <- getBER(actual = yVal, predicted = yValInner)
+    returnIn$ber <- getBER(actual = yVal, predicted = yValInner)  ###getBER from MUVR
   }
+  ##Balance error rate
+
+
   if (fitness == 'AUROC') {
-    returnIn$auc <- roc(yVal,rfModIn$test$votes[,1])$auc
+    returnIn$auc <- roc(yVal,rfModIn$test$votes[,1])$auc  ####what is votes
   }
+  # if test set is given (through the xtest or additionally ytest arguments), this component is a list which contains the
+  # corresponding predicted, err.rate, confusion, votes (for classification) or predicted, mse and rsq (for regression) for
+  # the test set. If proximity=TRUE, there is also a component, proximity, which contains the proximity among the test set
+  # as well as proximity between test and training data.
   if (fitness == 'RMSEP') {
     returnIn$rmsep <- sqrt(sum((yVal - yValInner) ^ 2, na.rm = T) / (length(yVal) - sum(is.na(yValInner))))
   }
+  ##RMSEP root mean squared error of prediction
+
   return(returnIn)
 }
