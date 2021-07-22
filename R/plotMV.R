@@ -146,7 +146,7 @@ plotMV <- function(MUVRclassObject,
     par(xpd = TRUE) ###A logical value or NA. If FALSE, all plotting is clipped to the plot region,
                     ###if TRUE, all plotting is clipped to the figure region, and if NA, all plotting is clipped to the device region.
 
-    legend("topleft",
+    legend(
            x = 0,
            y = ylim[2] + diff(ylim) / 5, ##the difference between ylim max an ylim min
            horiz = TRUE,
@@ -155,7 +155,7 @@ plotMV <- function(MUVRclassObject,
            col = c(factCols,1),
            cex = 0.8,
            pt.cex = c(rep(0.5,length(classes)),2),
-           legend.direction="vertical",
+           #legend.direction="vertical",
            bty = 'n')                       ##the type of box to be drawn around the legend
     par(xpd = xpdOld)
 
