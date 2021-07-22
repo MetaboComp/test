@@ -1,26 +1,53 @@
-#' Plot validation metric 
+#' Plot validation metric
 #'
 #' Produces a plot of validation metric vs number of variables in model (inner segment)
-#' @param MVObj An object of class `MVObject`
+#' @param MUVRclassObject An object of class `MUVR`
 #'
 #' @return A plot
 #' @export
-plotVAL=function(MVObj) {
-  VAL=MVObj$VAL$VAL
-  metric=MVObj$VAL$metric
-  count=as.numeric(colnames(VAL))
+plotVAL=function(MUVRclassObject) {
+  VAL=MUVRclassObject$VAL$VAL      ### a list of nRep array,  row is outer segment,column is 1147,917,713
+  metric=MUVRclassObject$VAL$metric
+  count=as.numeric(colnames(VAL))      ###colnames transformed to number
   nRep=dim(VAL)[3]
-  plot(count,count,ylim=range(VAL),xlim=range(count),log='x',type='n',bty='l',ylab=metric,xlab='Number of variables (log scale)')
+  plot(count,
+       count,
+       ylim=range(VAL),                           ##### range of miss classification numbers
+       xlim=range(count),                         ######range of variables numbers
+       log='x',                                    ###########log scale x axis
+       type='n',                                   ####What type of plot should be drawn, n is for no plotting
+       bty='l',                                     #####border type
+       ylab=metric,
+       xlab='Number of variables (log scale)')
   for (r in 1:nRep) {
-    matlines(count,t(VAL[,,r]),type='l',lty=1,col='lightgrey')
+    matlines(count,
+             t(VAL[,,r]),
+             type='l',                           ##This is to say to plot line
+             lty=1,                              ###line type
+             col='lightgrey')
   }
   for (r in 1:nRep) {
-    lines(count,colMeans(VAL[,,r]),col='darkgrey')
+    lines(count,
+          colMeans(VAL[,,r]),col='darkgrey')     ####mean of each column,output has ncol number of means
   }
-  lines(count,apply(VAL,2,mean),col='black')
-  for (i in 1:3) {
-    abline(v=MVObj$nVar[i],lty=i,col=i+1,lwd=1.5)
+  lines(count,                  ####mean of all the repetitions  ###x
+        apply(VAL,2,mean),      ###y mean for all segments and all repetitions  for each column of variable numbers
+        col='black')
+
+  for (i in 1:3) {                                  ####add vertical line
+    abline(v=MUVRclassObject$nVar[i],
+           lty=i,
+           col=i+1,
+           lwd=1.5)                                 ####line wide
   }
-  legend('topleft',legend=c('Validation segments','Repetitions','Overall'),lty=1,col=c('lightgrey','darkgrey','black'),bty='n')
-  legend('topright',legend=c("'Min (Minimal-optimal)","'Mid'","'Max' (All-relevant)"),lty=1:3,col=2:4,bty='n')
+  legend('topleft',
+         legend=c('Validation segments','Repetitions','Overall'),
+         lty=1,
+         col=c('lightgrey','darkgrey','black'),
+         bty='n')
+  legend('topright',
+         legend=c("'Min (Minimal-optimal)","'Mid'","'Max' (All-relevant)"),
+         lty=1:3,                   ####line type
+         col=2:4,
+         bty='n')                   ####no border of the legend
 }
