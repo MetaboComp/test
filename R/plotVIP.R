@@ -16,13 +16,11 @@ plotVIRank=function(MUVRclassObject,n,model='mid',cut) {
   VIRank=MUVRclassObject$VIRank[,nModel]
   VIRankRep=MUVRclassObject$VIRankPerRep[[nModel]]
 ####################################################################################################
-  VIRankRep=VIRankRep[order(VIRank),][1:n,]    ###make VIRank a sequence For example, if the first variable is ranking 27th
-                                               ###Then it is put in the 27th row of the new dataframe
-#I don't know if here is correct. The variable with lowest VIRank has the highest order(VIRank)
-#Assume the OTU_28 (variable 29th) has the lowest VIRank,Then it has the higest order Ex 1609
-#Here the new VIRankRep choose the original row of variable 1609 put in the new 29th row
-# However, variable 1609 has nothing to do with the sequencing?
-#
+  VIRankRep=VIRankRep[order(VIRank),][1:n,]
+  ####the first lowest number is in position (the first output 1)
+  ####the second lowest number is in position (the output 1)
+  ##
+
 ########################################################################################################
 
   if(n>nFeat) {
