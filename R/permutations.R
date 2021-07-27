@@ -12,7 +12,8 @@
 #' @param varRatio varRatio for each permutation (defaults to value of actual model)
 #' @param parallel whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)
 #'
-#' @return A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
+#' @return h0: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
+#' @return permutation_type: Either AUROC,Q2 or MISS
 #' @export
 #'
 #' @examples
@@ -131,6 +132,7 @@ permutations=function(MUVRclassObject,
     cat('\nEstimated time left:',timeLeft,'mins\n\n')
   }
   return(h0)
+  return(permutation_type)
   }
 ########################################
 #when permutation is AUROC
@@ -177,6 +179,7 @@ permutations=function(MUVRclassObject,
   }
   }
   return(h0)
+  return(permutation_type)
   }
 
 
