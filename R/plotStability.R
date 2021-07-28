@@ -1,76 +1,195 @@
-#' Plot stability of selected variables and prediction fitness as a function of number of repetitions 
+#' Plot stability of selected variables and prediction fitness as a function of number of repetitions
 #'
-#' @param MVObject MUVR object
+#' @param MUVRclassObject MUVR class object
 #' @param model 'min' (default), 'mid' or 'max'
-#' @param VAll Option of specifying which variables (i.e. names) to consider as reference set. Defaults to variables selected from the `model` of the `MVObject`
+#' @param VAll Option of specifying which variables (i.e. names) to consider as reference set.
+#'             Defaults to variables selected from the `model` of the `MUVRclassObject`
 #' @param nVarLim Option of specifying upper limit for number of variables
 #' @param missLim Option of specifying upper limit for number of misclassifications
 #'
-#' @return Plot of number of variables, proportion of variables overlapping with reference and prediction accuracy (Q2 for regression; MISS otherwise) as a function of number of repetitions. 
+#' @return Plot of number of variables, proportion of variables overlapping with reference and prediction accuracy (Q2 for regression; MISS otherwise) as a function of number of repetitions.
 #' @export
-plotStability=function(MVObject,model='min',VAll,nVarLim,missLim) {
-  regr=any(class(MVObject)=='Regression')
-  DA=MVObject$inData$DA
-  ML=MVObject$inData$ML
-  Y=MVObject$inData$Y
-  nModel=ifelse(model=='min',1,ifelse(model=='mid',2,3))
-  nVar=round(MVObject$nVar[nModel])
-  if(missing(VAll)) VAll=names(sort(MVObject$VIP[,nModel])[1:nVar]) # Final selection of variables
-  nRep=MVObject$inData$nRep
+plotStability=function(MUVRclassObject,
+                       model='min',
+                       VAll,
+                       nVarLim,
+                       missLim) {
+
+  regr=any(class(MUVRclassObject)=='Regression')
+  DA=MUVRclassObject$inData$DA
+  ML=MUVRclassObject$inData$ML
+  Y=MUVRclassObject$inData$Y
+
+  nModel=ifelse(model=='min',
+                1,
+                ifelse(model=='mid',
+                       2,
+                       3))
+  nVar=round(MUVRclassObject$nVar[nModel])
+
+  if(missing(VAll)) VAll=names(sort(MUVRclassObject$VIP[,nModel])[1:nVar])
+  ##sort the column of of the selected model(min, mid, max).choose the first nVar variables' names
+
+  # Final selection of variables
+
+  nRep=MUVRclassObject$inData$nRep
   nVRep=VARep=missRep=r2Rep=q2Rep=nV=VA=miss=r2=q2=numeric(nRep)
+  ### anumeric vector of length nRep
+
   for (i in 1:nRep) {
-    nVRep[i]=MVObject$nVarPerRep[[nModel]][i]
-    nV[i]=round(mean(MVObject$nVarPerRep[[nModel]][1:i]))
-    VARep[i]=sum(names(sort(MVObject$VIPPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
-    VA[i]=sum(names(sort(rowMeans(MVObject$VIPPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
-    if(DA) {
-      predsRep=MVObject$yPredPerRep[[nModel]][,,i,drop=F]
+    nVRep[i]=MUVRclassObject$nVarPerRep[[nModel]][i]
+    ##number of nVar for each repetition in min model.It is the same length as nRep
+
+    nV[i]=round(mean(MUVRclassObject$nVarPerRep[[nModel]][1:i]))
+    ## the mean of nVarPerRep of first i repetitions in min model. It is the same length as nRep
+
+    VARep[i]=sum(names(sort(MUVRclassObject$VIPPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
+    ###in repetition i,if the variables selected as included in that repetition is in the VAll, save there names
+    ##before sum() Each VARep[i] is a vector of variable names. Each repetition has a vector
+    ###sum() add 1 if name is in it
+    ##output is a number of variables in VALL for  repetition i
+
+    VA[i]=sum(names(sort(
+      rowMeans(MUVRclassObject$VIPPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
+    ##calculate  the mean of  first i repetitions of VIPPerRep first and then rank them
+    ##choose the first nV[i] and keep the ones that are in VALL
+    ###sum() add 1 if name is in it
+    ##output is a number of variables in VALL for first i repetition
+
+    if(DA) {         ############discuss the scenario of DA
+      predsRep=MUVRclassObject$yPredPerRep[[nModel]][,,i,drop=F]
+      ##row is observations, column is groups, The first value is for the first repetition,
+      ##it will be substituted for each i
+
       missRep[i]=sum(levels(Y)[apply(predsRep,1,which.max)]!=Y)
-      preds=MVObject$yPredPerRep[[nModel]][,,1:i]
+      ##a number for each repetition, which is miss classification numbers
+
+      preds=MUVRclassObject$yPredPerRep[[nModel]][,,1:i]
+      ###for the first i repetitions, it is a list
+
       preds=apply(preds,c(1,2),mean)
+      ###mean for first i repetitions,output is a matrix (row is observarion, column is group)
+
       miss[i]=sum(levels(Y)[apply(preds,1,which.max)]!=Y)
+      ##  ##a number for first i repetition, which is miss classification numbers
+
     } else {
-      predsRep=MVObject$yPredPerRep[[nModel]][,i,drop=F]
+      predsRep=MUVRclassObject$yPredPerRep[[nModel]][,i,drop=F]
+      ###each repetition,The first value is for the first repetition, it will be substituted
+      ##row is all observations, column is one column, which is repetition i
       PRESS=sum((Y-predsRep)^2)
       TSS=sum((Y-mean(Y))^2)
-      q2Rep[i]=1-(PRESS/TSS)
-      preds=MVObject$yPredPerRep[[nModel]][,1:i,drop=F]
-      preds=rowMeans(preds)
+      q2Rep[i]=1-(PRESS/TSS)  ###one q2 for each repetition
+
+      preds=MUVRclassObject$yPredPerRep[[nModel]][,1:i,drop=F]
+      ####row is all observations, column is first i repetitions
+      preds=rowMeans(preds)   ###row means,  row is all observations, column is one column,
       PRESS=sum((Y-preds)^2)
       TSS=sum((Y-mean(Y))^2)
-      q2[i]=1-(PRESS/TSS)
+      q2[i]=1-(PRESS/TSS)    ##one q2 for first i repetitions
     }
+
     if(ML) {
       class=ifelse(preds<0,-1,1)
       miss[i]=sum(class!=Y)
     }
   }
-  VARep=VARep/length(VAll)
+
+  VARep=VARep/length(VAll)    ####Originally, Each VARep[i] is a vector of variable names that is in VALL. Each repetition has a vector
+  ##output is a percentage
   VA=VA/length(VAll)
-  if(missing(nVarLim)) {
-    pot=10^floor(log10(max(nV)))
-    nVarLim=ceiling(max(c(nV,nVRep))/pot)*pot
+##########################################################################################################
+
+    if(missing(nVarLim)) {
+    pot=10^floor(log10(max(nV))) ###number become smaller
+    nVarLim=ceiling(max(c(nV,nVRep))/pot)*pot ###nV and nVRep both has the same length as nREP
+    ###number becomes bigger
   }
+######################################################################################################
+##takes a single numeric argument x and returns a numeric vector containing the smallest integers
+##not less than the corresponding elements of x.
   nPlot=ifelse(ML,4,3)
   par(mfrow=c(nPlot,1))
   par(mar=c(3,4,0,0)+.5)
-  plot(nVRep,ylim=c(0,nVarLim),type='l',xlab='',ylab='Number of selected variables',col='grey',bty='l')
+
+######################
+#Plot 1 Number of selected variables vs number of repetions
+  plot(nVRep,                  ###each repetition
+       ylim=c(0,nVarLim),
+       type='l',
+       xlab='',
+       ylab='Number of selected variables',
+       col='grey',
+       bty='l')     #### the type of box
   lines(nV)
-  legend('bottomright',c('Per repetition','Cumulative'),col=c('grey','black'),lty=1,bty='n')
-  plot(VARep,type='l',ylim=c(0,1),col='pink',xlab='',ylab='Proportion of selected variables',bty='l')
-  lines(VA,col='red')
-  legend('bottomright',c('Per repetition','Cumulative'),col=c('pink','red'),lty=1,bty='n')
+  legend('bottomright',
+         c('Per repetition','Cumulative'),
+         col=c('grey','black'),lty=1,bty='n')
+
+########################
+##Plot 2 proportion of selected variables (variables numbers that included in each repetition\variable numbers that includes in final model)
+##vs  number of repetitions
+  plot(VARep,                   ######each repetition
+       type='l',
+       ylim=c(0,1),
+       col='pink',
+       xlab='',
+       ylab='Proportion of selected variables',
+       bty='l')
+  lines(VA,                       ####cumulative
+        col='red')
+  legend('bottomright',
+         c('Per repetition','Cumulative'),
+         col=c('pink','red'),
+         lty=1,                   ###linetype
+         bty='n')
+#######################
+####Plot 3 Number of Missclassification vs number of repetitions
+
   if(DA | ML) {
     if(missing(missLim)) missLim=length(Y)
-    plot(missRep,ylim=c(0,missLim),type='l',col='lightblue',xlab='',ylab='Number of misclassifications',bty='l')
-    lines(miss,col='blue')
-    legend('bottomright',c('Per repetition','Cumulative'),col=c('lightblue','blue'),lty=1,bty='n')
+    plot(missRep,             ######each repetition
+         ylim=c(0,missLim),
+         type='l',
+         col='lightblue',
+         xlab='',
+         ylab='Number of misclassifications',
+         bty='l')
+    lines(miss,                ####cumulative
+          col='blue')
+    legend('bottomright',
+           c('Per repetition','Cumulative'),
+           col=c('lightblue','blue'),
+           lty=1,
+           bty='n')
   }
-  if(regr | ML) {
-    plot(q2Rep,ylim=c(0,1),type='l',col='lightgreen',xlab='',ylab='Q2',bty='l')
-    lines(q2,col='darkgreen')
-    legend('bottomright',c('Per repetition','Cumulative'),col=c('lightgreen','darkgreen'),lty=1,bty='n')
+########################
+##Plot 4 Q2 vs number of repetitions
+  if(regr | ML) {  ###ML is a regression
+    plot(q2Rep,                  ######each repetition
+         ylim=c(0,1),
+         type='l',
+         col='lightgreen',
+         xlab='',
+         ylab='Q2',
+         bty='l')
+    lines(q2,                       ####cumulative
+          col='darkgreen')
+    legend('bottomright',
+           c('Per repetition','Cumulative'),
+           col=c('lightgreen','darkgreen'),
+           lty=1,
+           bty='n')
   }
-  mtext(text = 'Number of repetitions',side = 1,line = 2.3,cex=par()$cex)
+#########################
+####For all 4 plots
+mtext(text = 'Number of repetitions',
+        side = 1,       ####on which side of the plot (1=bottom, 2=left, 3=top, 4=right).
+        line = 2.3,     ####on which MARgin line, starting at 0 counting outwards.
+        cex=par()$cex)    ###custom text size, if this is not added, the text size is bigger
+
+  ###character expansion factor. NULL and NA are equivalent to 1.0.
+  ###This is an absolute measure, not scaled by par("cex") or by setting par("mfrow") or par("mfcol").
+  ###Can be a vector
   par(mfrow=c(1,1))
 }
