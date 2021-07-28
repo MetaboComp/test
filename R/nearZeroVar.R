@@ -1,9 +1,9 @@
 #' Identify variables with nea zero variance
 #'
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
-#' @param x
-#' @param freqCut
-#' @param uniqueCut
+#' @param x a numeric vector or matrix, or a data frame with all numeric data.
+#' @param freqCut the cutoff for the ratio of the most common value to the second most common value.
+#' @param uniqueCut the cutoff for the percentage of distinct values out of the number of total samples.
 #'
 #' @return nzv object
 #' @export

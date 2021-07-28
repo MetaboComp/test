@@ -1,4 +1,4 @@
-#' Make custom parameters for MUVR internal modelling
+#' Make custom parameters for MUVR internal modelling,not rdCV
 #'
 #' Custom parameters can be set in the function call or by manually setting "slots" in the resulting methParam object
 #' Pls note that, at present, there is no mtryMax for the outer (consensus) loop in effect
