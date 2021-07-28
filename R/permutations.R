@@ -12,7 +12,7 @@
 #' @param varRatio varRatio for each permutation (defaults to value of actual model)
 #' @param parallel whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)
 #'
-#' @return h0: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
+#' @return permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
 #' @return permutation_type: Either AUROC,Q2 or MISS
 #' @export
 #'
@@ -90,9 +90,9 @@ permutations=function(MUVRclassObject,
 
   if(permutation_type=="Q2"|permutation_type=="MISS"){
   startTime=proc.time()[3]
-  h0=matrix(ncol=3,nrow=nPerm)   ##row is permutation number col is 3 (min,mid,max)
-  colnames(h0)=c('Min','Mid','Max')
-  rownames(h0)=paste("permutation",1:nPerm)
+  permutation_output=matrix(ncol=3,nrow=nPerm)   ##row is permutation number col is 3 (min,mid,max)
+  colnames(permutation_output)=c('Min','Mid','Max')
+  rownames(permutation_output)=paste("permutation",1:nPerm)
 ##################################################################################################################################
 ###I also added permutation test for auc when it is classfication
 ###hBER could be added too when we want to integrate it into the permutationtest
@@ -118,9 +118,9 @@ permutations=function(MUVRclassObject,
                  methParam=methParam,
                  parallel=parallel)
 
-    if (any(class(MUVRclassObject)=='Regression')) h0[p,]=permMod$fitMetric$Q2
+    if (any(class(MUVRclassObject)=='Regression')) permutation_output[p,]=permMod$fitMetric$Q2
 
-    else {h0[p,]=permMod$miss
+    else {permutation_output[p,]=permMod$miss
     }
 
     nowTime=proc.time()[3]
@@ -131,14 +131,14 @@ permutations=function(MUVRclassObject,
 
     cat('\nEstimated time left:',timeLeft,'mins\n\n')
   }
-  return(h0)
-  return(permutation_type)
+  return(list(permutation_type,
+              permutation_output))
   }
 ########################################
 #when permutation is AUROC
   if(permutation_type=="AUROC"){
   startTime=proc.time()[3]
-  h0=array(NA,dim=c(nPerm,3,ncol(MUVRclassObject$auc)),
+  permutation_output=array(NA,dim=c(nPerm,3,ncol(MUVRclassObject$auc)),
              dimnames=list(c(paste("permutation",1:nPerm)),
                            c('Min','Mid','Max'),
                            colnames(MUVRclassObject$auc))) ###if use auc this is a list
@@ -166,7 +166,7 @@ permutations=function(MUVRclassObject,
                  methParam=methParam,
                  parallel=parallel)
 
-    h0[p,,s]=t(permMod$auc[,s])
+    permutation_output[p,,s]=t(permMod$auc[,s])
 
 
     nowTime=proc.time()[3]
@@ -178,8 +178,9 @@ permutations=function(MUVRclassObject,
     cat('\nEstimated time left:',timeLeft,'mins\n\n')
   }
   }
-  return(h0)
-  return(permutation_type)
+  return(list(permutation_type,
+              permutation_output))
+
   }
 
 

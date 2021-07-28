@@ -1,10 +1,10 @@
 #' Plot for comparison of actual model fitness vs permutation
-#' 
+#'
 #' Plots histogram of null hypothesis (permutation) distribution, actual model fitness and cumulative p-value.
 #' Plot defaults to "greater than" or "smaller than" tests and cumulative probability in Student's t-distribution
 #'
 #' @param actual Actual model fitness (e.g. Q2, AUROC or number of misclassifications)
-#' @param h0 Null hypothesis (permutation) distribution of similar metric as `actual`
+#' @param distribution Null hypothesis (permutation) distribution of similar metric as `actual`
 #' @param xlab Label for x-axis (e.g. 'Q2', 'AUROC', or 'Misclassifications')
 #' @param side Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))
 #' @param type Choice of Student's t-distribution of original ('t', default) or ranked ('non') data for non-parametric test
@@ -16,18 +16,70 @@
 #'
 #' @return Plot
 #' @export
-plotPerm=function(actual,h0,xlab=NULL,side=c('greater','smaller'),type=c('t','non'),xlim,ylim=NULL,breaks='Sturges',pos, main=NULL) {
-  if(missing(side)) side=ifelse(actual<median(h0),'smaller','greater')
+plotPerm=function(actual,
+                  distribution,     ####a distribution
+                  xlab=NULL,
+                  side=c('greater','smaller'),
+                  type=c('t','non'),
+                  xlim,
+                  ylim=NULL,
+                  breaks='Sturges',
+                  pos,  ####Choice of position of p-value label (if default is not adequate)
+                  main=NULL) {
+
+
+  if(!missing(type)){if(type!="t"&type!="non")stop("This type can not be implemented")}
   if(missing(type)) type='t'
+
+  if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
+
+######when it is Q2 or MISS
+
+  if(missing(side)) side=ifelse(actual<median(distribution),'smaller','greater')
+
   if(missing(pos)) pos=ifelse(side=='smaller',4,2)
-  pP=pPerm(actual,h0,side,type)
+  ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+  ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
+  pP=pPerm(actual,
+           distribution,
+           side,
+           type)     ####calculate p value
+
+
   if(missing(xlim)) {
-    if(side=='smaller') xlim=c(0,max(h0)) else xlim=c(min(h0),1) 
+    if(side=='smaller') xlim=c(0,max(distribution))
+    else xlim=c(min(distribution),1)
   }
-  (h=hist(h0,breaks,xlim=xlim,ylim=ylim,axes=F,xlab=xlab,freq=FALSE,main=main))
-  h2=max(h$density)*.75
-  axis(1,pos=0)
-  if(side=='smaller') axis(2,pos=0,las=1) else axis(2,pos=h$breaks[1],las=1)
-  lines(rep(actual,2),c(0,h2))
-  text(actual,h2,pos=pos,labels=paste('p=',signif(pP,4),sep=''))
+  (h=hist(distribution,
+          breaks,
+          xlim=xlim,
+          ylim=ylim,
+          axes=F,     ###remove both axes
+          xlab=xlab,
+          freq=FALSE,   ##### if FALSE, probability densities, component density, are plotted (so that the histogram has a total area of one).
+          main=main))
+
+  h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
+  axis(1,pos=0)   ###the coordinate at which the axis line is to be drawn: if not NA this overrides the value of line.
+  if(side=='smaller') axis(2,pos=0,las=1)   #### the style of axis labels. (0=parallel, 1=all horizontal, 2=all perpendicular to axis, 3=all vertical)
+  else axis(2,pos=h$breaks[1],las=1)
+
+  lines(rep(actual,2),     ###x1,x2 for the line
+        c(0,h2))          ##y1 ,y2 forthe line
+
+  text(actual,    ###x position of the text
+       h2,        ##y position of the text
+       pos=pos,
+       ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+       ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
+       labels=paste('p=',signif(pP,4),sep='')) ####what is the text
+       ##For signif the recognized values of digits are 1...22, and non-missing values are rounded to the nearest integer in that range.
+       ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
+       ##Each element of the vector is rounded individually, unlike printing.
 }
+
+
+
+
+
+
