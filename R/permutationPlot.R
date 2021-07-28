@@ -44,7 +44,7 @@ permutationPlot=function(MUVRclassObject,
                          breaks='Sturges',                ###optional custom histogram breaks (defaults to 'sturges')
                          main=NULL) {
 ###################################################################################################################
-  if(!any(class(MUVRclassObject)=='MVObject'))stop("The input is not a MUVR class Object")
+  if(!any(class(MUVRclassObject)=='MUVR'))stop("The input is not a MUVR class Object")
 
 permutation_type<-permutation_result$permutation_type
 permutation_output<-permutation_result$permutation_output
