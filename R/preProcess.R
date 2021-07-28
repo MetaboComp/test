@@ -16,9 +16,9 @@ preProcess=function(X,offset=0,
                     scale='none') {
   nVar=ncol(X)
   # Add offset
-  X[X==0]=zeroOffset          ######Add offset to zero data (defaults to 0)
+  X[X==0]=zeroOffset          ######Add offset(a value) to zero data (defaults to 0)
   cat('Zero offset:',zeroOffset)
-  X=X+offset                  #########Add offset to all data points
+  X=X+offset                  #########Add offset(a value) to all data points
   cat('\nOffset:',offset)
 
 
