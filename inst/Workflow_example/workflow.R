@@ -1,7 +1,7 @@
 library(doParallel)
 library(MUVR)
 
-
+####To use getVIRank the method needs to be PLS
 ###################################################
 # Regression example using "freelive" data
 
