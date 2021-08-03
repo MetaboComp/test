@@ -28,7 +28,9 @@ pls <- function(x,
     nzv = MUVR::nearZeroVar(x)
     if (length(nzv$Position > 0)) {
       warning("Zero- or near-zero variance predictors.\nReset predictors matrix to not near-zero variance predictors.\nSee $nzv for problematic predictors.")
-      x = x[, -nzv$Position,drop=FALSE]
+      x = x[,
+            -nzv$Position,
+            drop=FALSE]
       ##Delete the dimensions of an array which have only one level.
       ##If drop=F, x is still a column even it is one column
       if(ncol(x)==0) stop("No more predictors after Near Zero Var has been applied!")
@@ -157,6 +159,8 @@ pls <- function(x,
 
   if (near.zero.var == TRUE) result$nzv = nzv
   class(result) = "plsMUVR"
-  return(invisible(result))
+
+  return(invisible(result))   ###it is invisible if I just do pls(XRVIP,YR) there is no output
+
 }
 

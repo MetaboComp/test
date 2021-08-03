@@ -356,7 +356,7 @@ stopCluster(cl)
 
 tabVarsPerm(Morg,MP2P)
 
-plPerms(Morg,
+plPerms(Morg,     ###each  variable three plots
         MP2P,
         'P2_') # If any permuted variables are (by random) classified as Optimal
 
@@ -379,7 +379,7 @@ stopCluster(cl)
 
 tabVarsPerm(Morg,MP3P)
 
-plPerms(Morg,
+plPerms(Morg,            ###each  variable three plots
         MP3P,
         'P3_') # If any permuted variables are (by random) classified as Optimal
 
@@ -402,6 +402,6 @@ stopCluster(cl)
 
 tabVarsPerm(Morg,MP4P)
 
-plPerms(Morg,
+plPerms(Morg,   ###each  variable three plots
         MP4P,
         'P4_') # If any permuted variables are (by random) classified as Optimal
