@@ -42,15 +42,83 @@ customParams <- function(method = c('RF','PLS','randomForest','ranger'),
 
   # Random Forest as default method
   ##when method is missing
-  if(missing(method)) method <- 'RF'
+  if(missing(method)) {
+    if(!missing(rfMethod)){if(rfMethod !="randomForest"&rfMethod!="ranger")
+                                    {stop('other rfMethods not implemented')}
+                           methParam$method<-"RF"
+                           methParam$ntreeIn <- ntreeIn
+                           methParam$ntreeOut <- ntreeOut
+                           methParam$mtryMaxIn <- mtryMaxIn
+                           methParam$rfMethod<-rfMethod}
+    else{methParam$method <- 'RF'
+        methParam$ntreeIn <- ntreeIn
+       methParam$ntreeOut <- ntreeOut
+        methParam$mtryMaxIn <- mtryMaxIn
+         methParam$rfMethod<-"randomForest"}
+  }
+
+
+
   ##when method is not missing but is not the method included in the function
   if(!missing(method))
      {if(method!="RF"&method!="PLS"&method !="randomForest"&method!="ranger")
-       {stop('other methods not implemented')}}
-  ##when rfMethod is not missing but is not the method included in the function
-  if(!missing(rfMethod))
-     {if(rfMethod !="randomForest"&rfMethod!="ranger")
-        {stop('other rfMethods not implemented')}}
+       {stop('other methods not implemented')}
+      methParam$method<-method
+     if(missing(rfMethod))
+     {if(method=="randomForest"|method=="ranger"){methParam$rfMethod<-method
+                                                  methParam$ntreeIn <- ntreeIn
+                                                   methParam$ntreeOut <- ntreeOut
+                                                    methParam$mtryMaxIn <- mtryMaxIn}
+       else if(method=="RF"){methParam$rfMethod<-"randomForest"
+                           methParam$ntreeIn <- ntreeIn
+                          methParam$ntreeOut <- ntreeOut
+                            methParam$mtryMaxIn <- mtryMaxIn}
+            else{methParam$compMax <- compMax}
+        }
+      else{if(rfMethod !="randomForest"&rfMethod!="ranger") {stop('other rfMethods not implemented')}
+          if (method=='RF'){
+          methParam$method <- 'RF'
+          methParam$ntreeIn <- ntreeIn
+          methParam$ntreeOut <- ntreeOut
+          methParam$mtryMaxIn <- mtryMaxIn
+          methParam$rfMethod<-rfMethod
+          }
+        # Fix shorthand for different RF implementations
+        if(method == 'randomForest') {
+          if(rfMethod=="ranger"){stop('Contradictory order between method and rfMethod')
+          }else{
+            method <- 'RF'
+            methParam$method<-'RF'
+            methParam$ntreeIn <- ntreeIn
+            methParam$ntreeOut <- ntreeOut
+            methParam$mtryMaxIn <- mtryMaxIn
+            methParam$rfMethod <- 'randomForest'
+          }}
+        if(method == 'ranger') {
+          if(rfMethod=="randomForest"){stop('Contradictory order between method and rfMethod')
+          }else{
+            method <- 'RF'
+            methParam$method<-'RF'
+            methParam$ntreeIn <- ntreeIn
+            methParam$ntreeOut <- ntreeOut
+            methParam$mtryMaxIn <- mtryMaxIn
+            methParam$rfMethod <- 'ranger'
+          }}
+        if(method=="PLS"){
+          if(!is.null(rfMethod)){stop('Method is PLS. There should not be rfMethod')}
+          #########################
+          # Default PLS parameters
+          #########################
+          methParam$compMax <- compMax
+        }
+
+
+         }
+
+     }
+
+
+
   ##when oneHot i snot missing but not T& F
   if(!missing(oneHot))
       {if(oneHot!=T&oneHot!=F)
@@ -79,21 +147,6 @@ customParams <- function(method = c('RF','PLS','randomForest','ranger'),
      methParam$NZV <- NZV
 
 
-  # Fix shorthand for different RF implementations
-  if(method == 'randomForest') {
-    if(rfMethod=="ranger"){stop('Contradictory order')
-      }else{
-    method <- 'RF'
-    methParam$method<-'RF'
-    methParam$rfMethod <- 'randomForest'
-  }}
-  if(method == 'ranger') {
-    if(rfMethod=="randomForest"){stop('Contradictory order')
-      }else{
-    method <- 'RF'
-    methParam$method<-'RF'
-    methParam$rfMethod <- 'ranger'
-  }}
 
 if (method=="PLS"&oneHot==F){stop("PLS method must use oneHot encoding. ")}
 if (method=="PLS"&NZV==F){stop("PLS method must use near zero variance. ")}
@@ -103,22 +156,7 @@ if (method=="PLS"&NZV==F){stop("PLS method must use near zero variance. ")}
   # For PLS oneHot and NZV can only be true, for RF, the default value is set as T but can be changed to F
   #########################
 
-  if (method=='RF'){
-    methParam$ntreeIn <- ntreeIn
-    methParam$ntreeOut <- ntreeOut
-    methParam$mtryMaxIn <- mtryMaxIn
-    if(missing(rfMethod)){methParam$rfMethod <- 'randomForest'}
-    else{methParam$rfMethod<-rfMethod}
-   }
-    # default RF implementation
 
-    else if (method=='PLS') {
-    if(!is.null(rfMethod)){stop('Method is PLS. There should not be rfMethod')}
-    #########################
-    # Default PLS parameters
-    #########################
 
-    methParam$compMax <- compMax
-  }
   return(methParam)
 }
