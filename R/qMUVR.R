@@ -8,11 +8,18 @@
 #' @param nCore Number of threads to use for calculation (defaults to detectCores()-1)
 #' @param repMult Multiplier of cores -> nRep = repMult * nCore
 #' @param nOuter Number of outer segments
-#' @param ... 
+#' @param ...
 #'
 #' @return MUVR object
 #' @export
-qMUVR <- function(X, Y, ML=F, method='RF', varRatio=0.65, nCore, repMult=1, nOuter=5, ...) {
+qMUVR <- function(X,
+                  Y,
+                  ML=F,
+                  method='RF',
+                  varRatio=0.65,
+                  nCore,
+                  repMult=1,
+                  nOuter=5, ...) {
   library(doParallel)
   library(MUVR)
   if (missing(nCore)) nCore=detectCores()-1
@@ -21,7 +28,7 @@ qMUVR <- function(X, Y, ML=F, method='RF', varRatio=0.65, nCore, repMult=1, nOut
   registerDoParallel(cl)
   if (ML) {
     mod <- MUVR(X=X, ML=T, method=method, nRep=nRep, nOuter=nOuter, varRatio = varRatio)
-  } else {
+  } else {###This is when ML we don,t use true Y, we use man-made Y
     mod <- MUVR(X=X, Y=Y, method=method, nRep=nRep, nOuter=nOuter, varRatio = varRatio, ...)
   }
   stopCluster(cl)

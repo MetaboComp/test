@@ -105,7 +105,8 @@ rfInner <- function(xTrain,
   }
 
   if (fitness == 'BER') {
-    returnIn$ber <- getBER(actual = yVal, predicted = yValInner)  ###getBER from MUVR
+    returnIn$ber <- getBER(actual = yVal,
+                           predicted = yValInner)  ###getBER from MUVR
   }
   ##Balance error rate
 

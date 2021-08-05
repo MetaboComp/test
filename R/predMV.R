@@ -15,7 +15,10 @@ predMV=function(MUVRclassobject,
     cat('\nWrong object class: Return NULL')
     return(NULL)
   }
-  modNum=ifelse(model=='min',1,ifelse(model=='mid',2,3))
+  modNum=ifelse(model=='min',1,
+                ifelse(model=='mid',
+                       2,
+                       3))
 
   method=MUVRclassobject$inData$method
   nRep=MUVRclassobject$inData$nRep
@@ -31,7 +34,7 @@ predMV=function(MUVRclassobject,
   #####################################
 ####when regression is used
   if (class(MUVRclassobject)[3]=='Regression') {
-    yPredPerMod=matrix(ncol=length(MUVRclassobject$outModels),   ###when modReturn is set is true, the length of the list(1147,917,713...)
+    yPredPerMod=matrix(ncol=length(MUVRclassobject$outModels),   ###when modReturn is set is true, the length is nRep*nOuter
                        nrow=nrow(newdata),   ##number of observations
                        dimnames=list(paste('observation',1:nrow(newdata),sep=''),
                                      paste('model',1:length(MUVRclassobject$outModels),sep='')))
@@ -39,7 +42,7 @@ predMV=function(MUVRclassobject,
     for(r in 1:nRep) {
       for(i in 1:nOuter) {
         n=n+1
-        mod=MUVRclassobject$outModels[[n]][[modNum]]
+        mod=MUVRclassobject$outModels[[n]][[modNum]]   ###
 ###when method is PLS
         if (method=='PLS') {
           if ((!colnames(mod$X)%in%colnames(newdata))) {  ###check if training set has variables that is not included in the tesing set
@@ -49,7 +52,9 @@ predMV=function(MUVRclassobject,
 
              X=subset(newdata,select=colnames(mod$X))   ###keep testing variables only the variables existing in training set
             nComp=nComps[r,i]   ##r is repetition,i is number of outer segment
-            yPredPerMod[,n]=predict(mod,newdata=X)$predict[,,nComp]  #
+            ##yPrePerMod is a matrix of (observation is row, nRep*nOuter)
+            yPredPerMod[,n]=predict(mod,newdata=X)$predict[,,nComp]
+            ###How this predict function work????
           }
         }
 
@@ -66,15 +71,16 @@ predMV=function(MUVRclassobject,
         }
       }
     }
-    yPred=apply(yPredPerMod,1,mean)
-    return(list(yPred=yPred,yPredPerMod=yPredPerMod))  ###return
+    yPred=apply(yPredPerMod,1,mean)   ##mean because it is a regression problem
+    return(list(yPred=yPred,
+                yPredPerMod=yPredPerMod))  ###return
   }
  ###########################
 ##when it is classification problem
-  else if (class(MUVRclassobject)[3]=='Classification') {   ##observations
-    yPredPerMod=array(dim=c(nrow(newdata),
+  else if (class(MUVRclassobject)[3]=='Classification') {
+    yPredPerMod=array(dim=c(nrow(newdata),             ##observations
                             length(levels(MUVRclassobject$inData$Y)),  ###number of levels in Y
-                            length(MUVRclassobject$outModels)),###when different number of variables
+                            length(MUVRclassobject$outModels)),###length of list length(nouter*nRep)
                       dimnames=list(paste('observation',1:nrow(newdata),sep=''),
                                     levels(MUVRclassobject$inData$Y),
                                     paste('model',
@@ -85,6 +91,8 @@ predMV=function(MUVRclassobject,
       for(i in 1:nOuter) {
         n=n+1
         mod=MUVRclassobject$outModels[[n]][[modNum]]
+        ###n =r*i in the end. mod is an output of summary
+        ###it is a rfoutmin
         if (method=='PLS') {
           cat('\nNot yet implemented')
           return(NULL)
@@ -98,19 +106,27 @@ predMV=function(MUVRclassobject,
             cat('\nMismatch variable names in model',n,': Return NULL')
             return(NULL)
           } else {
-            X=subset(newdata,select=rownames(mod$importance))
-            yPredPerMod[,,n]=predict(mod,newdata=X,type='vote')  #
+#################################################################################################
+###this does not seem work in ranger. The ranger does not have such name as importance
+            X=subset(newdata,
+                     select=rownames(mod$importance))
+
+            yPredPerMod[,,n]=predict(mod,       ##random forest model vote type
+                                     newdata=X,
+                                     type='vote')  #
           }
         }
       }
     }
-    yPred=apply(yPredPerMod,c(1,2),mean)
+    yPred=apply(yPredPerMod,c(1,2),mean)  ###there is 56 matrix of predicted y (obser,yclass),mean for each value of the matrix
 
-    yClass=levels(MUVRclassobject$inData$Y)[apply(yPred,1,which.max)]
+    yClass=levels(MUVRclassobject$inData$Y)[apply(yPred,1,which.max)]  ###which is the position of the max output
 
     names(yClass)=paste('observation',1:nrow(newdata),sep='')
 
-    return(list(yClass=yClass,yPred=yPred,yPredPerMod=yPredPerMod))
+    return(list(yClass=yClass,
+                yPred=yPred,
+                yPredPerMod=yPredPerMod))
   } else {
     cat('\nNot yet implemented')
   }
