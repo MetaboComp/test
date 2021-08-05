@@ -43,7 +43,8 @@ rfPred <- function(xTrain,
 
 #########################################################################################################
     if(DA) {
-      return$fit <- return$model$votes    ###what is vote
+      return$fit <- return$model$votes    ###(classification only) a matrix with one row for each input data point and one column for each class,
+                                          ###giving the fraction or number of (OOB) `votes' from the random forest.
       return$predicted <- return$model$test$votes  ###what is test$vote
     } else {
       return$fit <- return$model$predicted

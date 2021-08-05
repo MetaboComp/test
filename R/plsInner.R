@@ -50,9 +50,9 @@ plsInner=function(xTrain,
 ###[1] "Hello"
 ###<simpleError: test error>
 
-####to see how many items does the list have  if error it has only betay
+####if there is only one component
     if ((length(yValInner)==1 && yValInner=='error') | any(is.na(yValInner))) comp=comp-1
-    ###if ant value is NA
+    ###if any value is NA
      else cond=FALSE
     if (comp==0) cond=FALSE
   }
@@ -73,7 +73,7 @@ plsInner=function(xTrain,
       ##after as.numeric() y class become1,2,3, the same as the position number
         returnIn$miss=min(misClass,na.rm=T)  ##which component has the smallest number of miss classfication
 
-        nComp=which.min(misClass)   ###position, which component has the min (misClass)
+        nComp=which.min(misClass)   ###position, which component has the min (miss Classification)
 
       } else if (fitness=='BER') {
         if(comp>1) classes=apply(yValInner,
@@ -98,7 +98,7 @@ plsInner=function(xTrain,
 
     } else {               ####when it is not DA and comp>0
 #####################################################################################################################
-##Here  I don't understand, why assum the valdation set only have -1 and 1
+##Here  I don't understand, why assume the validation set only have -1 and 1
       if (fitness=='MISS') {
         # cat(' miss',count)
         yClassInner=ifelse(yValInner>0,
