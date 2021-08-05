@@ -40,7 +40,7 @@
 
 
 onehotencoding<-function(X){
-if(ncol(X[,which(sapply(X, class) %in% c('factor','character','logical'))])==0)
+if(ncol(as.data.frame(X[,which(sapply(X, class) %in% c('factor','character','logical'))]))==0)
 {
 cat("all",ncol(X),"variables are numeric.   ")
 new_X_matrix<-as.matrix(X)
@@ -62,7 +62,7 @@ new_X_matrix<-as.matrix(X)
       for (c in 1:ncol(X_character_frame))
       {X_character_frame[,c]<-as.factor(X_character_frame[,c])}
     }
-    rm(c)
+
     colnames(X_character_frame)<-X_character_names
     ########
     #transform factor variable into numeric and store them in a dataframe
@@ -97,23 +97,33 @@ new_X_matrix<-as.matrix(X)
     ###new factor variables data frame that has factor variable with >2 levels
       X_factor3_name<-character()
       X_factor3_frame<-data.frame(row.names=rownames(X))
+
+      if(ncol(X_factor_frame)>0){
       for(n in 1:ncol(X_factor_frame))
       {if(length(levels(X_factor_frame[,n]))>2)
       {X_factor3_frame<-cbind(X_factor3_frame,X_factor_frame[,n])
       X_factor3_name<-c(X_factor3_name,colnames(X_factor_frame)[n])}
       }
+      }
       colnames(X_factor3_frame)<-X_factor3_name
+
     ###new factor variables data frame that has factor variable with =2 levels
+
       X_factor2_name<-character()
       X_factor2_frame<-data.frame(row.names=rownames(X))
+      if(ncol(X_factor_frame)>0){
       for(n in 1:ncol(X_factor_frame))
       {if(length(levels(X_factor_frame[,n]))==2)
       {X_factor2_frame<-cbind(X_factor2_frame,X_factor_frame[,n])
       X_factor2_name<-c(X_factor2_name,colnames(X_factor_frame)[n])}
       }
+      }
       colnames(X_factor2_frame)<-X_factor2_name
     ####new numeric 01 dummy variables data frame that transformed from data frame that has factor variable with =2 levels
-      X_numeric2_frame<-matrix(0L,nrow=nrow(X_factor2_frame),ncol=ncol(X_factor2_frame))
+      X_numeric2_frame<-matrix(0L,
+                               nrow=nrow(X_factor2_frame),
+                               ncol=ncol(X_factor2_frame))
+      if(ncol(X_factor2_frame)>0){
       for(i in 1:ncol(X_factor2_frame))
       {for(j in 1:nrow(X_factor2_frame))
       {if(X_factor2_frame[j,i]==levels(X_factor2_frame[,i])[1])
@@ -121,23 +131,29 @@ new_X_matrix<-as.matrix(X)
       }else{X_numeric2_frame[j,i]=1}
       }
       }
+      }
       colnames(X_numeric2_frame)<-X_factor2_name
 
     ###new factor variables data frame that has factor variable with 1 level
       X_factor1_name<-character()
       X_factor1_frame<-data.frame(row.names=rownames(X))
+
+      if(ncol(X_factor_frame)>0){
       for(n in 1:ncol(X_factor_frame))
       {if(length(levels(X_factor_frame[,n]))==1)
       {X_factor1_frame<-cbind(X_factor1_frame,X_factor_frame[,n])
       X_factor1_name<-c(X_factor1_name,colnames(X_factor_frame)[n])}
       }
+      }
       colnames(X_factor1_frame)<-X_factor1_name
     ####new numeric 01 dummy variables data frame that transformed from data frame that has factor variable with 1 levels
       X_numeric1_frame<-matrix(0L,nrow=nrow(X_factor1_frame),ncol=ncol(X_factor1_frame))
+      if(ncol(X_factor1_frame)>0){
       for(i in 1:ncol(X_factor1_frame))
       {for(j in 1:nrow(X_factor1_frame))
       {if(X_factor1_frame[j,i]==levels(X_factor1_frame[,i])[1])
       {X_numeric1_frame[j,i]=1}
+      }
       }
       }
       colnames(X_numeric1_frame)<-X_factor1_name
@@ -145,16 +161,20 @@ new_X_matrix<-as.matrix(X)
     ###new factor variables data frame that has factor variable with 0 level
       X_factor0_name<-character()
       X_factor0_frame<-data.frame(row.names=rownames(X))
+      if(ncol(X_factor2_frame)>0){
       for(n in 1:ncol(X_factor_frame))
       {if(length(levels(X_factor_frame[,n]))==0)
       {X_factor0_frame<-cbind(X_factor0_frame,X_factor_frame[,n])
       X_factor0_name<-c(X_factor0_name,colnames(X_factor_frame)[n])}
       }
+      }
       colnames(X_factor0_frame)<-X_factor0_name
     ####new numeric 01 dummy variables data frame that transformed from data frame that has factor variable with 0 levels
       X_numeric0_frame<-matrix(0L,nrow=nrow(X_factor0_frame),ncol=ncol(X_factor0_frame))
+      if(ncol(X_factor0_frame)>0){
       for(i in 1:ncol(X_factor0_frame))
       {for(j in 1:nrow(X_factor0_frame)){X_numeric0_frame[j,i]=-999}
+      }
       }
       colnames(X_numeric0_frame)<-X_factor0_name
     }
@@ -162,6 +182,7 @@ new_X_matrix<-as.matrix(X)
     ###Transform new factor variables data frame that has factor variable with >2 levels into numeric
     ###a is the list of the names of variables to be built
     a<-list()
+    if(ncol(X_factor3_frame)>0){
     for(n in 1:ncol(X_factor3_frame))
     {if(length(levels(X_factor3_frame[,n]))>5)
     {cat(colnames(X_factor3_frame)[n],"has",length(levels(X_factor3_frame[,n])),"levels, which is too many.   ")}
@@ -174,12 +195,15 @@ new_X_matrix<-as.matrix(X)
       }
 
     }
+    }
     ##b is the list of 0/1 matrix of each variable
     b<-list()
     c<-list()
+    if(ncol(X_factor3_frame)>0){
     for(n in 1:ncol(X_factor3_frame))
     {b[[n]]<-data.frame(row.names=c(1:nrow(X_factor3_frame)))
     c[[n]]<-data.frame(row.names=c(1:nrow(X_factor3_frame)))
+
     for(i in 1:length(levels(X_factor3_frame[,n])))
     {b[[n]]<-cbind(b[[n]],X_factor3_frame[,n])
     c[[n]]<-cbind(b[[n]],X_factor3_frame[,n])
@@ -195,18 +219,20 @@ new_X_matrix<-as.matrix(X)
     }
     }
     }
+    }
     # a is the list of new name of all the new variables that will be used
     # b is an intermediate step to use to check for error
     # c is the new 0-1 matrix
     # What needs to be done now is to combine a and c
-
+    if(length(c)>0){
     rownames(c[[n]])<-rownames(X)
     colnames(c[[n]])<-a[[n]]
-
+    }
     }
     #Now I need to combine the c matrix with original X dataset X_numeric_frame
     new_X_frame<-X_numeric_frame
-    for(h in 1:length(c)){new_X_frame<-cbind(new_X_frame,c[[h]])}
+    if(length(c)>0){
+    for(h in 1:length(c)){new_X_frame<-cbind(new_X_frame,c[[h]])}}
     new_X_frame<-cbind(new_X_frame,
                        X_numeric2_frame,
                        X_numeric1_frame,
