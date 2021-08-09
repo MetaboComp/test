@@ -29,9 +29,9 @@
 #  character_variable4<-as.character(c(rep(NA,112)))
 # logical_variable1<-c(rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,16),rep(TRUE,16),rep(FALSE,32))
 #  logical_variable2<-c(rep(TRUE,28),rep(FALSE,28),rep(TRUE,28),rep(FALSE,28))
-#  X=XRVIP
-#  X<-as.data.frame(X)
-#  X<-cbind(X,
+#
+#  X<-data.frame(row.names=1:112)
+#  X<-cbind(X,XRVIP,
 #        factor_variable1,factor_variable2,factor_variable3,factor_variable4,
 #        character_variable1,character_variable2,character_variable3,character_variable4,
 #         logical_variable1,logical_variable2)
@@ -42,10 +42,10 @@
 onehotencoding<-function(X){
 if(ncol(as.data.frame(X[,which(sapply(X, class) %in% c('factor','character','logical'))]))==0)
 {
-cat("all",ncol(X),"variables are numeric.   ")
+cat("all",ncol(X),"variables are numeric.   ", "\n")
 new_X_matrix<-as.matrix(X)
 }else{
-    cat("This is PLS. All variables are transformed to numeric.   ")
+    cat("This is onehot encoding. All variables are transformed to numeric.   ", "\n")
     #find factor and character and logical variable
     X[,which(sapply(X, class) %in% c('factor'))]
     X[,which(sapply(X, class) %in% c('character'))]
@@ -58,7 +58,7 @@ new_X_matrix<-as.matrix(X)
     #transform character variable into factor variables and store them in a dataframe
     X_character_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('character'))])
     if(ncol(X_character_frame)!=0)
-    {cat("There are",ncol(X_character_frame),"character variables.   ")
+    {cat("There is/are",ncol(X_character_frame),"character variable(s).   ", "\n")
       for (c in 1:ncol(X_character_frame))
       {X_character_frame[,c]<-as.factor(X_character_frame[,c])}
     }
@@ -68,7 +68,7 @@ new_X_matrix<-as.matrix(X)
     #transform factor variable into numeric and store them in a dataframe
     X_factor_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('factor'))])
     if(ncol(X_factor_frame)!=0)
-    {cat("There are",ncol(X_factor_frame),"factor variables.   ")}
+    {cat("There is/are",ncol(X_factor_frame),"factor variable(s).   ", "\n")}
 
     ##put factor variables and factor-transformed character variables in to one data frame and give them previous names
     X_factor_frame<-cbind(as.data.frame(X[,which(sapply(X, class) %in% c('factor'))]),X_character_frame)
@@ -79,21 +79,23 @@ new_X_matrix<-as.matrix(X)
 
     ######
     #transform logical variable into numeric and store them in a data frame
+
     X_logical_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('logical'))])
     if(ncol(X_logical_frame)!=0)
-    {paste("There are",ncol(X_logical_frame),"logical variables")
+    {cat("There is/are",ncol(X_logical_frame),"logical variable(s)", "\n")
       for (c in 1:ncol(X_logical_frame))
       {for(d in 1:nrow(X_logical_frame)){if(X_logical_frame[d,c]==T){X_logical_frame[d,c]=1
       }else{X_logical_frame[d,c]=0}
       }
       }
+      colnames(X_logical_frame)<-X_logical_names
       rm(c)
       rm(d)
     }
 
     if(ncol(X_factor_frame)+ncol(X_logical_frame)==0)
-    {cat("There are no factor,character and logical variables   ")
-    }else{cat(ncol(X_factor_frame),"non-numeric variables")
+    {cat("There are no factor,character and logical variables   ", "\n")
+    }else{cat((ncol(X_factor_frame)+ncol(X_logical_frame)),"non-numeric variable(s)", "\n")
     ###new factor variables data frame that has factor variable with >2 levels
       X_factor3_name<-character()
       X_factor3_frame<-data.frame(row.names=rownames(X))
@@ -185,7 +187,7 @@ new_X_matrix<-as.matrix(X)
     if(ncol(X_factor3_frame)>0){
     for(n in 1:ncol(X_factor3_frame))
     {if(length(levels(X_factor3_frame[,n]))>5)
-    {cat(colnames(X_factor3_frame)[n],"has",length(levels(X_factor3_frame[,n])),"levels, which is too many.   ")}
+    {cat(colnames(X_factor3_frame)[n],"has",length(levels(X_factor3_frame[,n])),"(>5) levels.   ", "\n")}
       a[[n]]<-character()
 
       for (m in 1:length(levels(X_factor3_frame[,n])))

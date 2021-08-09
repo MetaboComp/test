@@ -9,7 +9,7 @@
 #' @param ...
 #'
 #' @return pls prediction
-#' @export
+#'
 #'
 predict.plsMUVR <-function(object,
                            newdata,
@@ -134,7 +134,7 @@ predict.plsMUVR <-function(object,
 #' @param ...
 #'
 #' @return plsda predictions
-#' @export
+#'
 predict.plsdaMUVR=function(object,
                            newdata,
                            onlyPred=FALSE,
