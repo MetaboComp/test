@@ -75,7 +75,7 @@ new_X_matrix<-as.matrix(X)
     colnames(X_factor_frame)<-c(X_factor_names,X_character_names)
 
     ##original numeric frame
-    X_numeric_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('numeric'))])
+    X_numeric_frame<-as.data.frame(X[,which(sapply(X, class) %in% c('numeric',"integer"))])
 
     ######
     #transform logical variable into numeric and store them in a data frame
