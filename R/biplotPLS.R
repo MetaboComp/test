@@ -16,7 +16,7 @@
 #'
 #' @return A PLS biplot
 #' @export
-biplotPLS=function(fit,                   #####A PLS fit (e.g. from MUVRclassObject$Fit[[2]]) could be [[3]],[[4]]
+biplotPLS<-function(fit,                   #####A PLS fit (e.g. from MUVRclassObject$Fit[[2]]) could be [[3]],[[4]]
                    comps=1:2,
                    xCol,
                    labPlSc=TRUE,
@@ -28,40 +28,40 @@ biplotPLS=function(fit,                   #####A PLS fit (e.g. from MUVRclassObj
                    colLo=2,
                    supLeg=FALSE) {
 
-  cex=par()$cex  ###A numerical value giving the amount by which plotting text and symbols should be magnified relative
+  cex<-par()$cex  ###A numerical value giving the amount by which plotting text and symbols should be magnified relative
                 ##to the default. This starts as 1 when a device is opened, and is reset when the layout is changed, e.g. by setting mfrow.
 
-  par(mar=c(4,4,4,4)+.5)
+  par(mar>-c(4,4,4,4)+.5)
 
-  scores=fit$variates$X[,comps]   ##scores for component 1 and 2
-  loads=fit$loadings$X[,comps]    ##loadings for component 1 and 2
+  scores<-fit$variates$X[,comps]   ##scores for component 1 and 2
+  loads<-fit$loadings$X[,comps]    ##loadings for component 1 and 2
 
-  if(missing(vars)) vars=rownames(loads) ##variable wanted to be shown, if not specified, choose all
+  if(missing(vars)) vars<-rownames(loads) ##variable wanted to be shown, if not specified, choose all
 
-  loads=loads[rownames(loads)%in%vars,]  ###only choose the name that is specified in vars
+  loads<-loads[rownames(loads)%in%vars,]  ###only choose the name that is specified in vars
 
-  nSamp=nrow(scores)          ###observation number
-  nVar=nrow(loads)           ##selected variables number
+  nSamp<-nrow(scores)          ###observation number
+  nVar<-nrow(loads)           ##selected variables number
 
   if(missing(xCol)) {   ###(Optional) Continuous vector for grey scale gradient of observation (sample) color (e.g. Y vector in regression analysis)
     if (missing(colSc)) {    ### Colors for observation scores (only if xCol omitted)
-      colSc=rep(1,nSamp)    ### Colors for observation scores (only if xCol omitted)
-      legPlot=FALSE         ###there is no legend plot
+      colSc<-rep(1,nSamp)    ### Colors for observation scores (only if xCol omitted)
+      legPlot<-FALSE         ###there is no legend plot
     } else {
-      colScLeg=colSc    ##color on legend
-      colSc=as.factor(colSc)
-      legPlot=TRUE      ###there is legend plot
+      colScLeg<-colSc    ##color on legend
+      colSc<-as.factor(colSc)
+      legPlot<-TRUE      ###there is legend plot
     }
   } else {
-    x.col=10+round(85*((max(xCol)-xCol)/(diff(range(xCol)))))   ###
-    colSc=paste("gray",x.col,sep="")
-    legPlot=TRUE         ####there is legend plot
+    x.col<-10+round(85*((max(xCol)-xCol)/(diff(range(xCol)))))   ###
+    colSc<-paste("gray",x.col,sep="")
+    legPlot<-TRUE         ####there is legend plot
   }
 
-  if(supLeg) legPlot=FALSE     ###supress legend
+  if(supLeg) legPlot<-FALSE     ###supress legend
 
-  rLo=max(abs(loads))  ###for limit of loding
-  rLo=1.1*c(-rLo,rLo)
+  rLo<-max(abs(loads))  ###for limit of loding
+  rLo<-1.1*c(-rLo,rLo)
 
 #########################################################################a loading pplot
   plot(loads,
@@ -106,9 +106,9 @@ biplotPLS=function(fit,                   #####A PLS fit (e.g. from MUVRclassObj
   par(new=T)
 
 #################score plot
-  rSc=max(abs(scores))   ###scores range
+  rSc<-max(abs(scores))   ###scores range
 
-  rSc=c(-rSc,rSc)
+  rSc<-c(-rSc,rSc)
 
   plot(scores,      ####  Scores with x and y value
        col=colSc,   ####Colors for observation scores (only if xCol omitted)
@@ -125,7 +125,7 @@ biplotPLS=function(fit,                   #####A PLS fit (e.g. from MUVRclassObj
        las=1)   ###axis label orientatio
 
   if (labPlSc) {
-    if (missing(labs)) labs=rownames(scores)
+    if (missing(labs)) labs<-rownames(scores)
 
     # cat(labs)
     text(scores,      ####numeric vectors of coordinates where the text labels should be written.
@@ -142,16 +142,16 @@ biplotPLS=function(fit,                   #####A PLS fit (e.g. from MUVRclassObj
              col=unique(colSc),          ###Colors for observation scores (only if xCol omitted)
              bty='n')
     } else {
-      whUnik=!duplicated(xCol)    ##(Optional) Continuous vector for grey scale gradient of observation (sample) color (e.g. Y vector in regression analysis)
+      whUnik<-!duplicated(xCol)    ##(Optional) Continuous vector for grey scale gradient of observation (sample) color (e.g. Y vector in regression analysis)
                                   ##whUnik is a logical variable, if it is duplicated output T, here the duplicated is F
-      unik=xCol[whUnik]           ###the unik ones
-      cols=colSc[whUnik][order(unik)]   ###Colors for observation scores (only if xCol omitted)
-      unik=sort(unik)
+      unik<-xCol[whUnik]           ###the unik ones
+      cols<-colSc[whUnik][order(unik)]   ###Colors for observation scores (only if xCol omitted)
+      unik<-sort(unik)
       if (length(unik)>10) {
-        k=(length(unik)-1)/5
-        n=1+k*0:5
-        cols=cols[n]
-        unik=unik[n]
+        k<-(length(unik)-1)/5
+        n<-1+k*0:5
+        cols<-cols[n]
+        unik<-unik[n]
       }
 
       legend('topright',
