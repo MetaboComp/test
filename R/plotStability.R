@@ -27,7 +27,7 @@ plotStability=function(MUVRclassObject,
                        3))
   nVar=round(MUVRclassObject$nVar[nModel])
 
-  if(missing(VAll)) VAll=names(sort(MUVRclassObject$VIP[,nModel])[1:nVar])
+  if(missing(VAll)) VAll=names(sort(MUVRclassObject$VIRank[,nModel])[1:nVar])
   ##sort the column of of the selected model(min, mid, max).choose the first nVar variables' names
 
   # Final selection of variables
@@ -43,15 +43,15 @@ plotStability=function(MUVRclassObject,
     nV[i]=round(mean(MUVRclassObject$nVarPerRep[[nModel]][1:i]))
     ## the mean of nVarPerRep of first i repetitions in min model. It is the same length as nRep
 
-    VARep[i]=sum(names(sort(MUVRclassObject$VIPPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
+    VARep[i]=sum(names(sort(MUVRclassObject$VIRankPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
     ###in repetition i,if the variables selected as included in that repetition is in the VAll, save there names
     ##before sum() Each VARep[i] is a vector of variable names. Each repetition has a vector
     ###sum() add 1 if name is in it
     ##output is a number of variables in VALL for  repetition i
 
     VA[i]=sum(names(sort(
-      rowMeans(MUVRclassObject$VIPPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
-    ##calculate  the mean of  first i repetitions of VIPPerRep first and then rank them
+      rowMeans(MUVRclassObject$VIRankPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
+    ##calculate  the mean of  first i repetitions of VIRankPerRep first and then rank them
     ##choose the first nV[i] and keep the ones that are in VALL
     ###sum() add 1 if name is in it
     ##output is a number of variables in VALL for first i repetition

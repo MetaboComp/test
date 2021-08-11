@@ -39,8 +39,8 @@ mergeModels=function(MV1,MV2) {
 ####
   yP=MV1$yPred
   yPPR=MV1$yPredPerRep
-  VIP=MV1$VIP
-  VIPrep=MV1$VIPPerRep
+  VIRank=MV1$VIRank
+  VIRankrep=MV1$VIRankPerRep
 
   nV=MV1$nVar
   nVPR=MV1$nVarPerRep
@@ -56,8 +56,8 @@ mergeModels=function(MV1,MV2) {
       yPPR[[i]]=cbind(yPPR[[i]],MV2$yPredPerRep[[i]])     ###combine 2 matrix
       yP[,i]=apply(yPPR[[i]],1,mean)                       ####mean of repetitions
 
-      VIPrep[[i]]=cbind(VIP[[i]],MV2$VIPPerRep[[i]])   ###combine 2 matrix
-      VIP[,i]=apply(VIPrep[[i]],1,mean)
+      VIRankrep[[i]]=cbind(VIRank[[i]],MV2$VIRankPerRep[[i]])   ###combine 2 matrix
+      VIRank[,i]=apply(VIRankrep[[i]],1,mean)
 
       nVPR[[i]]=c(nVPR[[i]],MV2$nVarPerRep[[i]])     #####Cobine 2 vectors
       nV[i]=mean(nVPR[[i]])
@@ -75,8 +75,8 @@ mergeModels=function(MV1,MV2) {
   newMod$yPred=yP
   newMod$yPredPerRep=yPPR
 
-  newMod$VIP=VIP
-  newMod$VIPPerRep=VIPrep
+  newMod$VIRank=VIRank
+  newMod$VIRankPerRep=VIRankrep
 
   newMod$nVar=nV
   newMod$nVarPerRep=nVPR
