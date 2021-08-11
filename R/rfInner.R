@@ -14,7 +14,7 @@
 #'
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
-#' @return `vi` variable importance rankings
+#' @return `virank` variable importance rankings
 #'
 #'
 rfInner <- function(xTrain,
@@ -46,8 +46,8 @@ rfInner <- function(xTrain,
     yValInner <- rfModIn$test$predicted
 
     # Variable importance rank
-    returnIn$vi <- rank(-rfModIn$importance)
-    names(returnIn$vi) <- rownames(rfModIn$importance)
+    returnIn$virank <- rank(-rfModIn$importance)
+    names(returnIn$virank) <- rownames(rfModIn$importance)
     #Importance:a matrix with nclass + 2 (for classification) or two (for regression) columns.
     #For classification, the first nclass columns are the class-specific measures computed as mean descrease in accuracy.
     #The nclass + 1st column is the mean descrease in accuracy over all classes.
@@ -67,7 +67,7 @@ rfInner <- function(xTrain,
     # Extract predictions
     yValInner <- predict(rfModIn, data = xVal)$predictions
     # Variable importance rank
-    returnIn$vi <- rank(-rfModIn$variable.importance)
+    returnIn$virank <- rank(-rfModIn$variable.importance)
   } else {
     stop('other RF methods not yet implemented')
   }

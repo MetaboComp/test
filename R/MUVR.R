@@ -459,10 +459,10 @@ MUVR <- function(X,
           }
 
           # Store VIs
-          VIRankInner[match(names(inMod$vi),
+          VIRankInner[match(names(inMod$virank),
                          rownames(VIRankInner)),
                    count,
-                   j] <- inMod$vi
+                   j] <- inMod$virank
         }   ###where each Inner ends
 
         # Average inner VIP ranks before variable elimination - Tweak for `keeps`

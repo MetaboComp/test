@@ -14,7 +14,7 @@
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `nComp` Optimised number of components within range (1:comp)
-#' @return `vi` variable importance rankings
+#' @return `virank` variable importance rankings
 #'
 #'
 plsInner=function(xTrain,
@@ -133,7 +133,7 @@ plsInner=function(xTrain,
       }
     }
 
-    returnIn$vi=rank(-MUVR::vip(plsModIn)[,nComp])   ##rank each component's variable of importance
+    returnIn$virank=rank(-MUVR::vip(plsModIn)[,nComp])   ##rank each component's variable of importance
 
 ###when comp is 0
   } else {
@@ -142,7 +142,7 @@ plsInner=function(xTrain,
     if (fitness=='AUROC') returnIn$auc=0
     if (fitness=='BER') returnIn$ber=1
     if (fitness=='RMSEP') returnIn$rmsep=1E10
-    returnIn$vi=rep(1,ncol(xTrain))
+    returnIn$virank=rep(1,ncol(xTrain))
   }
 
   returnIn$nComp=nComp

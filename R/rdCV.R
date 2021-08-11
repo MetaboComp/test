@@ -350,14 +350,14 @@ rdCV=function(X,
           }
 
           # Store VIRanks
-          VIRankInner[match(names(inMod$vip),
-                         rownames(VIRankInner)),j]=inMod$vip
+          VIRankInner[match(names(inMod$virank),
+                         rownames(VIRankInner)),j]=inMod$virank
           ## match function in R with vectors
           ##v1 <- c(2,5,6,3,7)
           ##v2 <- c(15,16,7,3,2,7,5)
           ##match(v1,v2)
           ## 5 7 NA 4 3
-          ##Here VIRankInner rearranged as the name sequence as the inMod$vip
+          ##Here VIRankInner rearranged as the name sequence as the inMod$virank
 
       }    ###col ncol(X),
       if (fitness=='AUROC') {
