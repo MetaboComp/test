@@ -162,12 +162,12 @@ rdCV=function(X,
   nCompRep=missRep=numeric(nRep)    ##length is nRep
   names(nCompRep)=names(missRep)=paste(rep('rep',nRep),1:nRep,sep='')
 
-  VIPRep=matrix(data=nVar0,     ###nVar0 is ncol(X) it is the each value in the matrix
+  VIRankRep=matrix(data=nVar0,     ###nVar0 is ncol(X) it is the each value in the matrix
                 nrow=nVar0,    ##row is X variable
                 ncol=nRep)     ##column is repetition
 
-  rownames(VIPRep)=colnames(X)
-  colnames(VIPRep)=paste(rep('rep',nRep),1:nRep,sep='')
+  rownames(VIRankRep)=colnames(X)
+  colnames(VIRankRep)=paste(rep('rep',nRep),1:nRep,sep='')
 
   VAL=matrix(nrow=nOuter,
              ncol=nRep)
@@ -228,11 +228,11 @@ rdCV=function(X,
     nCompOut=numeric(nOuter)
     names(nCompOut)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
 
-    VIPOut=matrix(data=nVar0,   ##ncol(X)
+    VIRankOut=matrix(data=nVar0,   ##ncol(X)
                   nrow=nVar0,   ##row is X variable numbers
                   ncol=nOuter)  ##column is nOuter names
-    rownames(VIPOut)=colnames(X)
-    colnames(VIPOut)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
+    rownames(VIRankOut)=colnames(X)
+    colnames(VIRankOut)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
     VALRep=matrix(nrow=nOuter,
                   ncol=1)
 
@@ -264,11 +264,11 @@ rdCV=function(X,
       colnames(rmsepIn)=colnames(PRESSIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=nVar
       ##nVar is ncol(X)
 
-      VIPInner=matrix(data=nVar0,
+      VIRankInner=matrix(data=nVar0,
                       nrow=nVar0,
                       ncol=nInner)
-      rownames(VIPInner)=colnames(X)
-      colnames(VIPInner)=paste(rep('inSeg',nInner),1:nInner,sep='')
+      rownames(VIRankInner)=colnames(X)
+      colnames(VIRankInner)=paste(rep('inSeg',nInner),1:nInner,sep='')
       ## Perform steps with successively fewer variables
         if (method=='PLS') comp=ifelse(nVar<methParam$compMax,nVar,methParam$compMax)
         if (method=='RF') {
@@ -349,15 +349,15 @@ rdCV=function(X,
             PRESSIn[j,1]=(inMod$rmsep^2)*length(yVal)
           }
 
-          # Store VIPs
-          VIPInner[match(names(inMod$vip),
-                         rownames(VIPInner)),j]=inMod$vip
+          # Store VIRanks
+          VIRankInner[match(names(inMod$vip),
+                         rownames(VIRankInner)),j]=inMod$vip
           ## match function in R with vectors
           ##v1 <- c(2,5,6,3,7)
           ##v2 <- c(15,16,7,3,2,7,5)
           ##match(v1,v2)
           ## 5 7 NA 4 3
-          ##Here VIPInner rearranged as the name sequence as the inMod$vip
+          ##Here VIRankInner rearranged as the name sequence as the inMod$vip
 
       }    ###col ncol(X),
       if (fitness=='AUROC') {
@@ -382,7 +382,7 @@ rdCV=function(X,
         nCompOut[i]=round(mean(nCompIn[,1]))
       }
 
-      VIPOut[,i]=apply(VIPInner,1,mean)
+      VIRankOut[,i]=apply(VIRankInner,1,mean)
 
       # Build outer model for min and max nComp and predict YTEST
       xIn=X[!testIndex,] # Perform Validation on all samples except holdout set
@@ -424,7 +424,7 @@ rdCV=function(X,
 
     # Per repetition: Average outer loop variables, nComp and VIP ranks
     parReturn=list(yPred=yPredR)
-    parReturn$VIPRep=apply(VIPOut,1,mean)
+    parReturn$VIRankRep=apply(VIRankOut,1,mean)
     if (method=='PLS'){
       parReturn$nCompRep=round(mean(nCompOut))
     }
@@ -441,7 +441,7 @@ rdCV=function(X,
     if (DA) yPred[,,r]=reps[[r]]$yPred ###reps is a list
     else yPred[,r]=reps[[r]]$yPred
 
-    VIPRep[,r]=reps[[r]]$VIPRep
+    VIRankRep[,r]=reps[[r]]$VIRankRep
 
     if (method=='PLS') nCompRep[r]=reps[[r]]$nCompRep
     VAL[,r]=reps[[r]]$VAL
@@ -480,9 +480,9 @@ rdCV=function(X,
                         yPredAve)$auc
   }
   # Average VIP ranks over repetitions
-  VIP=apply(VIPRep,1,mean)
-  modelReturn$VIP=VIP
-  modelReturn$VIPPerRep=VIPRep
+  VIRank=apply(VIRankRep,1,mean)
+  modelReturn$VIRank=VIRank
+  modelReturn$VIRankPerRep=VIRankRep
 
   # Average nVar over repetitions
   if (method=='PLS') {

@@ -241,7 +241,7 @@ MUVR <- function(X,
                                                       ncol = nOuter,
                                                       dimnames = list(paste('repetition', 1:nRep, sep = ''),
                                                                       paste('segment', 1:nOuter, sep='')))
-  VIPRepMin <- VIPRepMid <- VIPRepMax <- matrix(data = nVar0,
+  VIRankRepMin <- VIRankRepMid <- VIRankRepMax <- matrix(data = nVar0,
                                                 nrow = nVar0,
                                                 ncol = nRep,
                                                 dimnames = list(colnames(X),
@@ -306,7 +306,7 @@ MUVR <- function(X,
     nCompOutMax <- numeric(nOuter)
     names(nCompOutMax) <- paste(rep('outSeg', nOuter), 1:nOuter, sep = '')
     varOutMin <- varOutMid <- varOutMax <- nCompOutMin <- nCompOutMid <- nCompOutMax
-    VIPOutMin <- VIPOutMid <- VIPOutMax <- matrix(data = nVar0,
+    VIRankOutMin <- VIRankOutMid <- VIRankOutMax <- matrix(data = nVar0,
                                                   nrow = nVar0,
                                                   ncol = nOuter,
                                                   dimnames = list(colnames(X),
@@ -339,8 +339,8 @@ MUVR <- function(X,
                                                                           ncol = cnt,
                                                                           dimnames = list(paste(rep('inSeg', nInner), 1:nInner, sep = ''),
                                                                                           var))
-      # Allocate VIP variable for the inner data
-      VIPInner <- array(data = nVar0,
+      # Allocate VIRank variable for the inner data
+      VIRankInner <- array(data = nVar0,
                         dim = c(nVar0, cnt, nInner),
                         dimnames = list(colnames(X),
                                         var,
@@ -459,21 +459,21 @@ MUVR <- function(X,
           }
 
           # Store VIs
-          VIPInner[match(names(inMod$vi),
-                         rownames(VIPInner)),
+          VIRankInner[match(names(inMod$vi),
+                         rownames(VIRankInner)),
                    count,
                    j] <- inMod$vi
         }   ###where each Inner ends
 
         # Average inner VIP ranks before variable elimination - Tweak for `keeps`
-        VIPInAve <- apply(VIPInner[, count, ],
+        VIRankInAve <- apply(VIRankInner[, count, ],
                           1,
                           mean)
-        ### This is the average of VIP of Inner segmnet for each x variable and each cnt
+        ### This is the average of VIRank of Inner segmnet for each x variable and each cnt
 
-        # VIPInAve[keeps] <- 0
+        # VIRankInAve[keeps] <- 0
         if (count < cnt) {
-          incVar <- names(VIPInAve[order(VIPInAve)])[1:var[count + 1]] # Extract the names of the variables kept for the next iteration
+          incVar <- names(VIRankInAve[order(VIRankInAve)])[1:var[count + 1]] # Extract the names of the variables kept for the next iteration
         }
       }   ###where each cnt ends
 
@@ -519,9 +519,9 @@ MUVR <- function(X,
       }
 
       # Average VIP ranks
-      VIPOutMin[, i] <- apply(VIPInner[, minIndex,], 1, mean)
-      VIPOutMid[, i] <- apply(VIPInner[, midIndex,], 1, mean)
-      VIPOutMax[, i] <- apply(VIPInner[, maxIndex,], 1, mean)
+      VIRankOutMin[, i] <- apply(VIRankInner[, minIndex,], 1, mean)
+      VIRankOutMid[, i] <- apply(VIRankInner[, midIndex,], 1, mean)
+      VIRankOutMax[, i] <- apply(VIRankInner[, maxIndex,], 1, mean)
 
       # Build outer model for min, mid and max and predict YTEST
       # Extract all inner data
@@ -531,9 +531,9 @@ MUVR <- function(X,
 #######################################################################################
 #####incVarMin is different for each i
       # Determine consensus choice of included variables for min mid and max
-      incVarMin <- rownames(VIPOutMin)[rank(VIPOutMin[,i]) <= varOutMin[i]]
-      incVarMid <- rownames(VIPOutMid)[rank(VIPOutMid[,i]) <= varOutMid[i]]
-      incVarMax <- rownames(VIPOutMax)[rank(VIPOutMax[,i]) <= varOutMax[i]]
+      incVarMin <- rownames(VIRankOutMin)[rank(VIRankOutMin[,i]) <= varOutMin[i]]
+      incVarMid <- rownames(VIRankOutMid)[rank(VIRankOutMid[,i]) <= varOutMid[i]]
+      incVarMax <- rownames(VIRankOutMax)[rank(VIRankOutMax[,i]) <= varOutMax[i]]
 
       # Consensus models for PLS
       if (method == 'PLS'){
@@ -675,9 +675,9 @@ MUVR <- function(X,
                       yPredMax = yPredMaxR)
 
     # VI ranks
-    parReturn$VIPRepMin <- rowMeans(VIPOutMin)
-    parReturn$VIPRepMid <- rowMeans(VIPOutMid)
-    parReturn$VIPRepMax <- rowMeans(VIPOutMax)
+    parReturn$VIRankRepMin <- rowMeans(VIRankOutMin)
+    parReturn$VIRankRepMid <- rowMeans(VIRankOutMid)
+    parReturn$VIRankRepMax <- rowMeans(VIRankOutMax)
 
     # PLS components
     if (method == 'PLS'){
@@ -736,9 +736,9 @@ MUVR <- function(X,
     varRepMid[r] <- reps[[r]]$varRepMid
     varRepMax[r] <- reps[[r]]$varRepMax
     # VI Ranks
-    VIPRepMin[, r] <- reps[[r]]$VIPRepMin
-    VIPRepMid[, r] <- reps[[r]]$VIPRepMid
-    VIPRepMax[, r] <- reps[[r]]$VIPRepMax
+    VIRankRepMin[, r] <- reps[[r]]$VIRankRepMin
+    VIRankRepMid[, r] <- reps[[r]]$VIRankRepMid
+    VIRankRepMax[, r] <- reps[[r]]$VIRankRepMax
     # PLS components
     if (method == 'PLS') {
       nCompRepMin[r] <- reps[[r]]$nCompRepMin # Average per repetition
@@ -816,14 +816,14 @@ MUVR <- function(X,
   }
 
   # Average VIP ranks over repetitions
-  VIP <- cbind(rowMeans(VIPRepMin),
-               rowMeans(VIPRepMid),
-               rowMeans(VIPRepMax))
-  colnames(VIP) <- c('min','mid','max')
-  modelReturn$VIP <- VIP
-  modelReturn$VIPPerRep <- list(minModel = VIPRepMin,
-                                midModel = VIPRepMid,
-                                maxModel = VIPRepMax)
+  VIRank <- cbind(rowMeans(VIRankRepMin),
+               rowMeans(VIRankRepMid),
+               rowMeans(VIRankRepMax))
+  colnames(VIRank) <- c('min','mid','max')
+  modelReturn$VIRank <- VIRank
+  modelReturn$VIRankPerRep <- list(minModel = VIRankRepMin,
+                                midModel = VIRankRepMid,
+                                maxModel = VIRankRepMax)
 
   # Recalculate fitness averaged over all the repetitions
   fitRankAll <- apply(VAL, 2, mean)
@@ -871,9 +871,9 @@ MUVR <- function(X,
   modelReturn$inData <- InData
 
   ## Build overall "Fit-Predict" models for calculating R2 and visualisations
-  incVarMin <- names(VIP[rank(VIP[,1]) <= round(nVar[1]),1])
-  incVarMid <- names(VIP[rank(VIP[,2]) <= round(nVar[2]),2])
-  incVarMax <- names(VIP[rank(VIP[,3]) <= round(nVar[3]),3])
+  incVarMin <- names(VIRank[rank(VIRank[,1]) <= round(nVar[1]),1])
+  incVarMid <- names(VIRank[rank(VIRank[,2]) <= round(nVar[2]),2])
+  incVarMax <- names(VIRank[rank(VIRank[,3]) <= round(nVar[3]),3])
   if (method == 'PLS') {
     ######################
     # PLS Min fit-predict
