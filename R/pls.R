@@ -10,7 +10,7 @@
 #' @param near.zero.var
 #' @param scale
 #'
-#' @return pls object
+#' @return a plsMUVR object
 #'
 pls <- function(x,
                 y,

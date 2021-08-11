@@ -10,7 +10,7 @@
 #' @param near.zero.var
 #' @param scale
 #'
-#' @return plsda object
+#' @return a plsdaMUVR object
 #'
 plsda <- function(x,
                   y,
