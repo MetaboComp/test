@@ -7,7 +7,7 @@
 #' @param nOuter Number of outer CV loop segments.
 #' @param nInner Number of inner CV loop segments.
 #' @param DA Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).
-#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)
+#' @param fitness Fitness function for model tuning (choose either 'AUROC' or 'MISS'or 'BER' for classification; or 'RMSEP' (default) for regression.)
 #' @param method Multivariate method. Supports 'PLS' and 'RF' (default)
 #' @param methParam List with parameter settings for specified MV method (defaults to ???)
 #' @param ML Logical for multilevel analysis (defaults to FALSE)
@@ -16,20 +16,43 @@
 #'
 #' @return An object containing stuff...
 #' @export
-rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','RMSEP'),method=c('PLS','RF'),methParam,ML=FALSE,modReturn=FALSE,logg=FALSE){
+#'
+rdCV=function(X,
+              Y,
+              ID,
+              nRep=5,
+              nOuter=6,
+              nInner,
+              DA=FALSE,
+              fitness=c('AUROC','MISS','RMSEP'),
+              method=c('PLS','RF'),
+              methParam,
+              ML=FALSE,
+              modReturn=FALSE,
+              logg=FALSE){
+
   ### Code adapted from MVWrap - Brokenness and oddities are most likely due to this
   library(pROC)
   # Initialise modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
   start.time=proc.time()[3]
+
   # Check indata
   if (is.null(dim(X))){
     cat('\nError: Wrong format of X matrix.\n')
     return(NULL)
   }
-  nSamp=nrow(X)
-  nVar=nVar0=ncol(X)
+  if (!is.null(dim(Y))) {                             ####Y must be only one variable
+    cat('\nY is not a vector: Return NULL')
+    return(NULL)
+  }
+
+
+
+  nSamp=nrow(X)            ###nSamp number of observation number in X
+  nVar=nVar0=ncol(X)      ####nVar=nVar0 number of variables in X
+
   if (missing(ID)) {
     cat('\nMissing ID -> Assume all unique (i.e. sample independence)')
     ID=1:nSamp
@@ -39,11 +62,22 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
   if (method=='RF') library(randomForest) else library(mixOmics)
   if (missing(methParam)) {
     if (method=='PLS') {
-      methParam=list(compMax=ifelse(nVar<5,nVar,5),mode='regression')
+      methParam=list(compMax=ifelse(nVar<5,nVar,5),mode='regression')  ##if the variable number is less than 5 then the component number cannot be 5
     } else {
       methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=150)
     }
   }
+
+##############################################################################################
+#(1)When ML, what if Y is not missing
+#
+#(2)add BER in the fittnesss of rdCV when DA=T
+#
+#
+#
+###############################################################################################33333
+
+
   if (ML) {
     X=rbind(X,-X)
     Y=rep(c(-1,1),each=nSamp)
@@ -53,10 +87,8 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
     fitness='MISS'
     cat('\nMultilevel -> Regression on (-1,1) & fitness=MISS')
   }
-  if (!is.null(dim(Y))) {
-    cat('\nY is not a vector: Return NULL')
-    return(NULL)
-  }
+
+
   if (is.character(Y)) Y=factor(Y)
   if (is.factor(Y)) {
     cat('\nY is factor -> Classification (',length(unique(Y)),' classes)',sep='')
@@ -68,7 +100,7 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
   }
   if (missing(fitness)) {
     if (DA) {
-      if (length(unique(Y))>2) {
+      if (length(unique(Y))>2) {    ##when y class>2
         fitness='MISS'
         cat('\nMissing fitness -> MISS')
       } else {
@@ -80,92 +112,161 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
       cat('\nMissing fitness -> RMSEP')
     }
   }
+
   if (nrow(X)!=length(Y)) {
     cat('\nMust have same nSamp in X and Y: Return NULL')
     return(NULL)
   }
   ## Store indata in list for later model return
-  InData=list(X=X,Y=Y,ID=ID,nRep=nRep,nOuter=nOuter,nInner=nInner,DA=DA,fitness=fitness,method=method,methParam=methParam,ML=ML)
+  InData=list(X=X,
+              Y=Y,
+              ID=ID,
+              nRep=nRep,
+              nOuter=nOuter,
+              nInner=nInner,
+              DA=DA,
+              fitness=fitness,
+              method=method,
+              methParam=methParam,
+              ML=ML)
   ## Sort sampling based in subjects and not index
-  unik=!duplicated(ID)  # boolean of unique IDs
-  unikID=ID[unik]  
+  unik=!duplicated(ID)  # boolean of unique IDs: the first unique ID is true
+  unikID=ID[unik]       ##all the ID that is unik. It is a logical vector
+
   if (DA) {
     unikY=Y[unik]  # Counterintuitive, but needed for groupings by Ynames
-    Ynames=sort(unique(Y))  # Find groups
+                      ##those Y of the people who have unik ID
+    Ynames=sort(unique(Y))  # Find groups and order them in sequence, could be y group names
     groups=length(Ynames) # Number of groups
     groupID=list()  # Allocate list for indices of groups
-    for (g in 1:groups) { 
+
+    for (g in 1:groups) {
       groupID[[g]]=unikID[unikY==Ynames[g]]  # Find indices per group
-    }
-    yPred=array(dim=c(length(Y),length(levels(Y)),nRep))
+                                            ##find the ID in the people that has unik ID and see if this Y value is in each group
+    }  ##group ID is a list of length of Y groups, each group contains the unikId of those people whose Y belongs to this group
+    yPred=array(dim=c(length(Y),         ###row is observations
+                      length(levels(Y)), ##column is groups
+                      nRep))             ##list is repetitions
     colnames(yPred)=levels(Y)
     dimnames(yPred)[[3]]=paste('Rep',1:nRep,sep='')
-    yPredR=matrix(nrow=length(Y),ncol=length(levels(Y)))
+    yPredR=matrix(nrow=length(Y),
+                  ncol=length(levels(Y)))
     colnames(yPredR)=levels(Y)
-  } else {
-    yPred=matrix(nrow=length(Y),ncol=nRep)
+  } else {                                ##if not DA
+    yPred=matrix(nrow=length(Y),
+                 ncol=nRep)
     colnames(yPred)=paste('Rep',1:nRep,sep='')
     yPredR=numeric(length(Y))
   }
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
-  nCompRep=missRep=numeric(nRep)
+  nCompRep=missRep=numeric(nRep)    ##length is nRep
   names(nCompRep)=names(missRep)=paste(rep('rep',nRep),1:nRep,sep='')
-  VIPRep=matrix(data=nVar0,nrow=nVar0,ncol=nRep)
+
+  VIPRep=matrix(data=nVar0,     ###nVar0 is ncol(X) it is the each value in the matrix
+                nrow=nVar0,    ##row is X variable
+                ncol=nRep)     ##column is repetition
+
   rownames(VIPRep)=colnames(X)
   colnames(VIPRep)=paste(rep('rep',nRep),1:nRep,sep='')
-  VAL=matrix(nrow=nOuter,ncol=nRep)
+
+  VAL=matrix(nrow=nOuter,
+             ncol=nRep)
   rownames(VAL)=paste('outSeg',1:nOuter,paste='')
   colnames(VAL)=paste('rep',1:nRep,paste='')
+
   ## Choose package/core algorithm according to chosen method
-  packs=c(ifelse(method=='PLS','mixOmics','randomForest'),'pROC')
-  exports=c(ifelse(method=='PLS','plsInner','rfInner'),'vectSamp')
+  packs=c(ifelse(method=='PLS',
+                 'mixOmics',
+                 'randomForest'),
+          'pROC')
+  exports=c(ifelse(method=='PLS',
+                   'plsInner',
+                   'rfInner'),
+            'vectSamp')
+
   ## Start repetitions
-  # reps=list()
-  # for (r in 1:nRep){
-  reps=foreach(r=1:nRep, .packages=packs, .export=exports) %dopar% {
+  #reps=list()
+  #for (r in 1:nRep){    ##This is used when there is repetition
+  reps=foreach(r=1:nRep,
+               .packages=packs,
+               .export=exports) %dopar% {
     # r=1
     # r=r+1
-    if (logg) sink('log.txt',append=TRUE)
-    if (modReturn) outMod=list()
+    if (logg) sink('log.txt',append=TRUE)   ###Logical for whether to sink model progressions to `log.txt`
+
+    if (modReturn) outMod=list()  ##Logical for returning outer segment models (defaults to FALSE)
+
     cat('\n','   Repetition ',r,' of ',nRep,':',sep='')
+
     if (DA) {
       groupTest=list()  ## Allocate list for samples within group
-      for (gT in 1:groups) { 
-        groupTest[[gT]]=vectSamp(groupID[[gT]],n=nOuter)  # Draw random samples within group
-      }
+
+      ###To assign the people in Y group1 to
+      for (gT in 1:groups) {
+        groupTest[[gT]]=vectSamp(groupID[[gT]],n=nOuter)  # Draw random samples within each group
+      }   ##each groupTest[[gT]] is a list of list , each group[[gT]] contains nOuter list
+
       allTest=groupTest[[1]] # Add 1st groups to 'Master' sample of all groups
+
       for (gT in 2:groups) {  # Add subsequent groups
         allTest=allTest[order(sapply(allTest,length))]
+
+        ###order: the first lowest number is in position
+        ## this is to reorder the items in each list
+
         for (aT in 1:nOuter) {
           allTest[[aT]]=sort(c(allTest[[aT]],groupTest[[gT]][[aT]]))
+          ###grouptest is a list of list the small list is nOuter items in each Y group,
+          ###the big list is Y groups
         }
       }
-    } else {
+      ####After this step, there is a list of nOter groups
+
+    } else {                              ###when it is not DA
       allTest=vectSamp(unikID,n=nOuter)
     }
     nCompOut=numeric(nOuter)
     names(nCompOut)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
-    VIPOut=matrix(data=nVar0,nrow=nVar0,ncol=nOuter)
+
+    VIPOut=matrix(data=nVar0,   ##ncol(X)
+                  nrow=nVar0,   ##row is X variable numbers
+                  ncol=nOuter)  ##column is nOuter names
     rownames(VIPOut)=colnames(X)
     colnames(VIPOut)=paste(rep('outSeg',nOuter),1:nOuter,sep='')
-    VALRep=matrix(nrow=nOuter,ncol=1)
+    VALRep=matrix(nrow=nOuter,
+                  ncol=1)
+
+
     ## Perform outer loop segments -> one "majority vote" MV model per segment
-    for (i in 1:nOuter) {   
+    ###ONE "MAJORITY VOTE" MODEL PER SEGMENT
+
+    for (i in 1:nOuter) {
       # i=1
       # i=i+1
+      ###Choose the number ith nOuter as test set in turn
       cat('\n Segment ',i,':',sep='') # Counter
       ## Draw out test set
       testID=allTest[[i]] # Draw out segment = holdout set BASED ON UNIQUE ID
+      ###the unique ID is used, there are nOuter outer segments for all unique ID
       testIndex=ID%in%testID # Logical for samples included
-      xTest=X[testIndex,]
+
+      xTest=X[testIndex,]   ## chosse the first Outer segment as tes set
       yTest=Y[testIndex]
+
       inID=unikID[!unikID%in%testID]  # IDs not in test set
+
       if (DA) inY=unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
+
       ## Allocate variables for later use
+      ## for inner segment
       missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=1)
       rownames(rmsepIn)=rownames(PRESSIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
       colnames(rmsepIn)=colnames(PRESSIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=nVar
-      VIPInner=matrix(data=nVar0,nrow=nVar0,ncol=nInner)
+      ##nVar is ncol(X)
+
+      VIPInner=matrix(data=nVar0,
+                      nrow=nVar0,
+                      ncol=nInner)
       rownames(VIPInner)=colnames(X)
       colnames(VIPInner)=paste(rep('inSeg',nInner),1:nInner,sep='')
       ## Perform steps with successively fewer variables
@@ -178,13 +279,15 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
         }
         if (DA) {
           groupIDVal=list()
-          for (g in 1:groups) { 
+          for (g in 1:groups) {
             groupIDVal[[g]]=inID[inY==Ynames[g]]  # Find indices per group
           }
+          ## a list: each item is a Y group, shows the ID of those who is in this Y group
           groupVal=list()  ## Allocate list for samples within group
-          for (gV in 1:groups) { 
+          for (gV in 1:groups) {
             groupVal[[gV]]=vectSamp(groupIDVal[[gV]],n=nInner)  # Draw random samples within group
           }
+
           allVal=groupVal[[1]] # Add 1st groups to 'Master' sample of all groups
           for (gV in 2:groups) {  # Add subsequent groups
             allVal=allVal[order(sapply(allVal,length))]
@@ -195,16 +298,21 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
         } else {
           allVal=vectSamp(inID,n=nInner)
         }
+
         ## Inner CV loop
         for (j in 1:nInner) {
-          # j=1 
+          # j=1
           # j=j+1
           cat('.') # Counter
+
           valID=allVal[[j]] # Draw out segment = validation set
-          valIndex=ID%in%valID
-          xVal=X[valIndex,]
-          yVal=Y[valIndex]
-          trainID=inID[!inID%in%valID]
+          ##in the jth nInner in inner segments each allVal[[i]] has all Y group data
+          valIndex=ID%in%valID     ##also included those ID that are not unik
+
+          xVal=X[valIndex,]   ##ID
+          yVal=Y[valIndex]    ##ID
+
+          trainID=inID[!inID%in%valID]   ##the id is not in the validation Id, which is training ID
           trainIndex=ID%in%trainID # Define Training segment
           xTrain=X[trainIndex,]
           yTrain=Y[trainIndex]
@@ -212,115 +320,170 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
           # trainIndex|valIndex|testIndex
           ## Make inner model
           if (method=='PLS') {
-            inMod=plsInner(xTrain,yTrain,xVal,yVal,DA,fitness,comp,methParam$mode)
+            inMod=plsInner(xTrain,
+                           yTrain,
+                           xVal,
+                           yVal,
+                           DA,
+                           fitness,
+                           comp,
+                           methParam$mode)
             nCompIn[j,1]=inMod$nComp
           } else {
-            inMod=rfInner(xTrain,yTrain,xVal,yVal,DA,fitness,ntree=methParam$ntreeIn,mtry=mtryIn)
+            inMod=rfInner(xTrain,
+                          yTrain,
+                          xVal,
+                          yVal,
+                          DA,
+                          fitness,
+                          ntree=methParam$ntreeIn,
+                          mtry=mtryIn)
           }
           # Store fitness metric
           if (fitness=='MISS') {
-            missIn[j,1]=inMod$miss
+            missIn[j,1]=inMod$miss   ###matrix(nrow=nInner,ncol=1)
           } else if (fitness=='AUROC') {
-            aucIn[j,1]=inMod$auc
+            aucIn[j,1]=inMod$auc     ###row is X variable numbers
           } else {
             rmsepIn[j,1]=inMod$rmsep
             PRESSIn[j,1]=(inMod$rmsep^2)*length(yVal)
           }
+
           # Store VIPs
-          VIPInner[match(names(inMod$vip),rownames(VIPInner)),j]=inMod$vip
-      }
+          VIPInner[match(names(inMod$vip),
+                         rownames(VIPInner)),j]=inMod$vip
+          ## match function in R with vectors
+          ##v1 <- c(2,5,6,3,7)
+          ##v2 <- c(15,16,7,3,2,7,5)
+          ##match(v1,v2)
+          ## 5 7 NA 4 3
+          ##Here VIPInner rearranged as the name sequence as the inMod$vip
+
+      }    ###col ncol(X),
       if (fitness=='AUROC') {
-        fitRank=-aucIn
+        fitRank=-aucIn       ###-aucin smaller the better
         fitRank[]=rank(fitRank)
         fitRank=colMeans(fitRank)
-        VALRep[i,]=colMeans(aucIn)
+        VALRep[i,]=colMeans(aucIn)   #colmeans of aucIn
       } else if (fitness=='MISS') {
         fitRank=missIn
         fitRank[]=rank(fitRank)
         fitRank=colMeans(fitRank)
-        VALRep[i,]=colSums(missIn)
+        VALRep[i,]=colSums(missIn)   ##colsum of miss in
       }else {
         fitRank=rmsepIn
         fitRank[]=rank(fitRank)
         fitRank=colMeans(fitRank)
         VALRep[i,]=sqrt(colSums(PRESSIn)/sum(!testIndex))
       }
-      # Per outer segment: Average inner loop variables, nComp and VIP ranks 
+
+      # Per outer segment: Average inner loop variables, nComp and VIP ranks
       if (method=='PLS') {
         nCompOut[i]=round(mean(nCompIn[,1]))
       }
+
       VIPOut[,i]=apply(VIPInner,1,mean)
+
       # Build outer model for min and max nComp and predict YTEST
       xIn=X[!testIndex,] # Perform Validation on all samples except holdout set
       yIn=Y[!testIndex]
+
+
       if (method=='PLS'){
-        if (DA) plsOut=plsda(xIn,yIn,ncomp=nCompOut[i]) else 
-          plsOut=pls(xIn,yIn,ncomp=nCompOut[i])
-        if (length(plsOut$nzv$Position)>0) removeVar=rownames(plsOut$nzv$Metrics) else removeVar=NA
-        incVar=colnames(X)[!colnames(X)%in%removeVar]
+        if (DA) plsOut=plsda(xIn,
+                             yIn,
+                             ncomp=nCompOut[i])
+        else plsOut=pls(xIn,
+                        yIn,
+                        ncomp=nCompOut[i])
+        if (length(plsOut$nzv$Position)>0) removeVar=rownames(plsOut$nzv$Metrics)
+        else removeVar=NA
+
+        incVar=colnames(X)[!colnames(X)%in%removeVar] ##the X variables that does not have nzv
+
         xTest=subset(xTest,select=incVar)
-        yPredR[testIndex]=predict(plsOut,newdata=xTest)$predict[,,nCompOut[i]]  # 
+
+        yPredR[testIndex]=plspredict(plsOut,
+                                  newdata=xTest)$predict[,,nCompOut[i]]  #
         # Prediction of newdata
         if (modReturn) outMod[[i]]=plsOut
-      } else {
-        rfOut=randomForest(xIn,yIn,xTest,yTest)
+      }
+      else {
+        rfOut=randomForest(xIn,
+                           yIn,
+                           xTest,
+                           yTest)
         if (DA) {
-          yPredR[testIndex,]=rfOut$test$votes
+          yPredR[testIndex,]=rfOut$test$votes              ####DA output is vote
         } else {
-          yPredR[testIndex]=rfOut$test$predicted
+          yPredR[testIndex]=rfOut$test$predicted           ##not DA out put is predicted
         }
         if (modReturn) outMod[[i]]=rfOut
       }
-    }
-    # Per repetition: Average outer loop variables, nComp and VIP ranks 
+    }            ###where outer ends
+
+    # Per repetition: Average outer loop variables, nComp and VIP ranks
     parReturn=list(yPred=yPredR)
     parReturn$VIPRep=apply(VIPOut,1,mean)
     if (method=='PLS'){
       parReturn$nCompRep=round(mean(nCompOut))
     }
     parReturn$VAL=VALRep
-    if (modReturn) parReturn$outModel=outMod
+
+    if (modReturn) parReturn$outModel=outMod             ##this is the outModel that returns
+
     if (logg) sink()
     return(parReturn)
     # reps[[r]]=parReturn
   }
   if (modReturn) outMods=list()
   for (r in 1:nRep) {
-    if (DA) yPred[,,r]=reps[[r]]$yPred else
-      yPred[,r]=reps[[r]]$yPred
+    if (DA) yPred[,,r]=reps[[r]]$yPred ###reps is a list
+    else yPred[,r]=reps[[r]]$yPred
+
     VIPRep[,r]=reps[[r]]$VIPRep
+
     if (method=='PLS') nCompRep[r]=reps[[r]]$nCompRep
     VAL[,r]=reps[[r]]$VAL
     if (modReturn) outMods=c(outMods,reps[[r]]$outModel)
   }
+
   # Average predictions
   if (DA) {
     yPredAve=apply(yPred,c(1,2),mean)
   } else {
     yPredAve=apply(yPred,1,mean)
   }
+
   modelReturn$yPred=yPredAve
+
   if (DA) {
     auc=numeric(length(levels(Y)))
     names(auc)=levels(Y)
     for (cl in 1:length(levels(Y))) {
-      auc[cl]=roc(Y==(levels(Y)[cl]),yPredAve[,cl])$auc
+      auc[cl]=roc(Y==(levels(Y)[cl]),
+                  yPredAve[,cl])$auc
     }
     # Classify predictions
-    yClass=as.factor(apply(yPredAve,1,function(x) levels(Y)[which.max(x)]))
+    yClass=as.factor(apply(yPredAve,
+                           1,
+                           function(x) levels(Y)[which.max(x)]))
     miss=sum(yClass!=Y)
     modelReturn$yClass=yClass
     modelReturn$miss=miss
     modelReturn$auc=auc
+
   } else if (ML) {
     modelReturn$yClass=ifelse(yPredAve>=0,1,-1)
     modelReturn$miss=sum(modelReturn$yClass!=Y)
-    modelReturn$auc=roc(Y,yPredAve)$auc
+    modelReturn$auc=roc(Y,
+                        yPredAve)$auc
   }
   # Average VIP ranks over repetitions
   VIP=apply(VIPRep,1,mean)
   modelReturn$VIP=VIP
   modelReturn$VIPPerRep=VIPRep
+
   # Average nVar over repetitions
   if (method=='PLS') {
     # Average nComp over repetitions
@@ -333,24 +496,31 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
   modelReturn$yPredPerRep=yPred
   if (method=='PLS') modelReturn$nCompPerRep=nCompRep
   modelReturn$inData=InData
+
+
   ## Build overall "Fit" method for calculating R2 and visualisations
   if (method=='PLS'){
-    if (DA) plsFit=plsda(X,Y,ncomp=round(nComp)) else 
+    if (DA) plsFit=plsda(X,Y,ncomp=round(nComp)) else
       plsFit=pls(X,Y,ncomp=round(nComp))
+
     if (length(plsFit$nzv$Position)>0) removeVar=rownames(plsFit$nzv$Metrics) else removeVar=NA
     incVar=colnames(X)[!colnames(X)%in%removeVar]
-    yFit=predict(plsFit,newdata=subset(X,select=incVar))$predict[,,round(nComp)]  # 
-    modelReturn$Fit=list(yFit=yFit,plsFit=plsFit)
+    yFit=plspredict(plsFit,
+                 newdata=subset(X,select=incVar))$predict[,,round(nComp)]  #
+    modelReturn$Fit=list(yFit=yFit,     ##yFit is the predicted one when removed nzc
+                         plsFit=plsFit) ##plsFir is a list of pls result
     # Prediction of newdata
   } else {
-    rfFit=randomForest(X,Y)
+    rfFit=randomForest(X,Y)          ###ranger needs to be indide
     if (DA) {
       yFit=rfFit$votes
     } else {
       yFit=rfFit$predicted
     }
-    modelReturn$Fit=list(yFit=yFit,rfFit=rfFit)
+    modelReturn$Fit=list(yFit=yFit,     ###the predicted one
+                         rfFit=rfFit)   ###rfFit is the result of randomForest. It is a list
   }
+
   # Calculate fit statistics
   if (!DA) {
     TSS=sum((Y-mean(Y))^2)
@@ -360,10 +530,20 @@ rdCV=function(X,Y,ID,nRep=5,nOuter=6,nInner,DA=FALSE,fitness=c('AUROC','MISS','R
     Q2=1-(PRESS/TSS)
     modelReturn$fitMetric=data.frame(R2=R2,Q2=Q2)
   }
+
+
   # Stop timer
   end.time=proc.time()[3]
+
   modelReturn$calcMins=(end.time-start.time)/60
+
   cat('\n Elapsed time',(end.time-start.time)/60,'mins \n')
-  class(modelReturn)=c('rdCVObject',method,ifelse(DA,'Classification',ifelse(ML,'Multilevel','Regression')))
+
+  class(modelReturn)=c('rdCVObject',
+                       method,
+                       ifelse(DA,'Classification',
+                              ifelse(ML,
+                                     'Multilevel',
+                                     'Regression')))
   return(modelReturn)
 }
