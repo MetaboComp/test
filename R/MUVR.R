@@ -84,7 +84,7 @@ MUVR <- function(X,
 #This requires that X is a data frame of all variables correctly categorized as numeric, factor, character and logical
   # One-hot expansion of factor variables
 
-  if (methParam$oneHot==TRUE) {X<-MUVR::onehotencoding(X)}
+  if (methParam$oneHot==TRUE) {X<-onehotencoding(X)}
 
 
 ###############
@@ -453,7 +453,7 @@ MUVR <- function(X,
             berIn[j, count] <- inMod$ber
           } else if (fitness == 'AUROC') {
             aucIn[j, count] <- inMod$auc
-          } else {
+          } else {                                   ###for Q2
             rmsepIn[j, count] <- inMod$rmsep
             PRESSIn[j, count] <- (inMod$rmsep ^ 2) * length(yVal) # Is this really correct???
           }
@@ -799,10 +799,24 @@ MUVR <- function(X,
     }
     names(miss) <- colnames(yClass) <- c('min', 'mid', 'max')
     rownames(yClass) <- paste(1:nSamp, ID, sep = '_ID')
+##########################################################################################################################################################################
+####For ber predicted
+    ber<-numeric(3)
+    yClass <- data.frame(Y)
+    for (mo in 1:3) { # mo for model
+      berPred <- factor(apply(yPred[[mo]], 1, function(x) levels(Y)[which.max(x)]), levels = levels(Y))
+      ber[mo] <- getBER(actual=Y,predicted=berPred)
+      yClass[, mo] <- berPred
+    }
+    names(ber) <- colnames(yClass) <- c('min', 'mid', 'max')
+    rownames(yClass) <- paste(1:nSamp, ID, sep = '_ID')
+
+#############################################################################################################################################################################################333
     # Report
     modelReturn$yClass <- yClass
     modelReturn$miss <- miss
     modelReturn$auc <- auc
+    modelReturn$ber<-ber
   }
 
 
@@ -811,7 +825,10 @@ MUVR <- function(X,
     modelReturn$yClass <- apply(yPred, 2, function(x) ifelse(x > 0, 1, -1))
     modelReturn$miss <- apply(modelReturn$yClass, 2, function(x) sum(x != Y))
     modelReturn$auc <- apply(yPred, 2, function(x) roc(Y, x)$auc)
-    colnames(modelReturn$yClass) <- names(modelReturn$miss) <- names(modelReturn$auc) <- c('min', 'mid', 'max')
+#####################################################################################################################
+    modelReturn$ber<-apply(modelReturn$yClass,2,function(x){getBER(actual=Y,predicted=x)})                           ####newly added
+#####################################################################################################################
+    colnames(modelReturn$yClass) <- names(modelReturn$miss) <- names(modelReturn$auc) <- names(modelReturn$ber)<-c('min', 'mid', 'max')
     rownames(modelReturn$yClass) <- paste(1:nSamp, ID, sep='_ID')
   }
 
