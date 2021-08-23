@@ -50,12 +50,13 @@ permutation_type<-permutation_result$permutation_type
 permutation_output<-permutation_result$permutation_output
 
 if(!missing(permutation_type)){
-    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2")
+    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2"&permutation_type!="BER")
     {stop("permutation_type is not correct")}
     if(permutation_type=="Q2"&!any(class(MUVRclassObject)=='Regression'))
     {stop("Classification and Multilevel must use AUROC or MISS for permutation")}
     if(permutation_type!="Q2"&any(class(MUVRclassObject)=='Regression'))
     {stop("Regression must use Q2 for permutation")}
+
 }
 
 if(!missing(model)){
@@ -79,12 +80,15 @@ if (permutation_type=="Q2") {
   } else if(permutation_type=="MISS") {
     actual=MUVRclassObject$miss[nModel]
     if (missing(xlab)) xlab='Misclassifications'
-  }else{ actual=MUVRclassObject$auc[nModel,]    ###a vector
+  }else if(permutation_type=="AUROC")
+    { actual=MUVRclassObject$auc[nModel,]    ###a vector
       if (missing(xlab)) xlab='AUROC'}
+  else {actual=MUVRclassObject$ber[nModel]
+  if (missing(xlab)) xlab='Balance Error Rate'}
 
 #########################################################################################################################
 ########when it is Q2 or MISS
-if(permutation_type=="Q2"|permutation_type=="MISS"){
+if(permutation_type=="Q2"|permutation_type=="MISS"|permutation_type=="BER"){
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
   if(!missing(side)){if(side!=ifelse(actual<median(permutation_output[,nModel]),
                                      'smaller',
@@ -104,7 +108,7 @@ if(missing(xlim)) {
     else xlim=c(min(h0),1)
   }
 
-  #####for miss classification, it is smaller, for greater it is Q2 or AUC the biggest value is 1
+  #####for miss classification and BER, it is smaller, for greater it is Q2 or AUC the biggest value is 1
 
   if(is.null(main)) main=paste('Permutation analysis of',
                                deparse(substitute(MUVRclassObject)),

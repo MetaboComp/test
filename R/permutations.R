@@ -13,7 +13,7 @@
 #' @param parallel whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)
 #'
 #' @return permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
-#' @return permutation_type: Either AUROC,Q2 or MISS
+#' @return permutation_type: Either AUROC,Q2 or MISS or BER
 #' @export
 #'
 #' @examples
@@ -37,7 +37,7 @@ permutations=function(MUVRclassObject,
                       nOuter,
                       varRatio,
                       parallel,
-                      permutation_type= c('AUROC', 'MISS', 'RMSEP')) {
+                      permutation_type= c('AUROC', 'MISS', 'RMSEP',"BER")) {
 
 ##substitute() is often paired with deparse(). That function takes the result of substitute(), an expression,
 ##and turns it into a character vector.
@@ -74,7 +74,7 @@ permutations=function(MUVRclassObject,
 ###########################################################################################################################3
 #I added a new variabler permutation type to include AUROC
   if(!missing(permutation_type)){
-    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2")
+    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2"&permutation_type!="BER")
     {stop("permutation_type is not correct")}
     if(permutation_type=="Q2"&!any(class(MUVRclassObject)=='Regression'))
     {stop("Classification and Multilevel must use AUROC or MISS for permutation")}
@@ -88,7 +88,7 @@ permutations=function(MUVRclassObject,
 
 
 
-  if(permutation_type=="Q2"|permutation_type=="MISS"){
+  if(permutation_type=="Q2"|permutation_type=="MISS"|permutation_type=="BER"){
   startTime=proc.time()[3]
   permutation_output=matrix(ncol=3,nrow=nPerm)   ##row is permutation number col is 3 (min,mid,max)
   colnames(permutation_output)=c('Min','Mid','Max')
@@ -120,8 +120,8 @@ permutations=function(MUVRclassObject,
 
     if (any(class(MUVRclassObject)=='Regression')) permutation_output[p,]=permMod$fitMetric$Q2
 
-    else {permutation_output[p,]=permMod$miss
-    }
+    else if (permutation_type=="MISS"){permutation_output[p,]=permMod$miss}
+    else {permutation_output[p,]=permMod$ber}
 
     nowTime=proc.time()[3]
 
@@ -130,10 +130,19 @@ permutations=function(MUVRclassObject,
     timeLeft=(timePerRep*(nPerm-p))/60
 
     cat('\nEstimated time left:',timeLeft,'mins\n\n')
+ }
+  lst<-list(permutation_type,
+            permutation_output)
+  names(lst)<-c("permutation_type",
+                 "permutation_output")
+  return(lst)
   }
-  return(list(permutation_type,
-              permutation_output))
-  }
+##############################################################################################333
+#When permutation is BER
+
+
+
+
 ########################################
 #when permutation is AUROC
   if(permutation_type=="AUROC"){
@@ -178,8 +187,11 @@ permutations=function(MUVRclassObject,
     cat('\nEstimated time left:',timeLeft,'mins\n\n')
   }
   }
-  return(list(permutation_type,
-              permutation_output))
+  lst<-list(permutation_type,
+            permutation_output)
+  names(lst)<-c("permutation_type",
+                "permutation_output")
+  return(lst)
 
   }
 

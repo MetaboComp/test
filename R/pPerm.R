@@ -14,10 +14,10 @@ pPerm=function(actual,                             ###a value
                side=c('smaller','greater'),
                type=c('t','non')) {
 ##########################################################################################################################
-#it needs to be take into consideration when the type od side is error
+#it needs to be take into consideration when the type of side is error
   if(is.numeric(actual)==F)stop("actual needs to be numeric")
   if(is.numeric(permutation_distribution)==F)stop("permutation_distribution needs to be a numeric distribution")
-  if(length(permutation_distribution)<5)stop("permutation_distribution has too view values to form a distribution")
+  if(length(permutation_distribution)<5)stop("permutation_distribution has too few values to form a distribution")
   if(!missing(type)){if(type!="t"&type!="non")stop("This type can not be implemented")}
   if(missing(type)) type='t'     ###Student's t distribution
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
