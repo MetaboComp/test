@@ -16,7 +16,7 @@
 #' @return `nComp` Optimised number of components within range (1:comp)
 #' @return `virank` variable importance rankings
 #'
-#'
+#' @export
 plsInner=function(xTrain,
                   yTrain,
                   xVal,
