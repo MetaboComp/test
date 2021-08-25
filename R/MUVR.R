@@ -84,7 +84,7 @@ MUVR <- function(X,
 #This requires that X is a data frame of all variables correctly categorized as numeric, factor, character and logical
 ###The X data put in MUVR should be numeric, if not, onehotencoding is used
 
-  if(class(X)[1]=="data.frame"){X<-MUVR::onehotencoding(X)
+  if(class(X)[1]=="data.frame"){X<-onehotencoding(X)
   cat("X is transformed to a matrix by onehotencoding.","\n")}
 
 
