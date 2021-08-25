@@ -4,7 +4,7 @@
 #' @param object pls(da)MUVR object
 #'
 #' @return vip object
-#'
+#' @export
 vip <- function(object) {
   #-- initialisation des matrices --#
   W = object$loadings$X  ###row is variables of X, column is components
