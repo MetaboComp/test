@@ -87,7 +87,7 @@ plsInner=function(xTrain,
 
         nComp=which.min(BER)
 
-      } else {
+      }    else {
         auc=apply(yValInner[,1,],
                   2,
                   function(x) roc(yVal,x)$auc)    ####area under the curve for the Y group 1

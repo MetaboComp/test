@@ -44,8 +44,8 @@ checkinput<-function(X,
   if(missing(X)){stop("X data is missing.")}
 
 #analyze X datatype
-  if(class(X)[1]!="data.frame"){warning("X should be a dataframe.","\n")
-    X<-as.data.frame(X)}
+  if(class(X)[1]!="data.frame"){stop("X should be a dataframe.","\n")
+    }
   factor_number<-0
   numeric_integer_number<-0
   character_number<-0

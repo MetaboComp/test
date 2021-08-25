@@ -181,8 +181,8 @@ z<-cbind(z,
          factor_variable1,factor_variable2,factor_variable3,
          character_variable1,character_variable2,character_variable3,
          logical_variable1,logical_variable2)
-
-classtime<-timesummary(Xotu,Yotu,z)
+Xotu_1<-as.matrix(Xotu)
+classtime<-timesummary(Xotu_1,Yotu,z)
 
 
 
@@ -209,17 +209,19 @@ logical_variable1<-c(rep(TRUE,7),rep(FALSE,6),rep(TRUE,7),rep(FALSE,6),rep(TRUE,
 logical_variable2<-c(rep(TRUE,8),rep(FALSE,7),rep(TRUE,7),rep(FALSE,7))
 
 z<-data.frame(row.names=1:29)
-X<-cbind(z,Xotu,
+##Xotu or Xotu_1
+Xotu_1<-as.matrix(Xotu)
+X<-cbind(z,Xotu_1,
          factor_variable1,factor_variable2,factor_variable3,
          character_variable1,character_variable2,character_variable3,
          logical_variable1,logical_variable2)
-
+X_1<-as.matrix(X)
 
 #####note, in this function, I used customParams() created in my own branch, to differentiate with the one in the master branch. I marked it as customParamsa()
-compare1<-microbenchmark(MUVR_randomForest1<-MUVR(X = Xotu, Y = Yotu, nRep = nRep, nOuter = nOuter, varRatio = varRatio,
+compare1<-microbenchmark(MUVR_randomForest1<-MUVR(X = Xotu_1, Y = Yotu, nRep = nRep, nOuter = nOuter, varRatio = varRatio,
                                                   fitness = "MISS", method = "RF", methParam = customParamsa(method = "randomForest",NZV=T),
                                                   modReturn = T),
-                         MUVR_ranger1<-MUVR(X = Xotu, Y = Yotu, nRep = nRep, nOuter = nOuter, varRatio = varRatio,
+                         MUVR_ranger1<-MUVR(X = Xotu_1, Y = Yotu, nRep = nRep, nOuter = nOuter, varRatio = varRatio,
                                             fitness = "MISS", method = "RF", methParam = customParamsa(method = "ranger",NZV=T),
                                             modReturn = T) ,
                          times=2)
