@@ -27,7 +27,7 @@
 #'
 #' @examples
 #' # An example script is necessary - with NOT RUN
-MUVR <- function(X,
+MUVRa <- function(X,
                  Y,
                  ID,
                  scale = TRUE,
@@ -896,13 +896,13 @@ MUVR <- function(X,
     # PLS Min fit-predict
     ######################
     if (DA) {
-      plsFitMin <- MUVR::plsda(subset(X, select = incVarMin),
+      plsFitMin <- plsda(subset(X, select = incVarMin),
                                Y,
                                ncomp = round(nComp[1]),
                                near.zero.var = TRUE,
                                scale = scale)
     } else {
-      plsFitMin <- MUVR::pls(subset(X,select = incVarMin),
+      plsFitMin <- pls(subset(X,select = incVarMin),
                              Y,
                              ncomp = round(nComp[1]),
                              near.zero.var = TRUE,
