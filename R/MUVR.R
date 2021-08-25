@@ -426,7 +426,7 @@ MUVR <- function(X,
 
           # Make inner model
           if (method == 'PLS') {
-            inMod <- MUVR::plsInner(xTrain,
+            inMod <- plsInner(xTrain,
                                     yTrain,
                                     xVal,
                                     yVal,
@@ -542,13 +542,13 @@ MUVR <- function(X,
       if (method == 'PLS'){
         # Build min model
         if (DA) {
-          plsOutMin <- MUVR::plsda(subset(xIn, select = incVarMin),
+          plsOutMin <- plsda(subset(xIn, select = incVarMin),
                                    yIn,
                                    ncomp = nCompOutMin[i],
                                    near.zero.var = TRUE,
                                    scale=scale)
         } else {
-          plsOutMin <- MUVR::pls(subset(xIn,select = incVarMin),
+          plsOutMin <- pls(subset(xIn,select = incVarMin),
                                  yIn,
                                  ncomp = nCompOutMin[i],
                                  near.zero.var = TRUE,
@@ -557,19 +557,19 @@ MUVR <- function(X,
         # Extract test data with correct variable selection
         xTestMin <- subset(xTest, select = incVarMin)
         # Extract predictions
-        yPredMinR[testIndex] <- MUVR::plspredict(plsOutMin,
+        yPredMinR[testIndex] <- plspredict(plsOutMin,
                                         newdata = xTestMin,
                                         scale = scale)$predict[, , nCompOutMin[i]]  #
 
         # Build mid model
         if (DA) {
-          plsOutMid <- MUVR::plsda(subset(xIn, select = incVarMid),
+          plsOutMid <- plsda(subset(xIn, select = incVarMid),
                                    yIn,
                                    ncomp = nCompOutMid[i],
                                    near.zero.var = TRUE,
                                    scale=scale)
         } else {
-          plsOutMid <- MUVR::pls(subset(xIn,select = incVarMid),
+          plsOutMid <- pls(subset(xIn,select = incVarMid),
                                  yIn,
                                  ncomp = nCompOutMid[i],
                                  near.zero.var = TRUE,
@@ -578,19 +578,19 @@ MUVR <- function(X,
         # Extract test data with correct variable selection
         xTestMid <- subset(xTest, select = incVarMid)
         # Extract predictions
-        yPredMidR[testIndex] <- MUVR::plspredict(plsOutMid,
+        yPredMidR[testIndex] <- plspredict(plsOutMid,
                                         newdata = xTestMid,
                                         scale = scale)$predict[, , nCompOutMid[i]]  #
 
         # Build max model
         if (DA) {
-          plsOutMax <- MUVR::plsda(subset(xIn, select = incVarMax),
+          plsOutMax <- plsda(subset(xIn, select = incVarMax),
                                    yIn,
                                    ncomp = nCompOutMax[i],
                                    near.zero.var = TRUE,
                                    scale=scale)
         } else {
-          plsOutMax <- MUVR::pls(subset(xIn,select = incVarMax),
+          plsOutMax <- pls(subset(xIn,select = incVarMax),
                                  yIn,
                                  ncomp = nCompOutMax[i],
                                  near.zero.var = TRUE,
@@ -600,7 +600,7 @@ MUVR <- function(X,
         # Extract test data with correct variable selection
         xTestMax <- subset(xTest, select = incVarMax)
         # Extract predictions
-        yPredMaxR[testIndex] <- MUVR::plspredict(plsOutMax,
+        yPredMaxR[testIndex] <- plspredict(plsOutMax,
                                         newdata = xTestMax,
                                         scale = scale)$predict[, , nCompOutMax[i]]  #
 
@@ -899,13 +899,13 @@ MUVR <- function(X,
     # PLS Min fit-predict
     ######################
     if (DA) {
-      plsFitMin <- MUVR::plsda(subset(X, select = incVarMin),
+      plsFitMin <- plsda(subset(X, select = incVarMin),
                                Y,
                                ncomp = round(nComp[1]),
                                near.zero.var = TRUE,
                                scale = scale)
     } else {
-      plsFitMin <- MUVR::pls(subset(X,select = incVarMin),
+      plsFitMin <- pls(subset(X,select = incVarMin),
                              Y,
                              ncomp = round(nComp[1]),
                              near.zero.var = TRUE,
@@ -916,20 +916,20 @@ MUVR <- function(X,
       {incVarMin <- incVarMin[!incVarMin %in% rownames(plsFitMin$nzv$Metrics)]}
 
     # Make Min predictions
-    yFitMin <- MUVR::plspredict(plsFitMin,
+    yFitMin <- plspredict(plsFitMin,
                        newdata = subset(X, select = incVarMin),
                        scale = scale)$predict[, , nComp[1]]  #
     ######################
     # PLS Mid fit-predict
     ######################
     if (DA) {
-      plsFitMid <- MUVR::plsda(subset(X, select = incVarMid),
+      plsFitMid <- plsda(subset(X, select = incVarMid),
                                Y,
                                ncomp = round(nComp[2]),
                                near.zero.var = TRUE,
                                scale = scale)
     } else {
-      plsFitMid <- MUVR::pls(subset(X,select = incVarMid),
+      plsFitMid <- pls(subset(X,select = incVarMid),
                              Y,
                              ncomp = round(nComp[2]),
                              near.zero.var = TRUE,
@@ -939,20 +939,20 @@ MUVR <- function(X,
     if (length(plsFitMid$nzv$Position) > 0)
       {incVarMid <- incVarMid[!incVarMid %in% rownames(plsFitMid$nzv$Metrics)]}
     # Make Mid predictions
-    yFitMid <- MUVR::plspredict(plsFitMid,
+    yFitMid <- plspredict(plsFitMid,
                        newdata = subset(X, select = incVarMid),
                        scale = scale)$predict[, , nComp[2]]  #
     ######################
     # PLS Max fit-predict
     ######################
     if (DA) {
-      plsFitMax <- MUVR::plsda(subset(X, select = incVarMax),
+      plsFitMax <- plsda(subset(X, select = incVarMax),
                                Y,
                                ncomp = round(nComp[3]),
                                near.zero.var = TRUE,
                                scale = scale)
     } else {
-      plsFitMax <- MUVR::pls(subset(X,select = incVarMax),
+      plsFitMax <- pls(subset(X,select = incVarMax),
                              Y,
                              ncomp = round(nComp[3]),
                              near.zero.var = TRUE,
@@ -962,7 +962,7 @@ MUVR <- function(X,
     if (length(plsFitMax$nzv$Position) > 0)
        {incVarMax <- incVarMax[!incVarMax %in% rownames(plsFitMax$nzv$Metrics)]}
     # Make Max predictions
-    yFitMax <- MUVR::plspredict(plsFitMax,
+    yFitMax <- plspredict(plsFitMax,
                        newdata = subset(X, select = incVarMax),
                        scale = scale)$predict[, , nComp[3]]  #
 
