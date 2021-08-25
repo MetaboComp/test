@@ -7,7 +7,7 @@
 vip(object)
 }
 \arguments{
-\item{object}{pls(da) object}
+\item{object}{pls(da)MUVR object}
 }
 \value{
 vip object

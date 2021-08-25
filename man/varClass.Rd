@@ -4,13 +4,14 @@
 \alias{varClass}
 \title{Report variables belonging to different classes}
 \usage{
-varClass(MVObject)
+varClass(MUVRclassObject)
 }
 \arguments{
-\item{MVObject}{A MUVR object}
+\item{MUVRclassObject}{A MUVR class object}
 }
 \value{
-A list with names and numbers of variables: all as well as Optimal (Corresponding to 'min' or minial-optimal model), Redundant (from 'min' up to 'max' or all-relevant ) and Noisy (the rest)
+A list with names and numbers of variables: all as well as Optimal (Corresponding to 'min' or minial-optimal model),
+Redundant (from 'min' up to 'max' or all-relevant ) and Noisy (the rest)
 }
 \description{
 Reports names and numbers of variables: all as well as Optimal (min model), redundant (from min up to max) and noisy (the rest)

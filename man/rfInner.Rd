@@ -30,7 +30,7 @@ An object containing:
 
 (`miss`, `auc` or `rmsep`) A fitness metric
 
-`vi` variable importance rankings
+`virank` variable importance rankings
 }
 \description{
 Called from Wrapper

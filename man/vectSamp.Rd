@@ -11,10 +11,10 @@ vectSamp(vect, n = 4, sampLen)
 
 \item{n}{Number of groups}
 
-\item{sampLen}{A vector with custom numer of samples per group. Is calculated if missing (best choice).}
+\item{sampLen}{A vector with custom number of samples per group. Is calculated if missing (best choice).}
 }
 \value{
-a list with n groups containg subsampled `vect`
+a list with n groups containing sub sampled `vect`
 }
 \description{
 Random sampling of a vector into n groups

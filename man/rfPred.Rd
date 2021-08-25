@@ -16,24 +16,10 @@ rfPred(
 )
 }
 \arguments{
-\item{xTrain}{}
-
-\item{yTrain}{}
-
-\item{xTest}{}
-
-\item{yTest}{}
-
-\item{ntree}{}
-
 \item{DA}{}
-
-\item{keep.forest}{}
-
-\item{method}{}
 }
 \value{
-
+The predicted value of yTest
 }
 \description{
 RF predictions for outer segments and consensus models
