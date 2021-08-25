@@ -11,7 +11,7 @@
 #' @param scale
 #'
 #' @return a plsMUVR object
-#'
+#' @export
 pls <- function(x,
                 y,
                 ncomp = 2,

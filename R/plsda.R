@@ -11,7 +11,7 @@
 #' @param scale
 #'
 #' @return a plsdaMUVR object
-#'
+#' @export
 plsda <- function(x,
                   y,
                   ncomp = 2,
