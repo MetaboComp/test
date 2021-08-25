@@ -4,10 +4,10 @@
 \alias{plotVAL}
 \title{Plot validation metric}
 \usage{
-plotVAL(MVObj)
+plotVAL(MUVRclassObject)
 }
 \arguments{
-\item{MVObj}{An object of class `MVObject`}
+\item{MUVRclassObject}{An object of class `MUVR`}
 }
 \value{
 A plot

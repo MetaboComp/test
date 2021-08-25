@@ -15,22 +15,20 @@ pls(
 )
 }
 \arguments{
-\item{x}{}
+\item{x}{Numeric matrix of predictors with the rows as individual observations. missing values (NAs) are allowed.}
 
-\item{y}{}
+\item{y}{Numeric matrix of response(s) with the rows as individual observations matching X. missing values (NAs) are allowed.}
 
-\item{ncomp}{}
+\item{ncomp}{Positive Integer. The number of components to include in the model. Default to 2.}
 
-\item{max.iter}{}
+\item{max.iter}{Integer, the maximum number of iterations. Default to 100.}
 
-\item{tol}{}
-
-\item{near.zero.var}{}
+\item{tol}{Positive numeric used as convergence criteria/tolerance during the iterative process. Default to 1e-06.}
 
 \item{scale}{}
 }
 \value{
-pls object
+a plsMUVR object
 }
 \description{
 Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)

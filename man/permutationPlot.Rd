@@ -5,8 +5,8 @@
 \title{Plot permutation analysis using actual model and permutations()}
 \usage{
 permutationPlot(
-  MVObj,
-  permMatrix,
+  MUVRclassObject,
+  permutation_result,
   model = "Mid",
   type = c("t", "non"),
   side = c("greater", "smaller"),
@@ -19,9 +19,9 @@ permutationPlot(
 )
 }
 \arguments{
-\item{MVObj}{A MUVR object}
+\item{MUVRclassObject}{A 'MUVR' class object}
 
-\item{permMatrix}{A permutation fitness outcome from MUVR::permutations()}
+\item{permutation_result}{A permutation result. It is a list of 2 items: permutation_type and permutation_output}
 
 \item{model}{'Min', 'Mid', or 'Max'}
 
@@ -61,4 +61,5 @@ R12ML=MUVR(X=mlr12,ML=T,nRep=nRep,nOuter=nOuter,varRatio=varRatio,method='RF')
 permR12=permutations(R12ML)
 stopCluster(cl)
 permutationPlot(R12ML,permR12)
+
 }

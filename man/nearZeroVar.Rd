@@ -7,11 +7,11 @@
 nearZeroVar(x, freqCut = 95/5, uniqueCut = 10)
 }
 \arguments{
-\item{x}{}
+\item{x}{a numeric vector or matrix, or a data frame with all numeric data.}
 
-\item{freqCut}{}
+\item{freqCut}{the cutoff for the ratio of the most common value to the second most common value.}
 
-\item{uniqueCut}{}
+\item{uniqueCut}{the cutoff for the percentage of distinct values out of the number of total samples.}
 }
 \value{
 nzv object

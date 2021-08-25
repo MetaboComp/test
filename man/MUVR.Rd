@@ -58,7 +58,7 @@ MUVR(
 \item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
 }
 \value{
-A MUVR object
+A 'MUVR' object
 Further description necessary!!!
 }
 \description{

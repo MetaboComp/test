@@ -2,12 +2,12 @@
 % Please edit documentation in R/predMV.R
 \name{predMV}
 \alias{predMV}
-\title{Predict MV object}
+\title{Predict MV object using a MUVR class object and a X testing set}
 \usage{
-predMV(MVObj, newdata, model = "mid")
+predMV(MUVRclassobject, newdata, model = "mid")
 }
 \arguments{
-\item{MVObj}{An `MVobject` obtained from the MVWrap function}
+\item{MUVRclassobject}{An 'MUVR' class object obtained from the MVWrap function}
 
 \item{newdata}{New data for which to predict outcomes}
 

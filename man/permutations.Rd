@@ -4,10 +4,18 @@
 \alias{permutations}
 \title{Make permutations with data and default settings from an actual MUVR object}
 \usage{
-permutations(MVObj, nPerm = 50, nRep, nOuter, varRatio, parallel)
+permutations(
+  MUVRclassObject,
+  nPerm = 50,
+  nRep,
+  nOuter,
+  varRatio,
+  parallel,
+  permutation_type = c("AUROC", "MISS", "RMSEP", "BER")
+)
 }
 \arguments{
-\item{MVObj}{A MUVR obvject}
+\item{MUVRclassObject}{A 'MUVR' class obvject}
 
 \item{nPerm}{number of permutations to run}
 
@@ -20,12 +28,14 @@ permutations(MVObj, nPerm = 50, nRep, nOuter, varRatio, parallel)
 \item{parallel}{whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)}
 }
 \value{
-A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
+permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
+
+permutation_type: Either AUROC,Q2 or MISS or BER
 }
 \description{
 This function will extract data and parameter settings from a MUVR object and run standard permutations.
 This will fit a standard case of multivariate predictive modelling in either a regression, classification or multilevel case.
-However, if an analysis has a complex sample dependency which requires constrained permutation of your response vector 
+However, if an analysis has a complex sample dependency which requires constrained permutation of your response vector
 or if a variable pre-selection is performed for decreased computational burden, then permutaion loops should be constructed manually.
 In those cases, View(permutations) can be a first start from which to build custom solutions for permutation analysis.
 }

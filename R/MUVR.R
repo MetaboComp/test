@@ -27,7 +27,7 @@
 #'
 #' @examples
 #' # An example script is necessary - with NOT RUN
-MUVRa <- function(X,
+MUVR <- function(X,
                  Y,
                  ID,
                  scale = TRUE,
@@ -82,10 +82,13 @@ MUVRa <- function(X,
 ###########################
 #See the one hot encoding package I added in my branch yan 20210719
 #This requires that X is a data frame of all variables correctly categorized as numeric, factor, character and logical
-  # One-hot expansion of factor variables
+###The X data put in MUVR should be numeric, if not, onehotencoding is used
 
-  if (methParam$oneHot==TRUE) {X<-onehotencoding(X)}
+  if(class(X)[1]=="data.frame"){X<-MUVR::onehotencoding(X)
+  cat("X is transformed to a matrix by onehotencoding.","\n")}
 
+
+#by doing so.We do not need methParam$oneHot
 
 ###############
   # Remove nearZeroVariance variables for PLS
@@ -423,7 +426,7 @@ MUVRa <- function(X,
 
           # Make inner model
           if (method == 'PLS') {
-            inMod <- MUVR::plsInner(xTrain,
+            inMod <- plsInner(xTrain,
                                     yTrain,
                                     xVal,
                                     yVal,
@@ -433,7 +436,7 @@ MUVRa <- function(X,
                                     scale = scale)
             nCompIn[j, count] <- inMod$nComp
           } else if (method == 'RF') {
-            inMod <- MUVR::rfInner(xTrain,
+            inMod <- rfInner(xTrain,
                                    yTrain,
                                    xVal,
                                    yVal,

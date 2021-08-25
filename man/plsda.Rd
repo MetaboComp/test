@@ -15,22 +15,10 @@ plsda(
 )
 }
 \arguments{
-\item{x}{}
-
-\item{y}{}
-
-\item{ncomp}{}
-
-\item{max.iter}{}
-
-\item{tol}{}
-
-\item{near.zero.var}{}
-
 \item{scale}{}
 }
 \value{
-plsda object
+a plsdaMUVR object
 }
 \description{
 Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)

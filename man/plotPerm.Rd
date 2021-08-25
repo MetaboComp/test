@@ -6,7 +6,7 @@
 \usage{
 plotPerm(
   actual,
-  h0,
+  distribution,
   xlab = NULL,
   side = c("greater", "smaller"),
   type = c("t", "non"),
@@ -20,7 +20,7 @@ plotPerm(
 \arguments{
 \item{actual}{Actual model fitness (e.g. Q2, AUROC or number of misclassifications)}
 
-\item{h0}{Null hypothesis (permutation) distribution of similar metric as `actual`}
+\item{distribution}{Null hypothesis (permutation) distribution of similar metric as `actual`}
 
 \item{xlab}{Label for x-axis (e.g. 'Q2', 'AUROC', or 'Misclassifications')}
 

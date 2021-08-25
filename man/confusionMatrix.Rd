@@ -4,10 +4,10 @@
 \alias{confusionMatrix}
 \title{Make a confusion matrix from a MUVR object}
 \usage{
-confusionMatrix(MVObj, model = "mid")
+confusionMatrix(MUVRclassObject, model = "mid")
 }
 \arguments{
-\item{MVObj}{A MUVR object (classification analysis)}
+\item{MUVRclassObject}{A MUVR class object (classification analysis)}
 
 \item{model}{min, mid or max model}
 }

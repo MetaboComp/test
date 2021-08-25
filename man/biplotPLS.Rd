@@ -19,11 +19,11 @@ biplotPLS(
 )
 }
 \arguments{
-\item{fit}{A PLS fit (e.g. from MVObject$Fit[[2]])}
+\item{fit}{A PLS fit (e.g. from MUVRclassObject$Fit[[2]])}
 
 \item{comps}{Which components to plot}
 
-\item{xCol}{(Optionsal) Continuous vector for grey scale gradient of observation (sample) color (e.g. Y vector in regression analysis)}
+\item{xCol}{(Optional) Continuous vector for grey scale gradient of observation (sample) color (e.g. Y vector in regression analysis)}
 
 \item{labPlSc}{Boolean to plot observation (sample) names (defaults to TRUE)}
 

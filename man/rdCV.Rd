@@ -35,7 +35,7 @@ rdCV(
 
 \item{DA}{Logical for Classification (discriminant analysis) (Defaults do FALSE, i.e. regression). PLS is limited to two-class problems (see `Y` above).}
 
-\item{fitness}{Fitness function for model tuning (choose either 'AUROC' or 'MISS' for classification; or 'RMSEP' (default) for regression.)}
+\item{fitness}{Fitness function for model tuning (choose either 'AUROC' or 'MISS'or 'BER' for classification; or 'RMSEP' (default) for regression.)}
 
 \item{method}{Multivariate method. Supports 'PLS' and 'RF' (default)}
 

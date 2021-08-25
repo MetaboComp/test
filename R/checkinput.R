@@ -44,7 +44,8 @@ checkinput<-function(X,
   if(missing(X)){stop("X data is missing.")}
 
 #analyze X datatype
-  if(class(X)[1]!="data.frame"){stop("X should be a dataframe.","\n")
+  if(class(X)[1]=="data.frame"){X<-MUVR::onehotencoding(X)
+    cat("X is transformed to a matrix by onehotencoding.","\n")
     }
   factor_number<-0
   numeric_integer_number<-0

@@ -2,12 +2,12 @@
 % Please edit documentation in R/plotMV.R
 \name{plotMV}
 \alias{plotMV}
-\title{Plot MV object}
+\title{Plot MV object Swim lane plot for classification, for regression}
 \usage{
-plotMV(MVObj, model = "mid", factCols, sampLabels, ylim = NULL)
+plotMV(MUVRclassObject, model = "mid", factCols, sampLabels, ylim = NULL)
 }
 \arguments{
-\item{MVObj}{An `MVobject` obtained from the MVWrap function}
+\item{MUVRclassObject}{An MUVR class object obtained from the MVWrap function}
 
 \item{model}{What type of model to plot ('min', 'mid' or 'max'). Defaults to 'mid'.}
 
@@ -21,5 +21,5 @@ plotMV(MVObj, model = "mid", factCols, sampLabels, ylim = NULL)
 A plot of results from multivariate predictions
 }
 \description{
-Plot MV object
+Plot MV object Swim lane plot for classification, for regression
 }

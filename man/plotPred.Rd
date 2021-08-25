@@ -7,8 +7,6 @@
 plotPred(Ytrue, Ypreds)
 }
 \arguments{
-\item{Ytrue}{}
-
 \item{Ypreds}{}
 }
 \description{

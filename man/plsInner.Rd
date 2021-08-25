@@ -30,7 +30,7 @@ An object containing:
 
 `nComp` Optimised number of components within range (1:comp)
 
-`vi` variable importance rankings
+`virank` variable importance rankings
 }
 \description{
 Called from Wrapper
