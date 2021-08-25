@@ -899,13 +899,13 @@ MUVR <- function(X,
     # PLS Min fit-predict
     ######################
     if (DA) {
-      plsFitMin <- plsda(subset(X, select = incVarMin),
+      plsFitMin <- MUVR::plsda(subset(X, select = incVarMin),
                                Y,
                                ncomp = round(nComp[1]),
                                near.zero.var = TRUE,
                                scale = scale)
     } else {
-      plsFitMin <- pls(subset(X,select = incVarMin),
+      plsFitMin <- MUVR::pls(subset(X,select = incVarMin),
                              Y,
                              ncomp = round(nComp[1]),
                              near.zero.var = TRUE,
