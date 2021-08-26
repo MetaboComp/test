@@ -964,7 +964,7 @@ MUVR <- function(X,
   }
 
   # Set class
-  class(modelReturn) <- c('MVObject',
+  class(modelReturn) <- c('MUVR',
                           ifelse(DA,
                                  'Classification',
                                  ifelse(ML,
