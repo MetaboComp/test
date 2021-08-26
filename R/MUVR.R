@@ -517,7 +517,7 @@ MUVR <- function(X,
 
                           # Make inner model
                           if (method == 'PLS') {
-                            inMod <- plsInner(xTrain,
+                            inMod <- MUVR::plsInner(xTrain,
                                               yTrain,
                                               xVal,
                                               yVal,
@@ -623,10 +623,8 @@ MUVR <- function(X,
                       # For PLS, extract number of components
                       if (method == 'PLS') {
                         nCompOutMin[i] <- round(mean(nCompIn[, minIndex]))
-                        nCompOutMid[i] <-
-                          round(mean(nCompIn[, midIndex]))
-                        nCompOutMax[i] <-
-                          round(mean(nCompIn[, maxIndex]))
+                        nCompOutMid[i] <- round(mean(nCompIn[, midIndex]))
+                        nCompOutMax[i] <- round(mean(nCompIn[, maxIndex]))
                       }
 
                       # Average VIP ranks
@@ -656,7 +654,7 @@ MUVR <- function(X,
                       if (method == 'PLS') {
                         # Build min model
                         if (DA) {
-                          plsOutMin <- plsda(
+                          plsOutMin <- MUVR::plsda(
                             subset(xIn, select = incVarMin),
                             yIn,
                             ncomp = nCompOutMin[i],
@@ -664,7 +662,7 @@ MUVR <- function(X,
                             scale = scale
                           )
                         } else {
-                          plsOutMin <- pls(
+                          plsOutMin <- MUVR::pls(
                             subset(xIn, select = incVarMin),
                             yIn,
                             ncomp = nCompOutMin[i],
@@ -683,7 +681,7 @@ MUVR <- function(X,
 
                         # Build mid model
                         if (DA) {
-                          plsOutMid <- plsda(
+                          plsOutMid <- MUVR::plsda(
                             subset(xIn, select = incVarMid),
                             yIn,
                             ncomp = nCompOutMid[i],
@@ -691,7 +689,7 @@ MUVR <- function(X,
                             scale = scale
                           )
                         } else {
-                          plsOutMid <- pls(
+                          plsOutMid <- MUVR::pls(
                             subset(xIn, select = incVarMid),
                             yIn,
                             ncomp = nCompOutMid[i],
@@ -700,8 +698,7 @@ MUVR <- function(X,
                           )
                         }
                         # Extract test data with correct variable selection
-                        xTestMid <-
-                          subset(xTest, select = incVarMid)
+                        xTestMid <-nsubset(xTest, select = incVarMid)
                         # Extract predictions
                         yPredMidR[testIndex] <-
                           plspredict(plsOutMid,
@@ -710,7 +707,7 @@ MUVR <- function(X,
 
                         # Build max model
                         if (DA) {
-                          plsOutMax <- plsda(
+                          plsOutMax <- MUVR::plsda(
                             subset(xIn, select = incVarMax),
                             yIn,
                             ncomp = nCompOutMax[i],
@@ -718,7 +715,7 @@ MUVR <- function(X,
                             scale = scale
                           )
                         } else {
-                          plsOutMax <- pls(
+                          plsOutMax <- MUVR::pls(
                             subset(xIn, select = incVarMax),
                             yIn,
                             ncomp = nCompOutMax[i],
@@ -728,8 +725,7 @@ MUVR <- function(X,
                         }
 
                         # Extract test data with correct variable selection
-                        xTestMax <-
-                          subset(xTest, select = incVarMax)
+                        xTestMax <- subset(xTest, select = incVarMax)
                         # Extract predictions
                         yPredMaxR[testIndex] <-
                           plspredict(plsOutMax,
@@ -756,10 +752,11 @@ MUVR <- function(X,
                         )
                         # min predictions
                         if (DA)
-                          yPredMinR[testIndex,] <-
-                            rfOutMin$predicted
-                        else
+                        {
+                          yPredMinR[testIndex, ] <- rfOutMin$predicted
+                        } else {
                           yPredMinR[testIndex] <- rfOutMin$predicted
+                        }
 
                         # mid model
                         rfOutMid <- rfPred(
@@ -774,10 +771,11 @@ MUVR <- function(X,
                         )
                         # mid predictions
                         if (DA)
-                          yPredMidR[testIndex,] <-
-                          rfOutMid$predicted
-                        else
+                        {
+                          yPredMidR[testIndex, ] <- rfOutMid$predicted
+                        } else {
                           yPredMidR[testIndex] <- rfOutMid$predicted
+                        }
 
                         # max model
                         rfOutMax <- rfPred(
@@ -792,10 +790,11 @@ MUVR <- function(X,
                         )
                         # max predictions
                         if (DA)
-                          yPredMaxR[testIndex,] <-
-                          rfOutMax$predicted
-                        else
+                        {
+                          yPredMaxR[testIndex, ] <- rfOutMax$predicted
+                        } else {
                           yPredMaxR[testIndex] <- rfOutMax$predicted
+                        }
 
                         # Extract models for external predictions
                         if (modReturn) {
@@ -805,8 +804,9 @@ MUVR <- function(X,
                             rfOutMax = rfOutMax$model
                           )
                         }
-                      } else
+                      } else {
                         stop('Other core models not implemented')
+                      }
                       ###################################################################################################################
                       ######################################################################################################
                       # Needs to be expanded for other cores (SVM; ANN)
@@ -1105,7 +1105,7 @@ MUVR <- function(X,
     # PLS Min fit-predict
     ######################
     if (DA) {
-      plsFitMin <- plsda(
+      plsFitMin <- MUVR::plsda(
         subset(X, select = incVarMin),
         Y,
         ncomp = round(nComp[1]),
@@ -1113,7 +1113,7 @@ MUVR <- function(X,
         scale = scale
       )
     } else {
-      plsFitMin <- pls(
+      plsFitMin <- MUVR::pls(
         subset(X, select = incVarMin),
         Y,
         ncomp = round(nComp[1]),
@@ -1136,7 +1136,7 @@ MUVR <- function(X,
     # PLS Mid fit-predict
     ######################
     if (DA) {
-      plsFitMid <- plsda(
+      plsFitMid <- MUVR::plsda(
         subset(X, select = incVarMid),
         Y,
         ncomp = round(nComp[2]),
@@ -1144,7 +1144,7 @@ MUVR <- function(X,
         scale = scale
       )
     } else {
-      plsFitMid <- pls(
+      plsFitMid <- MUVR::pls(
         subset(X, select = incVarMid),
         Y,
         ncomp = round(nComp[2]),
@@ -1166,7 +1166,7 @@ MUVR <- function(X,
     # PLS Max fit-predict
     ######################
     if (DA) {
-      plsFitMax <- plsda(
+      plsFitMax <- MUVR::plsda(
         subset(X, select = incVarMax),
         Y,
         ncomp = round(nComp[3]),
@@ -1174,7 +1174,7 @@ MUVR <- function(X,
         scale = scale
       )
     } else {
-      plsFitMax <- pls(
+      plsFitMax <- MUVR::pls(
         subset(X, select = incVarMax),
         Y,
         ncomp = round(nComp[3]),
