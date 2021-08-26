@@ -40,7 +40,7 @@ plsInner=function(xTrain,
                               near.zero.var=TRUE,
                               scale=scale)
 ####
-      yValInner=predictpls(plsModIn,
+      yValInner=plspredict(plsModIn,
                         newdata=xVal,
                         onlyPred=TRUE,
                         scale=scale)$predict[,,]    ##observation new, y variables col, component 1
