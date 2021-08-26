@@ -27,6 +27,7 @@
 #'
 #' @examples
 #' # An example script is necessary - with NOT RUN
+
 MUVRoriginal <- function(X,
                  Y,
                  ID,
@@ -37,7 +38,7 @@ MUVRoriginal <- function(X,
                  varRatio = 0.75,
                  DA = FALSE,
                  fitness = c('AUROC', 'MISS', 'BER', 'RMSEP'),
-                 method = c('PLS',' RF'),
+                 method = c('PLS', ' RF'),
                  methParam,
                  ML = FALSE,
                  modReturn = FALSE,
@@ -45,7 +46,6 @@ MUVRoriginal <- function(X,
                  parallel = TRUE,
                  # keep,
                  ...) {
-
   # Start timer
   start.time <- proc.time()[3]
 
@@ -54,7 +54,9 @@ MUVRoriginal <- function(X,
 
   # Default core modelling method
   if (missing(method)) method <- 'RF'
-
+  if (missing(methParam)) {
+    methParam <- customParams(method = method)
+  }
   # Call in relevant package(s)
   library(pROC)
   library(foreach)
@@ -225,7 +227,7 @@ MUVRoriginal <- function(X,
     yPredMinR <- yPredMidR <- yPredMaxR <- numeric(length(Y)) # Like above but lacking columns (repetitions) -> numeric vector
   }
 
-  # Allocate response vectors and matrices for var's, nComp and VIRank ranks over repetitions
+  # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
   missRep <- numeric(nRep)
   names(missRep) <- paste(rep('rep',nRep), 1:nRep, sep = '')
   varRepMin <- varRepMid <- varRepMax <- nCompRepMin <- nCompRepMid <- nCompRepMax <- missRep
@@ -233,11 +235,11 @@ MUVRoriginal <- function(X,
                                                       ncol = nOuter,
                                                       dimnames = list(paste('repetition', 1:nRep, sep = ''),
                                                                       paste('segment', 1:nOuter, sep='')))
-  VIRankRepMin <- VIRankRepMid <- VIRankRepMax <- matrix(data = nVar0,
-                                                         nrow = nVar0,
-                                                         ncol = nRep,
-                                                         dimnames = list(colnames(X),
-                                                                         paste(rep('rep', nRep), 1:nRep, sep = '')))
+  VIPRepMin <- VIPRepMid <- VIPRepMax <- matrix(data = nVar0,
+                                                nrow = nVar0,
+                                                ncol = nRep,
+                                                dimnames = list(colnames(X),
+                                                                paste(rep('rep', nRep), 1:nRep, sep = '')))
 
   # Allocate array for validation results
   VAL <- array(dim = c(nOuter, cnt, nRep),
@@ -250,7 +252,6 @@ MUVRoriginal <- function(X,
   packs <- c('pROC')
   if(method == 'RF') packs <- c(packs, methParam$rfMethod)
   exports <- 'vectSamp'
-
 
   ####################################################
   ## Start repetitions

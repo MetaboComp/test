@@ -15,7 +15,7 @@
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `virank` variable importance rankings
-#'
+#' @export
 #'
 rfInner <- function(xTrain,
                     yTrain,
