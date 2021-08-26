@@ -27,7 +27,7 @@
 #'
 #' @examples
 #' # An example script is necessary - with NOT RUN
-MUVR <- function(X,
+MUVRoriginal <- function(X,
                  Y,
                  ID,
                  scale = TRUE,
