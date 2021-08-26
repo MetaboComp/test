@@ -90,7 +90,8 @@ if(!missing(modReturn)){if(class(modReturn)!="logical"){stop("\n","modReturn mus
 if(!missing(logg)){if(class(logg)!="logical"){stop("\n","logg must be T or F.")}}
 if(!missing(parallel)){if(class(parallel)!="logical"){stop("\n","parallel must be T or F.")}}
 if(!missing(varRatio)){if(class(varRatio)!="numeric"&class(varRatio)!="integer"){stop("\n","varRatio is a number.")}
-                      if(varRatio<=0|varRatio>1){stop("\n","varRation should be in (0,1].")}}
+                      if(varRatio<=0|varRatio>1){stop("\n","varRation should be in (0,1].")}
+                      if(varRatio<0.5|varRatio>0.95){warning("varRatio is recommened to be within [0.5,0.95]")}}
 
 ########## Step 3: For parameters group 3 that are not correlated with each other, give them a value when they are missing
   ##when they are not missing, leave them be
