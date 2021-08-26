@@ -234,10 +234,10 @@ MUVR <- function(X,
                                                       dimnames = list(paste('repetition', 1:nRep, sep = ''),
                                                                       paste('segment', 1:nOuter, sep='')))
   VIRankRepMin <- VIRankRepMid <- VIRankRepMax <- matrix(data = nVar0,
-                                                nrow = nVar0,
-                                                ncol = nRep,
-                                                dimnames = list(colnames(X),
-                                                                paste(rep('rep', nRep), 1:nRep, sep = '')))
+                                                         nrow = nVar0,
+                                                         ncol = nRep,
+                                                         dimnames = list(colnames(X),
+                                                                         paste(rep('rep', nRep), 1:nRep, sep = '')))
 
   # Allocate array for validation results
   VAL <- array(dim = c(nOuter, cnt, nRep),
@@ -296,10 +296,10 @@ MUVR <- function(X,
     names(nCompOutMax) <- paste(rep('outSeg', nOuter), 1:nOuter, sep = '')
     varOutMin <- varOutMid <- varOutMax <- nCompOutMin <- nCompOutMid <- nCompOutMax
     VIRankOutMin <- VIRankOutMid <- VIRankOutMax <- matrix(data = nVar0,
-                                                  nrow = nVar0,
-                                                  ncol = nOuter,
-                                                  dimnames = list(colnames(X),
-                                                                  paste(rep('outSeg', nOuter), 1:nOuter, sep = '')))
+                                                           nrow = nVar0,
+                                                           ncol = nOuter,
+                                                           dimnames = list(colnames(X),
+                                                                           paste(rep('outSeg', nOuter), 1:nOuter, sep = '')))
     VALRep <- matrix(nrow = nOuter, ncol = cnt)
 
     # Perform outer loop segments -> one "majority vote" MV model per segment
@@ -329,10 +329,10 @@ MUVR <- function(X,
                                                                                           var))
       # Allocate VIRank variable for the inner data
       VIRankInner <- array(data = nVar0,
-                        dim = c(nVar0, cnt, nInner),
-                        dimnames = list(colnames(X),
-                                        var,
-                                        paste(rep('inSeg', nInner), 1:nInner, sep = '')))
+                           dim = c(nVar0, cnt, nInner),
+                           dimnames = list(colnames(X),
+                                           var,
+                                           paste(rep('inSeg', nInner), 1:nInner, sep = '')))
       # Set initial inclusion list of variables to all variables
       incVar <- colnames(X)
 
@@ -531,8 +531,8 @@ MUVR <- function(X,
         xTestMin <- subset(xTest, select = incVarMin)
         # Extract predictions
         yPredMinR[testIndex] <- plspredict(plsOutMin,
-                                        newdata = xTestMin,
-                                        scale = scale)$predict[, , nCompOutMin[i]]  #
+                                           newdata = xTestMin,
+                                           scale = scale)$predict[, , nCompOutMin[i]]  #
 
         # Build mid model
         if (DA) {
@@ -552,8 +552,8 @@ MUVR <- function(X,
         xTestMid <- subset(xTest, select = incVarMid)
         # Extract predictions
         yPredMidR[testIndex] <- plspredict(plsOutMid,
-                                        newdata = xTestMid,
-                                        scale = scale)$predict[, , nCompOutMid[i]]  #
+                                           newdata = xTestMid,
+                                           scale = scale)$predict[, , nCompOutMid[i]]  #
 
         # Build max model
         if (DA) {
@@ -573,8 +573,8 @@ MUVR <- function(X,
         xTestMax <- subset(xTest, select = incVarMax)
         # Extract predictions
         yPredMaxR[testIndex] <- plspredict(plsOutMax,
-                                        newdata = xTestMax,
-                                        scale = scale)$predict[, , nCompOutMax[i]]  #
+                                           newdata = xTestMax,
+                                           scale = scale)$predict[, , nCompOutMax[i]]  #
 
         # Extract models for external predictions
         if (modReturn) {
@@ -770,13 +770,13 @@ MUVR <- function(X,
 
   # Average VIRank ranks over repetitions
   VIRank <- cbind(rowMeans(VIRankRepMin),
-               rowMeans(VIRankRepMid),
-               rowMeans(VIRankRepMax))
+                  rowMeans(VIRankRepMid),
+                  rowMeans(VIRankRepMax))
   colnames(VIRank) <- c('min','mid','max')
   modelReturn$VIRank <- VIRank
   modelReturn$VIRankPerRep <- list(minModel = VIRankRepMin,
-                                midModel = VIRankRepMid,
-                                maxModel = VIRankRepMax)
+                                   midModel = VIRankRepMid,
+                                   maxModel = VIRankRepMax)
 
   # Recalculate fitness averaged over all the repetitions
   fitRankAll <- apply(VAL, 2, mean)
@@ -847,8 +847,8 @@ MUVR <- function(X,
     if (length(plsFitMin$nzv$Position) > 0) incVarMin <- incVarMin[!incVarMin %in% rownames(plsFitMin$nzv$Metrics)]
     # Make Min predictions
     yFitMin <- plspredict(plsFitMin,
-                       newdata = subset(X, select = incVarMin),
-                       scale = scale)$predict[, , nComp[1]]  #
+                          newdata = subset(X, select = incVarMin),
+                          scale = scale)$predict[, , nComp[1]]  #
     ######################
     # PLS Mid fit-predict
     ######################
@@ -869,8 +869,8 @@ MUVR <- function(X,
     if (length(plsFitMid$nzv$Position) > 0) incVarMid <- incVarMid[!incVarMid %in% rownames(plsFitMid$nzv$Metrics)]
     # Make Mid predictions
     yFitMid <- plspredict(plsFitMid,
-                       newdata = subset(X, select = incVarMid),
-                       scale = scale)$predict[, , nComp[2]]  #
+                          newdata = subset(X, select = incVarMid),
+                          scale = scale)$predict[, , nComp[2]]  #
     ######################
     # PLS Max fit-predict
     ######################
@@ -891,8 +891,8 @@ MUVR <- function(X,
     if (length(plsFitMax$nzv$Position) > 0) incVarMax <- incVarMax[!incVarMax %in% rownames(plsFitMax$nzv$Metrics)]
     # Make Max predictions
     yFitMax <- plspredict(plsFitMax,
-                       newdata = subset(X, select = incVarMax),
-                       scale = scale)$predict[, , nComp[3]]  #
+                          newdata = subset(X, select = incVarMax),
+                          scale = scale)$predict[, , nComp[3]]  #
 
     # Combine fit-predictions
     yFit <- cbind(yFitMin, yFitMid, yFitMax)
