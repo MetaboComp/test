@@ -40,11 +40,16 @@ plsInner=function(xTrain,
                               near.zero.var=TRUE,
                               scale=scale)
 ####
-      yValInner=plspredict(plsModIn,
+     if(DA!=F) yValInner=plspredict.plsMUVR(plsModIn,
                         newdata=xVal,
                         onlyPred=TRUE,
                         scale=scale)$predict[,,]    ##observation new, y variables col, component 1
-    },
+    else yValInner=plspredict.plsdaMUVR(plsModIn,
+                             newdata=xVal,
+                             onlyPred=TRUE,
+                             scale=scale)$predict[,,]
+
+     },
     error=function(e) return('error'))
 ###tryCatch(stop(e), error = function(e) e, finally = print("Hello"))
 ###[1] "Hello"
