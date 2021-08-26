@@ -335,15 +335,16 @@ MUVR <- function(X,
   ####################################################
 
   # For manual debugging purposes
-  # reps <- list()
-  # for (r in 1:nRep) {
+  #reps <- list()
+
+  #for (r in 1:nRep) {
 
   reps <- foreach(r = 1:nRep,
                   .packages = packs,
                   .export = exports) %doVersion% {
                     # For manual debugging purposes
-                    # r <- 1
-                    # r <- r + 1
+                    #r <- 1
+                    #r <- r + 1
 
                     # Send intermediate outputs to log file: Not a pretty output. For debugging purposes only.
                     if (logg){sink('log.txt', append = TRUE)}
