@@ -18,7 +18,7 @@
 #' @param modReturn Boolean for returning outer segment models (defaults to FALSE). Setting modReturn = TRUE is required for making MUVR predictions using predMV().
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
-#'
+#' @param keep Confounder variables can be added. NB: Variables (columns) must match column names.
 #' @return
 #' A 'MUVR' object
 #' Further description necessary!!!
@@ -43,7 +43,7 @@ MUVR <- function(X,
                  modReturn = FALSE,
                  logg = FALSE,
                  parallel = TRUE,
-                 # keep,
+                 keep,
                  ...) {
   # Start timer
   start.time <- proc.time()[3]
@@ -111,6 +111,39 @@ MUVR <- function(X,
       )
     }
   }
+
+
+
+  #--------------------------
+  #TESSA ADDITIONS START
+  #--------------------------
+
+  # Sort out which are the "keep" variables (after one-hot and NZV)
+  #with the current solution it works if one hot encoded original variables are not in dataset column names anymore but there is a pattern
+
+  if (!missing(keep))  {
+    keeps=list()
+    for (k in 1:length(keep)) {
+      if (keep[k] %in% colnames(X)) {
+        keeps[k] <- keep[k]
+      } else if (any(grep(pattern = paste(keep[k], "_", sep=""), colnames(X)))) {
+        nlevel <- length(grep(pattern = paste(keep[k], "_", sep=""), colnames(X)))
+        for (nl in 0:(nlevel-1)) {
+          keeps[k+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
+        }
+      } else {
+        cat('keep variable not found ') #add stop as well?
+      }
+    }
+    nkeep <- length(keeps)
+  }
+
+  #--------------------------
+  #TESSA ADDITIONS END
+  #--------------------------
+
+
+
 
   ####
   # Sort out which are the "keep" variables (after one-hot and NZV)
@@ -676,13 +709,12 @@ MUVR <- function(X,
                           subset(xTest, select = incVarMin)
                         # Extract predictions
                         yPredMinR[testIndex] <-
-                          plspredict(plsOutMin,
+                          predict(plsOutMin,
                                      newdata = xTestMin,
                                      scale = scale)$predict[, , nCompOutMin[i]]  #
 
                         # Build mid model
-                        if (DA) {
-                          plsOutMid <- MUVR::plsda(
+                        if (DA) {  plsOutMid <- MUVR::plsda(
                             subset(xIn, select = incVarMid),
                             yIn,
                             ncomp = nCompOutMid[i],
@@ -702,7 +734,7 @@ MUVR <- function(X,
                         xTestMid <-nsubset(xTest, select = incVarMid)
                         # Extract predictions
                         yPredMidR[testIndex] <-
-                          plspredict(plsOutMid,
+                          predict(plsOutMid,
                                      newdata = xTestMid,
                                      scale = scale)$predict[, , nCompOutMid[i]]  #
 
@@ -729,7 +761,7 @@ MUVR <- function(X,
                         xTestMax <- subset(xTest, select = incVarMax)
                         # Extract predictions
                         yPredMaxR[testIndex] <-
-                          plspredict(plsOutMax,
+                          predict(plsOutMax,
                                      newdata = xTestMax,
                                      scale = scale)$predict[, , nCompOutMax[i]]  #
 
@@ -1130,7 +1162,7 @@ MUVR <- function(X,
     }
 
     # Make Min predictions
-    yFitMin <- plspredict(plsFitMin,
+    yFitMin <- predict(plsFitMin,
                           newdata = subset(X, select = incVarMin),
                           scale = scale)$predict[, , nComp[1]]  #
     ######################
@@ -1160,7 +1192,7 @@ MUVR <- function(X,
         incVarMid[!incVarMid %in% rownames(plsFitMid$nzv$Metrics)]
     }
     # Make Mid predictions
-    yFitMid <- plspredict(plsFitMid,
+    yFitMid <- predict(plsFitMid,
                           newdata = subset(X, select = incVarMid),
                           scale = scale)$predict[, , nComp[2]]  #
     ######################
@@ -1190,7 +1222,7 @@ MUVR <- function(X,
         incVarMax[!incVarMax %in% rownames(plsFitMax$nzv$Metrics)]
     }
     # Make Max predictions
-    yFitMax <- plspredict(plsFitMax,
+    yFitMax <- predict(plsFitMax,
                           newdata = subset(X, select = incVarMax),
                           scale = scale)$predict[, , nComp[3]]  #
 

@@ -14,7 +14,10 @@ Imports:
     ranger,
     pROC,
     doParallel,
-    foreach
+    foreach,
+    kernlab,
+    e1701,
+    klaR
 License: GPL-2
 LazyData: true
 RoxygenNote: 7.1.1
