@@ -16,7 +16,6 @@ Imports:
     doParallel,
     foreach,
     kernlab,
-    e1701,
     klaR
 License: GPL-2
 LazyData: true
