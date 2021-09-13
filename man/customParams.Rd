@@ -5,15 +5,16 @@
 \title{Make custom parameters for MUVR internal modelling,not rdCV}
 \usage{
 customParams(
-  method = c("RF", "PLS", "randomForest", "ranger"),
+  method = c("RF", "PLS", "randomForest", "ranger", "SVM"),
   robust = 0.05,
   ntreeIn = 150,
   ntreeOut = 300,
   mtryMaxIn = 150,
   compMax = 5,
-  oneHot = T,
-  NZV = T,
-  rfMethod = c("randomForest", "ranger")
+  oneHot,
+  NZV,
+  rfMethod = c("randomForest", "ranger"),
+  svmMethod = c("svm", "ksvm", "svmlight")
 )
 }
 \arguments{
@@ -30,6 +31,10 @@ customParams(
 \item{compMax}{PLS parameter: Maximum number of PLS components (defaults to 5)}
 
 \item{NZV}{}
+
+\item{rfMethod:}{"randomForest", "ranger"}
+
+\item{svmMethod:}{"svm","ksvm","svmlight"}
 }
 \value{
 a `methParam` object

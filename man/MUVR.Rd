@@ -21,6 +21,7 @@ MUVR(
   modReturn = FALSE,
   logg = FALSE,
   parallel = TRUE,
+  keep,
   ...
 )
 }
@@ -56,6 +57,8 @@ MUVR(
 \item{logg}{Boolean for whether to sink model progressions to `log.txt`}
 
 \item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
+
+\item{keep}{Confounder variables can be added. NB: Variables (columns) must match column names.}
 }
 \value{
 A 'MUVR' object

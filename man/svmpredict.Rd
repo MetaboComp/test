@@ -10,7 +10,10 @@ svmpredict(
   xTest,
   yTest,
   scale,
-  kernelmethod = c("linear", "radical", "polynomial", "sigmoid")
+  method = c("svm", "ksvm", "svmlight"),
+  kernelmethod = c("linear", "radical", "polynomial", "sigmoid"),
+  type = c("C-classification", "nu-classification", "one-classification",
+    "eps-regression", "nu-regression")
 )
 }
 \arguments{
