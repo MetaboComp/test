@@ -10,6 +10,7 @@
 #' @param DA
 #'
 #' @return  The predicted value of yTest
+#' @export
 svmpredict <- function(xTrain,
                    yTrain,
                    xTest,

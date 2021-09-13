@@ -91,11 +91,14 @@ MUVR <- function(X,
   #This requires that X is a data frame of all variables correctly categorized as numeric, factor, character and logical
   ###The X data put in MUVR should be numeric, if not, onehotencoding is used
 
+  ###When the data is data frame, oneHotencoding transformthe dataframe to matrix
+  ##when the data is a matrix, it does not need onehotencoding anyway becase the output is the same amtrix
   if (class(X)[1] == "data.frame") {
     X <- onehotencoding(X)
     cat("X is transformed to a matrix by onehotencoding.", "\n")
   }
 
+  ##now the X here is the new X after onehot encoding
 
   #by doing so.We do not need methParam$oneHot
 
@@ -124,16 +127,15 @@ MUVR <- function(X,
   if (!missing(keep))  {
     keeps=list()
     for (k in 1:length(keep)) {
-      if (keep[k] %in% colnames(X)) {
-        keeps[k] <- keep[k]
-      } else if (any(grep(pattern = paste(keep[k], "_", sep=""), colnames(X)))) {
-        nlevel <- length(grep(pattern = paste(keep[k], "_", sep=""), colnames(X)))
-        for (nl in 0:(nlevel-1)) {
-          keeps[k+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
-        }
-      } else {
-        cat('keep variable not found ') #add stop as well?
-      }
+      if (keep[k] %in% colnames(X))   ###this X is the X after onehot encoding or not
+        {keeps[k] <- keep[k]
+         } else if (any(grep(pattern = paste(keep[k], "_", sep=""), colnames(X))))
+        {nlevel <- length(grep(pattern = paste(keep[k], "_", sep=""), colnames(X)))
+         for (nl in 0:(nlevel-1))
+           {keeps[k+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
+           }
+        } else {cat('keep variable not found ') #add stop as well?
+              }
     }
     nkeep <- length(keeps)
   }
@@ -162,12 +164,26 @@ MUVR <- function(X,
   # Gets tweaked for "keeps"
   # lower limit is max(c(2, keeps))
   #
-  var <- numeric()
+  var <- numeric()   ##var is the vector of variable number in keeps
   cnt <- 0
-  while (nVar > 1) {
-    cnt <- cnt + 1
-    var <- c(var, nVar)
-    nVar <- floor(varRatio * nVar)
+  if (nkeep > 0) {
+    while (nVar >= nkeep) {
+      cnt <- cnt + 1
+      var <- c(var, nVar)
+      nVar <- floor(varRatio * nVar)   ##it is possible that in the end nVar<nkeep
+    }
+    if (!any(var == nkeep)) {
+      cnt <- cnt + 1
+      nVar2 <- ifelse(nVar >= nkeep, nVar, nkeep)
+      nVar <- nVar2
+      var <- c(var, nVar)    ##add next nVar or nkeep into it
+    }
+  } else {
+    while (nVar > 1) {
+      cnt <- cnt + 1
+      var <- c(var, nVar)
+      nVar <- floor(varRatio * nVar)
+    }
   }
 
   # Number of inner segments
@@ -602,7 +618,9 @@ MUVR <- function(X,
                                              1,
                                              mean)
                         ### This is the average of VIRank of Inner segmnet for each x variable and each cnt
-
+                        if (nkeep > 0) {
+                          VIRankInAve[names(VIRankInAve) %in% keeps] <- 0 ##0 is the highestnumber
+                        }
                         # VIRankInAve[keeps] <- 0
                         if (count < cnt) {
                           incVar <-
