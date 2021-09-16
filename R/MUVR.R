@@ -31,7 +31,7 @@ MUVR <- function(X,
                  Y,
                  ID,
                  scale = TRUE,
-                 nRep = 5,
+                 nRep=5,
                  nOuter = 6,
                  nInner,
                  varRatio = 0.75,
@@ -134,7 +134,7 @@ MUVR <- function(X,
          for (nl in 0:(nlevel-1))
            {keeps[k+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
            }
-        } else {cat('keep variable not found ') #add stop as well?
+        } else {cat(keep[k], 'variable not found ', "\n") #add stop as well?
               }
     }
     nkeep <- length(keeps)
@@ -749,7 +749,7 @@ MUVR <- function(X,
                           )
                         }
                         # Extract test data with correct variable selection
-                        xTestMid <-nsubset(xTest, select = incVarMid)
+                        xTestMid <-subset(xTest, select = incVarMid)
                         # Extract predictions
                         yPredMidR[testIndex] <-
                           predict(plsOutMid,

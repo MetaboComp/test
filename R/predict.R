@@ -9,6 +9,7 @@
 #' @param ...
 #'
 #' @return pls prediction
+#'
 #' @export
 #'
 predict.plsMUVR <-function(object,
