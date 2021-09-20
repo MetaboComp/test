@@ -166,6 +166,8 @@ MUVR <- function(X,
   #
   var <- numeric()   ##var is the vector of variable number in keeps
   cnt <- 0
+
+  if(exists("nkeeps")){
   if (nkeep > 0) {
     while (nVar >= nkeep) {
       cnt <- cnt + 1
@@ -178,13 +180,15 @@ MUVR <- function(X,
       nVar <- nVar2
       var <- c(var, nVar)    ##add next nVar or nkeep into it
     }
-  } else {
+  } }else {
     while (nVar > 1) {
       cnt <- cnt + 1
       var <- c(var, nVar)
       nVar <- floor(varRatio * nVar)
     }
   }
+
+
 
   # Number of inner segments
   if (missing(nInner)){nInner <- nOuter - 1} # Default value for inner segments
@@ -618,8 +622,10 @@ MUVR <- function(X,
                                              1,
                                              mean)
                         ### This is the average of VIRank of Inner segmnet for each x variable and each cnt
+                        if(exists("nkeep")){
                         if (nkeep > 0) {
-                          VIRankInAve[names(VIRankInAve) %in% keeps] <- 0 ##0 is the highestnumber
+                          VIRankInAve[names(VIRankInAve) %in% keeps] <- 0 ##0 is the highest number
+                        }
                         }
                         # VIRankInAve[keeps] <- 0
                         if (count < cnt) {

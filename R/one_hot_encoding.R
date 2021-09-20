@@ -95,7 +95,9 @@ new_X_matrix<-as.matrix(X)
 
     if(ncol(X_factor_frame)+ncol(X_logical_frame)==0)
     {cat("There are no factor,character and logical variables   ", "\n")
+
     }else{cat((ncol(X_factor_frame)+ncol(X_logical_frame)),"non-numeric variable(s)", "\n")
+      cat(ncol(X_numeric_frame),"numeric variable(s)", "\n")
     ###new factor variables data frame that has factor variable with >2 levels
       X_factor3_name<-character()
       X_factor3_frame<-data.frame(row.names=rownames(X))
@@ -242,6 +244,7 @@ new_X_matrix<-as.matrix(X)
                        X_logical_frame)
     new_X_matrix<-as.matrix(new_X_frame)
     }
+    cat("There are originally",ncol(X),"variables", "\n","They are transformed into ",ncol(new_X_matrix), "variables by onehotencoding", "\n")
 return(new_X_matrix)
 
 }
