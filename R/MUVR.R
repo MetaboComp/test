@@ -110,8 +110,9 @@ MUVR <- function(X,
       modelReturn$nzv <- colnames(X)[nzv$Position]
       X <- X[, -nzv$Position]
       cat('\n',length(nzv$Position),
-        'variables with near zero variance detected -> removed from X and stored under $nzv'
+        'variables with near zero variance detected -> removed from X and stored under $nzv', "\n"
       )
+      cat("They are",rownames(nzv$Metrics), "\n")
     }
   }
 
@@ -125,19 +126,26 @@ MUVR <- function(X,
   #with the current solution it works if one hot encoded original variables are not in dataset column names anymore but there is a pattern
 
   if (!missing(keep))  {
-    keeps=list()
+    keeps=vector()
     for (k in 1:length(keep)) {
       if (keep[k] %in% colnames(X))   ###this X is the X after onehot encoding or not
-        {keeps[k] <- keep[k]
-         } else if (any(grep(pattern = paste(keep[k], "_", sep=""), colnames(X))))
-        {nlevel <- length(grep(pattern = paste(keep[k], "_", sep=""), colnames(X)))
-         for (nl in 0:(nlevel-1))
-           {keeps[k+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
+        {len<-length(keeps)                            ##If there is a 3 level factor variable at 2nd place of the data then keeps[5] needs to be keep[3]
+         keeps[len+1] <- keep[k]
+         }
+      else if (any(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X))))
+        {nlevel <- length(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X)))
+        len<-length(keeps)
+        for (nl in 0:(nlevel-1))
+           {
+           keeps[len+1+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
            }
-        } else {cat(keep[k], 'variable not found ', "\n") #add stop as well?
+        }
+      else {if(!(keep[k]%in% rownames(nzv$Metrics)))cat("\n",keep[k], 'variable not found ', "\n", "\n") #add stop as well?
               }
     }
     nkeep <- length(keeps)
+    cat("\n",nkeep, "variables are kept manuallý.", "\n")
+    cat("They are", keeps, "\n")
   }
 
   #--------------------------

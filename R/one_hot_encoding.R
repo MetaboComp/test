@@ -15,7 +15,7 @@
 #To test the scenario when X has factor and charactor when using PLS
 #add one factor and one character variable(freelive data X, which originally has 112 numeric samples and 1147 observations)
 #factor varaible has 3,6,5factors(nearzero varianece),character variable has 7,4 categories
-# factor_variable1<-as.factor(c(rep(33,105),rep(44,3),rep(55,4)))
+#factor_variable1<-as.factor(c(rep("33",105),rep("44",3),rep("55",4)))
 #factor_variable2<-as.factor(c(rep("AB",20),rep("CD",10),rep("EF",30),
 #                           rep("GH",15),rep("IJ",25),rep("KL",12)))
 #factor_variable3<-as.factor(c(rep("Tessa",25),rep("Olle",30),rep("Yan",12),
@@ -223,7 +223,7 @@ new_X_matrix<-as.matrix(X)
     }
     }
     }
-    }
+
     # a is the list of new name of all the new variables that will be used
     # b is an intermediate step to use to check for error
     # c is the new 0-1 matrix
@@ -231,6 +231,7 @@ new_X_matrix<-as.matrix(X)
     if(length(c)>0){
     rownames(c[[n]])<-rownames(X)
     colnames(c[[n]])<-a[[n]]
+    }
     }
     }
     #Now I need to combine the c matrix with original X dataset X_numeric_frame
