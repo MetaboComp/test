@@ -43,7 +43,6 @@ MUVR <- function(X,
                  modReturn = FALSE,
                  logg = FALSE,
                  parallel = TRUE, 
-                 # keep,
                  ...) {
   
   # Start timer
@@ -54,6 +53,9 @@ MUVR <- function(X,
   
   # Default core modelling method
   if (missing(method)) method <- 'RF'
+  
+  # Default method parameters
+  if (missing(methParam)) methParam <- customParams(method = method)
   
   # Call in relevant package(s)
   library(pROC)
@@ -95,6 +97,7 @@ MUVR <- function(X,
   }
   
   # Sort out which are the "keep" variables (after one-hot and NZV)
+  # See MUVR2 development branch
   
   # Number of samples and variables 
   nSamp <- nrow(X)
@@ -109,7 +112,8 @@ MUVR <- function(X,
   # Figure out number of iterations in inner CV loop
   # Gets tweaked for "keeps"
   # lower limit is max(c(2, keeps))
-  # 
+  # See MUVR2 development branch
+  
   var <- numeric()
   cnt <- 0
   while (nVar > 1) {  
@@ -123,7 +127,6 @@ MUVR <- function(X,
   
   # methParams
   if(any(names(list(...)) == 'nCompMax')) stop('`nCompMax` is deprecated. Use customParams() and the methParam argument in MUVR instead.')
-  if (missing(methParam)) methParam <- customParams(method = method)
   
   # Set up randomForest package
   if (method == 'RF') {
@@ -451,6 +454,7 @@ MUVR <- function(X,
         }
         
         # Average inner VIP ranks before variable elimination - Tweak for `keeps`
+        # See MUVR2 development branch
         VIPInAve <- apply(VIPInner[, count, ], 1, mean)
         # VIPInAve[keeps] <- 0
         if (count < cnt) {

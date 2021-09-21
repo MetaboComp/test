@@ -5,7 +5,7 @@
 #'
 #' @return Balanced Error Rate (BER)
 #'
-getBER=function (actual, predicted) 
+getBER <- function (actual, predicted) 
 {
   if (length(actual) != length(predicted)) stop ("Mismatch in length of arguments")
   if (!is.factor(actual)) actual = factor(actual)
