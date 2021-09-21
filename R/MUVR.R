@@ -71,20 +71,7 @@ MUVR <- function(X,
   # I don't know how much of a problem data frames are from a time perspective. Check matrix vs DF on same dataset for time difference.
 
   # One-hot expansion of factor variables
-    if (methParam$oneHot) {
-      cat('For checking / debugging - remove when it works!')
-      whFactor <- which(sapply(as.data.frame(X), class) %in% c('factor', 'character'))
-      if (length(whFactor) > 0) {
-        for (f in whFactor) {
-          cat(f)
-          # warn if too many (>5) levels!
-          # Unpack them into one-hot format - one-hot-encode(X[,f])
-          # name them as var_level
-          # add them to X
-        }
-        X <- X[, -whFactor] # Remove original factor variables
-    }
-  }
+  #  See MUVR2 development branch 
   
   # Remove nearZeroVariance variables for PLS
   if (methParam$NZV) {
