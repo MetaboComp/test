@@ -531,7 +531,7 @@ MUVRoriginal <- function(X,
         # Extract test data with correct variable selection
         xTestMin <- subset(xTest, select = incVarMin)
         # Extract predictions
-        yPredMinR[testIndex] <- plspredict(plsOutMin,
+        yPredMinR[testIndex] <- predict(plsOutMin,
                                            newdata = xTestMin,
                                            scale = scale)$predict[, , nCompOutMin[i]]  #
 
@@ -552,7 +552,7 @@ MUVRoriginal <- function(X,
         # Extract test data with correct variable selection
         xTestMid <- subset(xTest, select = incVarMid)
         # Extract predictions
-        yPredMidR[testIndex] <- plspredict(plsOutMid,
+        yPredMidR[testIndex] <- predict(plsOutMid,
                                            newdata = xTestMid,
                                            scale = scale)$predict[, , nCompOutMid[i]]  #
 
@@ -573,7 +573,7 @@ MUVRoriginal <- function(X,
         # Extract test data with correct variable selection
         xTestMax <- subset(xTest, select = incVarMax)
         # Extract predictions
-        yPredMaxR[testIndex] <- plspredict(plsOutMax,
+        yPredMaxR[testIndex] <- predict(plsOutMax,
                                            newdata = xTestMax,
                                            scale = scale)$predict[, , nCompOutMax[i]]  #
 
@@ -847,7 +847,7 @@ MUVRoriginal <- function(X,
     # Exclude potential near zero variance variables
     if (length(plsFitMin$nzv$Position) > 0) incVarMin <- incVarMin[!incVarMin %in% rownames(plsFitMin$nzv$Metrics)]
     # Make Min predictions
-    yFitMin <- plspredict(plsFitMin,
+    yFitMin <- predict(plsFitMin,
                           newdata = subset(X, select = incVarMin),
                           scale = scale)$predict[, , nComp[1]]  #
     ######################
@@ -869,7 +869,7 @@ MUVRoriginal <- function(X,
     # Exclude potential near zero variance variables
     if (length(plsFitMid$nzv$Position) > 0) incVarMid <- incVarMid[!incVarMid %in% rownames(plsFitMid$nzv$Metrics)]
     # Make Mid predictions
-    yFitMid <- plspredict(plsFitMid,
+    yFitMid <- predict(plsFitMid,
                           newdata = subset(X, select = incVarMid),
                           scale = scale)$predict[, , nComp[2]]  #
     ######################
@@ -891,7 +891,7 @@ MUVRoriginal <- function(X,
     # Exclude potential near zero variance variables
     if (length(plsFitMax$nzv$Position) > 0) incVarMax <- incVarMax[!incVarMax %in% rownames(plsFitMax$nzv$Metrics)]
     # Make Max predictions
-    yFitMax <- plspredict(plsFitMax,
+    yFitMax <- predict(plsFitMax,
                           newdata = subset(X, select = incVarMax),
                           scale = scale)$predict[, , nComp[3]]  #
 

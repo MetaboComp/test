@@ -17,7 +17,7 @@
 #'@param logg
 #'@param parallel
 #'@param repeatMUVR  This is to decide how many MUVR to repeat(since each MUVR may give a differnent value)
-#'
+#'@param MUVRversion
 #'@return time   average time for each MUVR
 #'@return performance   average miss auc and rmsep
 #'@export
@@ -36,23 +36,31 @@ speed_and_performance<-function(X,
                                method = c('PLS',' RF'),
                                methParam,
                                ML = FALSE,
-                               modReturn = FALSE,
+                               modReturn = T,
                                logg = FALSE,
                                parallel = TRUE,
-                               repeatMUVR=2
+                               repeatMUVR=2,
+                               MUVRversion=c("MUVR","MUVRoriginal")
 
 )
   {
   performance_miss<-list()
-  performance_auc<-list()
+
   performance_Q2<-list()
+  performance_nVar<-list()
+
   MUVRclassObject<-list()
   time1<-vector()
   time2<-vector()
+
+
+
+  if(MUVRversion=="MUVR"){
   for(i in 1:repeatMUVR){
 
-
+  cat("The",i,"th time out of",repeatMUVR,"times.", "\n")
   time1[i] <- proc.time()[3]
+  nCore=8
   cl=makeCluster(nCore)
   registerDoParallel(cl)
     MUVRclassObject<-MUVR(X,Y,ID,scale,nRep,nOuter, nInner,varRatio,DA ,fitness,method,methParam,
@@ -61,11 +69,37 @@ speed_and_performance<-function(X,
   time2[i] <- proc.time()[3]
 
   if(!is.null(MUVRclassObject$miss)){performance_miss[[i]]<-MUVRclassObject$miss}
-  if(!is.null(MUVRclassObject$auc)){performance_auc[[i]]<-MUVRclassObject$auc}
+
   if(!is.null(MUVRclassObject$fitMetric$Q2)){performance_Q2[[i]]<-MUVRclassObject$fitMetric$Q2}
+  if(!is.null(MUVRclassObject$nVar)){performance_nVar[[i]]<-MUVRclassObject$nVar}
 
 
   }
+  }
+
+  if(MUVRversion=="MUVRoriginal"){
+    for(i in 1:repeatMUVR){
+
+      cat("The",i,"th time out of",repeatMUVR,"times.", "\n")
+      time1[i] <- proc.time()[3]
+      nCore=8
+      cl=makeCluster(nCore)
+      registerDoParallel(cl)
+      MUVRclassObject<-MUVRoriginal(X,Y,ID,scale,nRep,nOuter, nInner,varRatio,DA ,fitness,method,methParam,
+                            ML,modReturn,logg ,parallel)
+      stopCluster(cl)
+      time2[i] <- proc.time()[3]
+
+      if(!is.null(MUVRclassObject$miss)){performance_miss[[i]]<-MUVRclassObject$miss}
+
+      if(!is.null(MUVRclassObject$fitMetric$Q2)){performance_Q2[[i]]<-MUVRclassObject$fitMetric$Q2}
+      if(!is.null(MUVRclassObject$nVar)){performance_nVar[[i]]<-MUVRclassObject$nVar}
+
+
+    }
+  }
+
+
 
   timeperrun<-time2-time1
 
@@ -93,43 +127,40 @@ if(length(performance_miss)!=0){
 
 }
 
-if(length(performance_auc)!=0) {
+if(length(performance_nVar)!=0){
+    performance_nVar_mean<-matrix(0L,1,3)
+    for(s in 1:3){
+      for(i in 1:length(performance_nVar))
+      {performance_nVar_mean[1,s]<-performance_nVar_mean[1,s]+performance_nVar[[i]][s]}
+    }
 
-  if(!is.matrix(performance_auc[[1]])){
+    colnames(performance_nVar_mean)<-c("min","mid","max")
+    performance_nVar_mean<-performance_nVar_mean/length(performance_nVar)
 
-  performance_auc_mean<-matrix(0L,1,3)
-  for(s in 1:3){
-    for(i in 1:length(performance_auc))
-    {performance_auc_mean[1,s]<-performance_auc_mean[1,s]+performance_auc[[i]][s]}
   }
 
-  colnames(performance_auc_mean)<-c("min","mid","max")
-  performance_auc_mean<-performance_auc_mean/length(performance_auc)
-
-  }else if(is.matrix(performance_auc[[1]]))
-          {performance_auc_mean<-matrix(0L,3,dim(performance_auc[[1]])[2])
-            for(k in 1:3){
-              for(s in 1:dim(performance_auc[[1]])[2]){
-                 for(i in 1:length(performance_auc))
-              {performance_auc_mean[k,s]<-performance_auc_mean[k,s]+performance_auc[[i]][k,s]}
-            }
-            }
-            rownames(performance_auc_mean)<-c("min","mid","max")
-            colnames(performance_auc_mean)<-colnames(performance_auc[[1]])
-            performance_auc_mean<-performance_auc_mean/length(performance_auc)}
 
 
-}
+
 
   result<-list()
   result$minperrun<-timeperrun/60
   result$mean_minperrun<-mean(timeperrun)/60
   if(exists("performance_miss_mean")){
-  result$performance_miss<-performance_miss_mean}
-  if(exists("performance_auc_mean")){
-  result$performance_auc<-performance_auc_mean}
+  result$performance_miss_mean<-performance_miss_mean}
+
   if(exists("performance_Q2_mean")){
-  result$performance_Q2<-performance_Q2_mean}
+  result$performance_Q2_mean<-performance_Q2_mean}
+  if(exists("performance_nVar_mean")){
+    result$performance_nVar_mean<-performance_nVar_mean}
+
+  if(exists("performance_miss")){
+    result$performance_miss<-performance_miss}
+
+  if(exists("performance_Q2")){
+    result$performance_Q2<-performance_Q2}
+  if(exists("performance_nVar")){
+    result$performance_nVar<-performance_nVar}
 
   return(result)
 }

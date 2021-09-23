@@ -18,10 +18,11 @@ speed_and_performance(
   method = c("PLS", " RF"),
   methParam,
   ML = FALSE,
-  modReturn = FALSE,
+  modReturn = T,
   logg = FALSE,
   parallel = TRUE,
-  repeatMUVR = 2
+  repeatMUVR = 2,
+  MUVRversion = c("MUVR", "MUVRoriginal")
 )
 }
 \arguments{

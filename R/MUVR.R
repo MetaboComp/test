@@ -93,7 +93,7 @@ MUVR <- function(X,
 
   ###When the data is data frame, oneHotencoding transformthe dataframe to matrix
   ##when the data is a matrix, it does not need onehotencoding anyway becase the output is the same amtrix
-  if (class(X)[1] == "data.frame") {
+  if(any(class(X)%in% c("data.frame"))) {
     X <- onehotencoding(X)
     cat("X is transformed to a matrix by onehotencoding.", "\n")
   }

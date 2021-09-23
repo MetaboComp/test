@@ -111,7 +111,8 @@ customParams <- function(method = c('RF','PLS','randomForest','ranger',"SVM"),
        methParam$mtryMaxIn <- mtryMaxIn}
 
       if(method=="ranger")
-      {if(!missing(svmMethod)){stop('Method is ranger. There should not be svmMethod')}
+      {library(ranger)
+        if(!missing(svmMethod)){stop('Method is ranger. There should not be svmMethod')}
         if(missing(rfMethod))
         {methParam$rfMethod<-"ranger"
         }else if(rfMethod !="randomForest"&rfMethod!="ranger")
@@ -178,7 +179,7 @@ customParams <- function(method = c('RF','PLS','randomForest','ranger',"SVM"),
  if(missing(oneHot)) {
     if (methParam$method == 'PLS') {
        oneHot <- TRUE
-     } else if(methParam$method == 'RF') {
+     } else if(methParam$method == 'RF'||methParam$method=="randomForest"||methParam$method=="ranger") {
        oneHot <- FALSE
      } else if (methParam$method=="SVM")
      {oneHot <- FALSE}
@@ -188,7 +189,7 @@ customParams <- function(method = c('RF','PLS','randomForest','ranger',"SVM"),
    if(missing(NZV)) {
       if (methParam$method == 'PLS') {
         NZV <- TRUE
-      } else if(methParam$method == 'RF') {
+      } else if(methParam$method == 'RF'||methParam$method=="randomForest"||methParam$method=="ranger") {
         NZV <- FALSE
       } else if (methParam$method=="SVM")
       {NZV <- FALSE}
