@@ -140,8 +140,9 @@ MUVR <- function(X,
            keeps[len+1+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
            }
         }
-      else {if(!(keep[k]%in% rownames(nzv$Metrics)))cat("\n",keep[k], 'variable not found ', "\n", "\n") #add stop as well?
-              }
+      else {if(exists("nzv"))
+              {if(!(keep[k]%in% rownames(nzv$Metrics)))cat("\n",keep[k], 'variable not found ', "\n", "\n") #add stop as well?
+              }}
     }
     nkeep <- length(keeps)
     cat("\n",nkeep, "variables are kept manuallý.", "\n")
