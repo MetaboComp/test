@@ -39,18 +39,3 @@ However, if an analysis has a complex sample dependency which requires constrain
 or if a variable pre-selection is performed for decreased computational burden, then permutaion loops should be constructed manually.
 In those cases, View(permutations) can be a first start from which to build custom solutions for permutation analysis.
 }
-\examples{
-library(MUVR)
-library(doParallel)
-nCore=detectCores()-1
-cl=makeCluster(nCore)
-registerDoParallel(cl)
-nRep=2*nCore
-varRatio=.75
-nOuter=6
-nPerm=50
-R12ML=MUVR(X=mlr12,ML=T,nRep=nRep,nOuter=nOuter,varRatio=varRatio,method='RF')
-permR12=permutations(R12ML)
-stopCluster(cl)
-permutationPlot(R12ML,permR12)
-}
