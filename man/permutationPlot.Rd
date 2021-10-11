@@ -47,19 +47,3 @@ A permutation plot
 \description{
 This is asically a wrapper for the MUVR::plotPerm() function using model objects to make coding nicer and cleaner
 }
-\examples{
-library(MUVR)
-library(doParallel)
-nCore=detectCores()-1
-cl=makeCluster(nCore)
-registerDoParallel(cl)
-nRep=2*nCore
-varRatio=.75
-nOuter=6
-nPerm=50
-R12ML=MUVR(X=mlr12,ML=T,nRep=nRep,nOuter=nOuter,varRatio=varRatio,method='RF')
-permR12=permutations(R12ML)
-stopCluster(cl)
-permutationPlot(R12ML,permR12)
-
-}
