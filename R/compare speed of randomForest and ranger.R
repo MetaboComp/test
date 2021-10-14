@@ -13,10 +13,10 @@ library(ranger)
 #'This is to test the speed of randomForest and ranger
 #'
 #'@param x x is a data frame of many numeric variables
-#'@param y
+#'@param y y is vector
 #'@param z is a non- numeric variables matrix
-#'@param ntree
-#'@param mtry
+#'@param ntree ntree in RF
+#'@param mtry mtry in RF
 #'@param times  In microbenchmark
 #'@return time. it is a list
 #'@export

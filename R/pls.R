@@ -7,8 +7,8 @@
 #' @param ncomp Positive Integer. The number of components to include in the model. Default to 2.
 #' @param max.iter 	Integer, the maximum number of iterations. Default to 100.
 #' @param tol Positive numeric used as convergence criteria/tolerance during the iterative process. Default to 1e-06.
-#' @param near.zero.var
-#' @param scale
+#' @param near.zero.var near_zero_variance in MUVR
+#' @param scale scale or not
 #'
 #' @return a plsMUVR object
 #' @export

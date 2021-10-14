@@ -2,13 +2,13 @@
 #'
 #' Adapted and stripped down from mixOmics v 5.2.0 (https://cran.r-project.org/web/packages/mixOmics/)
 #'
-#' @param x
-#' @param y
-#' @param ncomp
-#' @param max.iter
-#' @param tol
-#' @param near.zero.var
-#' @param scale
+#' @param x x
+#' @param y y
+#' @param ncomp ncomp
+#' @param max.iter  max.iter
+#' @param tol tol
+#' @param near.zero.var near.zero.var
+#' @param scale scale
 #'
 #' @return a plsdaMUVR object
 #' @export

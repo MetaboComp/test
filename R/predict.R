@@ -5,8 +5,8 @@
 #' @param object a plsMUVR object
 #' @param newdata new data
 #' @param onlyPred Boolean for whether to report back predictions only (defaults to FALSE)
-#' @param scale
-#' @param ...
+#' @param scale scale in MUVR
+#' @param ... other argument
 #'
 #' @return pls prediction
 #'
@@ -132,7 +132,7 @@ predict.plsMUVR <-function(object,
 #' @param object a plsdaMUVR object
 #' @param newdata new data
 #' @param onlyPred Boolean for whether to report back predictions only (defaults to FALSE)
-#' @param ...
+#' @param ... other arguments
 #'
 #' @return plsda predictions
 #' @export

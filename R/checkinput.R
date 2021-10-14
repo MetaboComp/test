@@ -3,19 +3,19 @@
 #'If something goes wrong warning messages are given
 #'
 #'@param X   The original data of X, not the result after onehotencoding
-#'@param Y
-#'@param ML
-#'@param DA
-#'@param method
-#'@param fitness
+#'@param Y   The original data of Y
+#'@param ML  ML in MUVR
+#'@param DA  DA in MUVR
+#'@param method  RF or PLS so far in MUVR
+#'@param fitness fitness in MUVR
 #'
-#'@param nInner
-#'@param nOuter
-#'@param varRatio
-#'@param scale
-#'@param modReturn
-#'@param logg
-#'@param parallel
+#'@param nInner nInnerin MUVR
+#'@param nOuter nOuter in MUVR
+#'@param varRatio varRatio in MUVR
+#'@param scale scale
+#'@param modReturn modReturn in MUVR
+#'@param logg logg in MUVR
+#'@param parallel parallel in MUVR
 #'
 #'@return correct_input: the original input(call) and the real input used in MUVR when you enter your input
 #'@export

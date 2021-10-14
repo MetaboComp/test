@@ -1,23 +1,23 @@
 #'Speeding and performance test for different models
 #'
-#'@param X
-#'@param Y
-#'@param ID
-#'@param scale
-#'@param nRep
-#'@param nOuter
-#'@param nInner
-#'@param varRatio = 0.75,
-#'@param DA
-#'@param fitness
-#'@param method
-#'@param methParam
-#'@param ML
-#'@param modReturn
-#'@param logg
-#'@param parallel
+#'@param X X in MUVR
+#'@param Y Y in MUVR
+#'@param ID ID in MUVR
+#'@param scale scale in MUVR
+#'@param nRep nRep in MUVR
+#'@param nOuter nOuter in MUVR
+#'@param nInner nInner in MUVR
+#'@param varRatio = 0.75 varRatio in MUVR
+#'@param DA DA in MUVR
+#'@param fitness fitness in MUVR
+#'@param method method in MUVR
+#'@param methParam methParam in MUVR
+#'@param ML ML in MUVR
+#'@param modReturn modReturn in MUVR
+#'@param logg logg in MUVR
+#'@param parallel parallel X in MUVR
 #'@param repeatMUVR  This is to decide how many MUVR to repeat(since each MUVR may give a differnent value)
-#'@param MUVRversion
+#'@param MUVRversion "MUVR" or "MUVRoriginal"
 #'@return time   average time for each MUVR
 #'@return performance   average miss auc and rmsep
 #'@export
