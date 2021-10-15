@@ -13,7 +13,7 @@
 
 \item{onlyPred}{Boolean for whether to report back predictions only (defaults to FALSE)}
 
-\item{...}{}
+\item{...}{other arguments}
 }
 \value{
 plsda predictions

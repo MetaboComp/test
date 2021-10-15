@@ -9,9 +9,15 @@ timesummary(x, y, z, times = 100, mtry = 5, ntree = 500)
 \arguments{
 \item{x}{x is a data frame of many numeric variables}
 
+\item{y}{y is vector}
+
 \item{z}{is a non- numeric variables matrix}
 
 \item{times}{In microbenchmark}
+
+\item{mtry}{mtry in RF}
+
+\item{ntree}{ntree in RF}
 }
 \value{
 time. it is a list

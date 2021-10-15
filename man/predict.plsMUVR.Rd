@@ -13,7 +13,9 @@
 
 \item{onlyPred}{Boolean for whether to report back predictions only (defaults to FALSE)}
 
-\item{...}{}
+\item{scale}{scale in MUVR}
+
+\item{...}{other argument}
 }
 \value{
 pls prediction

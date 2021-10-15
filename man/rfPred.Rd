@@ -16,7 +16,21 @@ rfPred(
 )
 }
 \arguments{
-\item{DA}{}
+\item{xTrain}{xTrain}
+
+\item{yTrain}{yTrain}
+
+\item{xTest}{xTest}
+
+\item{yTest}{yTest}
+
+\item{ntree}{ntree}
+
+\item{DA}{DA}
+
+\item{keep.forest}{keep.forest}
+
+\item{method}{method}
 }
 \value{
 The predicted value of yTest

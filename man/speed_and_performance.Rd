@@ -26,9 +26,41 @@ speed_and_performance(
 )
 }
 \arguments{
-\item{varRatio}{= 0.75,}
+\item{X}{X in MUVR}
+
+\item{Y}{Y in MUVR}
+
+\item{ID}{ID in MUVR}
+
+\item{scale}{scale in MUVR}
+
+\item{nRep}{nRep in MUVR}
+
+\item{nOuter}{nOuter in MUVR}
+
+\item{nInner}{nInner in MUVR}
+
+\item{varRatio}{= 0.75 varRatio in MUVR}
+
+\item{DA}{DA in MUVR}
+
+\item{fitness}{fitness in MUVR}
+
+\item{method}{method in MUVR}
+
+\item{methParam}{methParam in MUVR}
+
+\item{ML}{ML in MUVR}
+
+\item{modReturn}{modReturn in MUVR}
+
+\item{logg}{logg in MUVR}
+
+\item{parallel}{parallel X in MUVR}
 
 \item{repeatMUVR}{This is to decide how many MUVR to repeat(since each MUVR may give a differnent value)}
+
+\item{MUVRversion}{"MUVR" or "MUVRoriginal"}
 }
 \value{
 time   average time for each MUVR

@@ -11,8 +11,8 @@
 #' @param compMax PLS parameter: Maximum number of PLS components (defaults to 5)
 #' @param rfMethod: "randomForest", "ranger"
 #' @param svmMethod: "svm","ksvm","svmlight"
-#' @param oneHot
-#' @param NZV
+#' @param oneHot  T or F using onehot endcoding or not
+#' @param NZV T or F using NZV or not
 #'
 #' @return a `methParam` object
 #' @export

@@ -25,7 +25,9 @@ pls(
 
 \item{tol}{Positive numeric used as convergence criteria/tolerance during the iterative process. Default to 1e-06.}
 
-\item{scale}{}
+\item{near.zero.var}{near_zero_variance in MUVR}
+
+\item{scale}{scale or not}
 }
 \value{
 a plsMUVR object

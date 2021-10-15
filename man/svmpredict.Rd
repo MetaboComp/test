@@ -17,7 +17,17 @@ svmpredict(
 )
 }
 \arguments{
-\item{DA}{}
+\item{xTrain}{xTrain}
+
+\item{yTrain}{yTrain}
+
+\item{xTest}{xTest}
+
+\item{yTest}{yTest}
+
+\item{kernelmethod}{The build in method of svm "linear","radical","polynomial","sigmoid"}
+
+\item{DA}{DA or not, coming form MUVR}
 }
 \value{
 The predicted value of yTest

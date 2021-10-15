@@ -15,7 +15,19 @@ plsda(
 )
 }
 \arguments{
-\item{scale}{}
+\item{x}{x}
+
+\item{y}{y}
+
+\item{ncomp}{ncomp}
+
+\item{max.iter}{max.iter}
+
+\item{tol}{tol}
+
+\item{near.zero.var}{near.zero.var}
+
+\item{scale}{scale}
 }
 \value{
 a plsdaMUVR object

@@ -1,13 +1,12 @@
 #' RF predictions for outer segments and consensus models
 #'
-#' @param xTrain
-#' @param yTrain
-#' @param xTest
-#' @param yTest
-#' @param
-#' @param
-#' @param kernelmethod
-#' @param DA
+#' @param xTrain xTrain
+#' @param yTrain yTrain
+#' @param xTest xTest
+#' @param yTest yTest
+
+#' @param kernelmethod  The build in method of svm "linear","radical","polynomial","sigmoid"
+#' @param DA DA or not, coming form MUVR
 #'
 #' @return  The predicted value of yTest
 #' @export

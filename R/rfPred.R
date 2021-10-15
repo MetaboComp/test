@@ -1,13 +1,13 @@
 #' RF predictions for outer segments and consensus models
 #'
-#' @param xTrain
-#' @param yTrain
-#' @param xTest
-#' @param yTest
-#' @param ntree
-#' @param keep.forest
-#' @param method
-#' @param DA
+#' @param xTrain xTrain
+#' @param yTrain yTrain
+#' @param xTest xTest
+#' @param yTest yTest
+#' @param ntree ntree
+#' @param keep.forest keep.forest
+#' @param method method
+#' @param DA DA
 #'
 #' @return  The predicted value of yTest
 #' @export

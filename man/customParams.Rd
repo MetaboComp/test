@@ -30,7 +30,9 @@ customParams(
 
 \item{compMax}{PLS parameter: Maximum number of PLS components (defaults to 5)}
 
-\item{NZV}{}
+\item{oneHot}{T or F using onehot endcoding or not}
+
+\item{NZV}{T or F using NZV or not}
 
 \item{rfMethod:}{"randomForest", "ranger"}
 

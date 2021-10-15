@@ -2,8 +2,8 @@
 #'
 #' At present, this function only supports predictions for PLS regression type problems
 #'
-#' @param Ytrue
-#' @param Ypreds
+#' @param Ytrue True value of Y
+#' @param Ypreds Predicted value of Y
 #'
 #' @export
 plotPred=function(Ytrue,Ypreds) {   ###when Y true is a row, Ypreds is a row

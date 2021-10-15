@@ -7,7 +7,9 @@
 plotPred(Ytrue, Ypreds)
 }
 \arguments{
-\item{Ypreds}{}
+\item{Ytrue}{True value of Y}
+
+\item{Ypreds}{Predicted value of Y}
 }
 \description{
 At present, this function only supports predictions for PLS regression type problems
