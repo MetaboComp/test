@@ -33,7 +33,7 @@ qMUVR(
 
 \item{nOuter}{Number of outer segments}
 
-\item{...}{}
+\item{...}{Additional arguments(see MUVR)}
 }
 \value{
 MUVR object

@@ -7,7 +7,7 @@
 svmInner(x, y, kernal, cost, gamma)
 }
 \arguments{
-\item{cost}{}
+\item{cost}{cost}
 
 \item{xTrain}{Training data (samples as rows; variables as columns)}
 

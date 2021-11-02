@@ -10,7 +10,7 @@
 #' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
 #' @param ntree See original function (`randomForest`). Passed from wrapper.
 #' @param method Choice of Random Forest implementation (randomForest, ranger or Rborist). Passed from wrapper.
-#' @param cost
+#' @param cost cost
 #'
 #' @return An object containing:
 #' @return (`miss`,`ber`,`auc` or `rmsep`) A fitness metric

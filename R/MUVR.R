@@ -19,6 +19,7 @@
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
 #' @param keep Confounder variables can be added. NB: Variables (columns) must match column names.
+#' @param ... additional argument
 #' @return
 #' A 'MUVR' object
 #' Further description necessary!!!
@@ -145,7 +146,7 @@ MUVR <- function(X,
               }}
     }
     nkeep <- length(keeps)
-    cat("\n",nkeep, "variables are kept manuallý.", "\n")
+    cat("\n",nkeep, "variables are kept manually.", "\n")
     cat("They are", keeps, "\n")
   }
 

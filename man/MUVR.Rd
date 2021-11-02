@@ -59,6 +59,8 @@ MUVR(
 \item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
 
 \item{keep}{Confounder variables can be added. NB: Variables (columns) must match column names.}
+
+\item{...}{additional argument}
 }
 \value{
 A 'MUVR' object
