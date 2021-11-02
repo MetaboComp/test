@@ -8,7 +8,7 @@
 #' @param nCore Number of threads to use for calculation (defaults to detectCores()-1)
 #' @param repMult Multiplier of cores -> nRep = repMult * nCore
 #' @param nOuter Number of outer segments
-#' @param ...
+#' @param ... Additional arguments(see MUVR)
 #'
 #' @return MUVR object
 #' @export
