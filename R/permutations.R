@@ -31,6 +31,20 @@
 ## stopCluster(cl)
 ## permutationPlot(R12ML,permR12)
 
+#' Title
+#'
+#' @param MUVRclassObject
+#' @param nPerm
+#' @param nRep
+#' @param nOuter
+#' @param varRatio
+#' @param parallel
+#' @param permutation_type
+#'
+#' @return
+#' @export
+#'
+
 permutations=function(MUVRclassObject,
                       nPerm=50,
                       nRep,

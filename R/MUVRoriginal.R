@@ -18,6 +18,7 @@
 #' @param modReturn Boolean for returning outer segment models (defaults to FALSE). Setting modReturn = TRUE is required for making MUVR predictions using predMV().
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
+#' @param ... Additional argument
 #'
 #' @return
 #' A MUVR object
