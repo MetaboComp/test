@@ -56,6 +56,8 @@ MUVRoriginal(
 \item{logg}{Boolean for whether to sink model progressions to `log.txt`}
 
 \item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
+
+\item{...}{Additional argument}
 }
 \value{
 A MUVR object

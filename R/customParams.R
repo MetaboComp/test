@@ -9,10 +9,10 @@
 #' @param ntreeOut RF parameter: Number of trees in outer (consensus) cross-validation loop models (defaults to 300)
 #' @param mtryMaxIn RF parameter: Max number of variables to sample from at each node in the inner CV loop (defaults to 150). Will be further limited by standard RF rules (see randomForest documentation)
 #' @param compMax PLS parameter: Maximum number of PLS components (defaults to 5)
-#' @param rfMethod: "randomForest", "ranger"
-#' @param svmMethod: "svm","ksvm","svmlight"
 #' @param oneHot  T or F using onehot endcoding or not
 #' @param NZV T or F using NZV or not
+#' @param rfMethod randomforest method, which includes randomForest and ranger
+#' @param svmMethod support vector machine method which includes 3 different support vector machine methods
 #'
 #' @return a `methParam` object
 #' @export

@@ -133,13 +133,14 @@ predict.plsMUVR <-function(object,
 #' @param newdata new data
 #' @param onlyPred Boolean for whether to report back predictions only (defaults to FALSE)
 #' @param ... other arguments
+#' @param scale scale in MUVR
 #'
 #' @return plsda predictions
 #' @export
 predict.plsdaMUVR=function(object,
                            newdata,
+                           scale=TRUE,##scale in MUVR
                            onlyPred=FALSE,
-                           scale=TRUE,
                            ...)  {
   #-- validation des arguments --#
   if (missing(newdata)) stop("No new data available.")

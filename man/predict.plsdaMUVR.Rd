@@ -4,12 +4,14 @@
 \alias{predict.plsdaMUVR}
 \title{Predict plsda}
 \usage{
-\method{predict}{plsdaMUVR}(object, newdata, onlyPred = FALSE, scale = TRUE, ...)
+\method{predict}{plsdaMUVR}(object, newdata, scale = TRUE, onlyPred = FALSE, ...)
 }
 \arguments{
 \item{object}{a plsdaMUVR object}
 
 \item{newdata}{new data}
+
+\item{scale}{scale in MUVR}
 
 \item{onlyPred}{Boolean for whether to report back predictions only (defaults to FALSE)}
 

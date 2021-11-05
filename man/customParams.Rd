@@ -34,9 +34,9 @@ customParams(
 
 \item{NZV}{T or F using NZV or not}
 
-\item{rfMethod:}{"randomForest", "ranger"}
+\item{rfMethod}{randomforest method, which includes randomForest and ranger}
 
-\item{svmMethod:}{"svm","ksvm","svmlight"}
+\item{svmMethod}{support vector machine method which includes 3 different support vector machine methods}
 }
 \value{
 a `methParam` object

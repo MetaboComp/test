@@ -11,12 +11,11 @@
 #' @param nOuter number of outer validation segments for each permutation (defaults to value of actual model)
 #' @param varRatio varRatio for each permutation (defaults to value of actual model)
 #' @param parallel whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)
+#' @param permutation_type Either AUROC,Q2 or MISS or BER
+#' @return  permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
 #'
-#' @return permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
-#' @return permutation_type: Either AUROC,Q2 or MISS or BER
 #' @export
-#'
-
+#' @examples
 ## library(MUVR)
 ##  library(doParallel)
 ##  nCore=detectCores()-1
@@ -31,19 +30,7 @@
 ## stopCluster(cl)
 ## permutationPlot(R12ML,permR12)
 
-#' Title
-#'
-#' @param MUVRclassObject
-#' @param nPerm
-#' @param nRep
-#' @param nOuter
-#' @param varRatio
-#' @param parallel
-#' @param permutation_type
-#'
-#' @return
-#' @export
-#'
+
 
 permutations=function(MUVRclassObject,
                       nPerm=50,

@@ -26,11 +26,11 @@ permutations(
 \item{varRatio}{varRatio for each permutation (defaults to value of actual model)}
 
 \item{parallel}{whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)}
+
+\item{permutation_type}{Either AUROC,Q2 or MISS or BER}
 }
 \value{
 permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
-
-permutation_type: Either AUROC,Q2 or MISS or BER
 }
 \description{
 This function will extract data and parameter settings from a MUVR object and run standard permutations.
