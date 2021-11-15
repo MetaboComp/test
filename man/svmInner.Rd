@@ -4,7 +4,7 @@
 \alias{svmInner}
 \title{Support vector machine model in inner CV loop}
 \usage{
-svmInner(x, y, kernal, cost, gamma)
+svmInner(x, y, epsilon, kernal, cost, gamma, degree)
 }
 \arguments{
 \item{cost}{cost}

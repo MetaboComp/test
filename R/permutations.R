@@ -39,11 +39,11 @@ permutations=function(MUVRclassObject,
                       varRatio,
                       parallel,
                       permutation_type= c('AUROC', 'MISS', 'RMSEP',"BER")) {
-
+  if (!any(class(MUVRclassObject) == 'MUVR')) stop('Wrong object class')
 ##substitute() is often paired with deparse(). That function takes the result of substitute(), an expression,
 ##and turns it into a character vector.
 
-  name=deparse(substitute(MUVRclassObject))   ###the output is "MUVRclassObject"
+name=deparse(substitute(MUVRclassObject))   ###the output is "MUVRclassObject"
 
 
   X=MUVRclassObject$inData$X

@@ -16,8 +16,16 @@ svmpredict <- function(xTrain,
                    yTest,
                    scale,
                    method=c("svm","ksvm","svmlight"),
-                   kernelmethod=c("linear","radical","polynomial","sigmoid"),
-                   type=c("C-classification","nu-classification","one-classification","eps-regression","nu-regression")
+                   kernelmethod=c("linear",
+                                  "radical",
+                                  "polynomial",
+                                  "sigmoid"),
+                   type=c("C-classification",
+                          "nu-classification",
+                          "one-classification",
+                          "eps-regression",
+                          "nu-regression")
+
                    ) {
 
 
@@ -36,8 +44,10 @@ svmpredict <- function(xTrain,
   }
   tesdat<-data.frame(x=xTest,
                      y=yTest)
-  if(missing(method)){method="svm"}
-  if(!method %in% c("svm","ksvm","svmlight")){stop("This method is not applied")}
+  if(missing(method))
+    {method="svm"}
+  if(!method %in% c("svm","ksvm","svmlight"))
+    {stop("This method is not applied")}
   ##some notes
   ##for svm, when y is factor, it automatically use C-classification, when y is numeric, it use eps regression
 

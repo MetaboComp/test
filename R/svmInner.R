@@ -28,9 +28,11 @@
 
 svmInner<-function(x,
                    y,
+                   epsilon,
                    kernal,
                    cost,
-                   gamma){
+                   gamma,
+                   degree){
 
 
 
