@@ -23,10 +23,11 @@ You also need to have the `remotes` R package installed. Just run the following 
 ```
 install.packages('remotes')
 ```
-When `remotes` is installed, you can install the `MUVR` package by running:
+When `remotes` is installed, you can install the `MUVR` package by running (In this scenario you donot need devtools since remotes is part of devtools package):
 ```
 library(remotes)
 install_gitlab('CarlBrunius/MUVR')
+install_gitlab('CarlBrunius/MUVR@nameofbranch')  ##to install a branch
 ```
 
 In addition to functions relevant for crossvalidated, predictive multivariate modelling, the MUVR package also provides data to accurately reproduce figures from the original *Shi et al* paper (below).
