@@ -11,10 +11,12 @@ customParams(
   ntreeOut = 300,
   mtryMaxIn = 150,
   compMax = 5,
+  scoring_matrix = F,
   oneHot,
   NZV,
   rfMethod = c("randomForest", "ranger"),
-  svmMethod = c("svm", "ksvm", "svmlight")
+  svmMethod = c("svm", "ksvm", "svmlight"),
+  annMethod = c("nnet", "neuralnet")
 )
 }
 \arguments{
@@ -29,6 +31,8 @@ customParams(
 \item{mtryMaxIn}{RF parameter: Max number of variables to sample from at each node in the inner CV loop (defaults to 150). Will be further limited by standard RF rules (see randomForest documentation)}
 
 \item{compMax}{PLS parameter: Maximum number of PLS components (defaults to 5)}
+
+\item{scoring_matrix}{A matrix that its score can be adjusted}
 
 \item{oneHot}{T or F using onehot endcoding or not}
 

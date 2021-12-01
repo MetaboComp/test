@@ -11,6 +11,7 @@ confusionMatrix=function(MVObj,model='mid'){
   nMod=ifelse(model=='min',1,ifelse(model=='mid',2,3))
   actual=MVObj$inData$Y
   predicted=MVObj$yClass[,nMod]
-  table(actual=actual,predicted=predicted)
+  confusion_matrix=matrix(table(actual=actual,predicted=predicted))
+  return(confusion_matrix)
 }
 
