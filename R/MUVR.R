@@ -192,14 +192,16 @@ MUVR <- function(X,
       }
 
 
-      #####Could be remove?
+      #####Could it be remove? actually I think it could be simplified to
+      ###if (nVar==nkeep){var <- c(var, nVar)}
+
       if (!any(var == nkeep)) {
         cnt <- cnt + 1
         nVar2 <- ifelse(nVar >= nkeep, nVar, nkeep)
         nVar <- nVar2
         var <- c(var, nVar)    ##add next nVar or nkeep into it
       }
-      #####I am not sure if this should be remove or not
+
 
 
 
