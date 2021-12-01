@@ -19,6 +19,8 @@
 #' @param logg Boolean for whether to sink model progressions to `log.txt`
 #' @param parallel Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)
 #' @param keep Confounder variables can be added. NB: Variables (columns) must match column names.
+#' @param weigh_added To add a weighing matrix when it is classfication
+#' @param weighing_matrix The matrix used for get a miss classfication score
 #' @param ... additional argument
 #'
 #' @return
@@ -45,6 +47,8 @@ MUVR <- function(X,
                  modReturn = FALSE,
                  logg = FALSE,
                  parallel = TRUE,
+                 weigh_added = FALSE,
+                 weighing_matrix,
                  keep,
                  ...) {
   # Start timer
@@ -112,7 +116,7 @@ MUVR <- function(X,
       modelReturn$nzv <- colnames(X)[nzv$Position]
       X <- X[, -nzv$Position]
       cat('\n',length(nzv$Position),
-        'variables with near zero variance detected -> removed from X and stored under $nzv', "\n"
+          'variables with near zero variance detected -> removed from X and stored under $nzv', "\n"
       )
       cat("They are",rownames(nzv$Metrics), "\n")
     }
@@ -131,20 +135,21 @@ MUVR <- function(X,
     keeps=vector()
     for (k in 1:length(keep)) {
       if (keep[k] %in% colnames(X))   ###this X is the X after onehot encoding or not
-        {len<-length(keeps)                            ##If there is a 3 level factor variable at 2nd place of the data then keeps[5] needs to be keep[3]
-         keeps[len+1] <- keep[k]
-         }
+      {len<-length(keeps)                            ##If there is a 3 level factor variable at 2nd place of the data then keeps[5] needs to be keep[3]
+      keeps[len+1] <- keep[k]
+      }
       else if (any(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X))))
-        {nlevel <- length(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X)))
-        len<-length(keeps)
-        for (nl in 0:(nlevel-1))
-           {
-           keeps[len+1+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][1+nl]
-           }
-        }
+      {nlevel <- length(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X)))
+      len<-length(keeps)
+      for (nl in 1:nlevel)
+      {
+        keeps[len+nl] <- colnames(X)[grep(pattern = paste(keep[k], "_", sep=""), colnames(X))][nl]
+      }
+      }
       else {if(exists("nzv"))
-              {if(!(keep[k]%in% rownames(nzv$Metrics)))cat("\n",keep[k], 'variable not found ', "\n", "\n") #add stop as well?
-              }}
+      {if(!(keep[k]%in% rownames(nzv$Metrics)))stop("\n",keep[k], 'variable in the NearZeroVariance Variables',
+                                                    "\n", "\n")
+      }}
     }
     nkeep <- length(keeps)
     cat("\n",nkeep, "variables are kept manually.", "\n")
@@ -179,25 +184,32 @@ MUVR <- function(X,
   cnt <- 0
 
   if(exists("nkeeps")){
-  if (nkeep > 0) {
-    while (nVar >= nkeep) {
-      cnt <- cnt + 1
-      var <- c(var, nVar)
-      nVar <- floor(varRatio * nVar)   ##it is possible that in the end nVar<nkeep
+    if (nkeep > 0) {
+      while (nVar > nkeep) {
+        cnt <- cnt + 1
+        var <- c(var, nVar)
+        nVar <- max(floor(varRatio*nVar), nkeep)   ##it is possible that in the end nVar<nkeep
+      }
+
+
+      #####Could be remove?
+      if (!any(var == nkeep)) {
+        cnt <- cnt + 1
+        nVar2 <- ifelse(nVar >= nkeep, nVar, nkeep)
+        nVar <- nVar2
+        var <- c(var, nVar)    ##add next nVar or nkeep into it
+      }
+      #####I am not sure if this should be remove or not
+
+
+
+    } }else {
+      while (nVar > 1) {
+        cnt <- cnt + 1
+        var <- c(var, nVar)
+        nVar <- floor(varRatio * nVar)
+      }
     }
-    if (!any(var == nkeep)) {
-      cnt <- cnt + 1
-      nVar2 <- ifelse(nVar >= nkeep, nVar, nkeep)
-      nVar <- nVar2
-      var <- c(var, nVar)    ##add next nVar or nkeep into it
-    }
-  } }else {
-    while (nVar > 1) {
-      cnt <- cnt + 1
-      var <- c(var, nVar)
-      nVar <- floor(varRatio * nVar)
-    }
-  }
 
 
 
@@ -268,6 +280,9 @@ MUVR <- function(X,
 
   # Additional sanity check
   if (nrow(X) != length(Y)){stop('Must have same nSamp in X and Y.')}
+
+
+
 
 
 
@@ -492,7 +507,7 @@ MUVR <- function(X,
                           nrow = nInner,
                           ncol = cnt,
                           dimnames = list(paste(rep('inSeg', nInner), 1:nInner, sep = ''),
-                          var)
+                                          var)
                         )
                       # Allocate VIRank variable for the inner data
                       VIRankInner <- array(
@@ -522,12 +537,12 @@ MUVR <- function(X,
 
                         # Tweak method parameters for low number of variables
                         if (method == 'PLS')
-                          {comp <-min(c(nVar, methParam$compMax))} # nComp cannot be > nVar
+                        {comp <-min(c(nVar, methParam$compMax))} # nComp cannot be > nVar
                         if (method == 'RF') {
                           mtryIn <- ifelse(DA,
                                            min(c(methParam$mtryMaxIn,floor(sqrt(nVar)))), # Standard but with upper limit
                                            min(c(methParam$mtryMaxIn,floor(nVar / 3)))
-                                           ) # Standard but with upper limit
+                          ) # Standard but with upper limit
                           mtryIn <- max(c(2, mtryIn)) # Lower limit
                         }
 
@@ -583,13 +598,13 @@ MUVR <- function(X,
                           # Make inner model
                           if (method == 'PLS') {
                             inMod <- MUVR::plsInner(xTrain,
-                                              yTrain,
-                                              xVal,
-                                              yVal,
-                                              DA,
-                                              fitness,
-                                              comp,
-                                              scale = scale)
+                                                    yTrain,
+                                                    xVal,
+                                                    yVal,
+                                                    DA,
+                                                    fitness,
+                                                    comp,
+                                                    scale = scale)
                             nCompIn[j, count] <- inMod$nComp
                           } else if (method == 'RF') {
                             inMod <- rfInner(
@@ -622,22 +637,24 @@ MUVR <- function(X,
                           }
 
                           # Store VIRanks
-                          VIRankInner[match(names(inMod$virank),
+                          VIRankInner[match(names(inMod$virank),  ###tell it where to put in
                                             rownames(VIRankInner)),
                                       count,
-                                      j] <- inMod$virank
+                                      j] <- inMod$virank  ###put it in
+
                         }   ###where each Inner ends
 
+                        if(exists("nkeep")){
+                          if (nkeep > 0) {
+                            VIRankInner[rownames(VIRankInner) %in% keeps,count,] <- 0 ##0 is the highest number
+                          }
+                        }
                         # Average inner VIP ranks before variable elimination - Tweak for `keeps`
                         VIRankInAve <- apply(VIRankInner[, count, ],
                                              1,
                                              mean)
                         ### This is the average of VIRank of Inner segmnet for each x variable and each cnt
-                        if(exists("nkeep")){
-                        if (nkeep > 0) {
-                          VIRankInAve[names(VIRankInAve) %in% keeps] <- 0 ##0 is the highest number
-                        }
-                        }
+
                         # VIRankInAve[keeps] <- 0
                         if (count < cnt) {
                           incVar <-
@@ -745,17 +762,17 @@ MUVR <- function(X,
                         # Extract predictions
                         yPredMinR[testIndex] <-
                           predict(plsOutMin,
-                                     newdata = xTestMin,
-                                     scale = scale)$predict[, , nCompOutMin[i]]  #
+                                  newdata = xTestMin,
+                                  scale = scale)$predict[, , nCompOutMin[i]]  #
 
                         # Build mid model
                         if (DA) {  plsOutMid <- MUVR::plsda(
-                            subset(xIn, select = incVarMid),
-                            yIn,
-                            ncomp = nCompOutMid[i],
-                            near.zero.var = TRUE,
-                            scale = scale
-                          )
+                          subset(xIn, select = incVarMid),
+                          yIn,
+                          ncomp = nCompOutMid[i],
+                          near.zero.var = TRUE,
+                          scale = scale
+                        )
                         } else {
                           plsOutMid <- MUVR::pls(
                             subset(xIn, select = incVarMid),
@@ -770,8 +787,8 @@ MUVR <- function(X,
                         # Extract predictions
                         yPredMidR[testIndex] <-
                           predict(plsOutMid,
-                                     newdata = xTestMid,
-                                     scale = scale)$predict[, , nCompOutMid[i]]  #
+                                  newdata = xTestMid,
+                                  scale = scale)$predict[, , nCompOutMid[i]]  #
 
                         # Build max model
                         if (DA) {
@@ -797,8 +814,8 @@ MUVR <- function(X,
                         # Extract predictions
                         yPredMaxR[testIndex] <-
                           predict(plsOutMax,
-                                     newdata = xTestMax,
-                                     scale = scale)$predict[, , nCompOutMax[i]]  #
+                                  newdata = xTestMax,
+                                  scale = scale)$predict[, , nCompOutMax[i]]  #
 
                         # Extract models for external predictions
                         if (modReturn) {
@@ -1198,8 +1215,8 @@ MUVR <- function(X,
 
     # Make Min predictions
     yFitMin <- predict(plsFitMin,
-                          newdata = subset(X, select = incVarMin),
-                          scale = scale)$predict[, , nComp[1]]  #
+                       newdata = subset(X, select = incVarMin),
+                       scale = scale)$predict[, , nComp[1]]  #
     ######################
     # PLS Mid fit-predict
     ######################
@@ -1228,8 +1245,8 @@ MUVR <- function(X,
     }
     # Make Mid predictions
     yFitMid <- predict(plsFitMid,
-                          newdata = subset(X, select = incVarMid),
-                          scale = scale)$predict[, , nComp[2]]  #
+                       newdata = subset(X, select = incVarMid),
+                       scale = scale)$predict[, , nComp[2]]  #
     ######################
     # PLS Max fit-predict
     ######################
@@ -1258,8 +1275,8 @@ MUVR <- function(X,
     }
     # Make Max predictions
     yFitMax <- predict(plsFitMax,
-                          newdata = subset(X, select = incVarMax),
-                          scale = scale)$predict[, , nComp[3]]  #
+                       newdata = subset(X, select = incVarMax),
+                       scale = scale)$predict[, , nComp[3]]  #
 
     # Combine fit-predictions
     yFit <- cbind(yFitMin, yFitMid, yFitMax)
@@ -1325,6 +1342,7 @@ MUVR <- function(X,
 
   # Calculate fit statistics
   if (!DA) {
+    if(!missing(weighing_matrix)){warning("This is not classification. Weighing matrix is ignored")}
     TSS <- sum((Y - mean(Y)) ^ 2)
     RSSMin <- sum((Y - yFitMin) ^ 2)
     RSSMid <- sum((Y - yFitMid) ^ 2)
@@ -1342,8 +1360,43 @@ MUVR <- function(X,
     # Report
     modelReturn$fitMetric <- list(R2 = R2,
                                   Q2 = Q2)
-  } else {
-    modelReturn$fitMetric <- list(CR = 1 - (miss / length(Y)))
+  } else {##This is where the weighting matrix that comes in
+    ###########################################################################################################
+    if(!missing(weighing_matrix))
+    {warning("Weighing matrix is added (overwrite weigh_added command)")
+      weigh_added=T}
+
+    if(weigh_added==F){
+      modelReturn$fitMetric <- list(CR = 1 - (miss / length(Y)))
+    } else{
+
+      if(missing(weighing_matrix)){
+        warning("Missing weighing_matrix,weighing_matrix will be diagnoal")
+        weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
+      }
+      if(dim(weighing_matrix)!=c(length(levels(Y)),length(levels(Y)))){
+        stop("The dimension of weighing_matrix is not correct")
+      }
+      confusion_matrix_list<-list()
+      scoring_matrix_list<-list()
+      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass["min"]))
+      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass["mid"]))
+      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass["max"]))
+      scoring_matrix_list$min<-confusion_matrix_list$min*weighing_matrix
+      scoring_matrix_list$mid<-confusion_matrix_list$mid*weighing_matrix
+      scoring_matrix_list$max<-confusion_matrix_list$max*weighing_matrix
+      miss_min<-sum(scoring_matrix_list$min)/length(Y)
+      miss_mid<-sum(scoring_matrix_list$mid)/length(Y)
+      miss_max<-sum(scoring_matrix_list$max)/length(Y)
+      miss_score<-c(miss_min,miss_mid,miss_max)
+      names(miss_score)<- c('min', 'mid', 'max')
+      modelReturn$fitMetric <-list(CR = 1 - (miss_score / length(Y)))
+
+
+
+    }
+    #################################################################################################################
+
   }
 
   # Set class
@@ -1362,6 +1415,11 @@ MUVR <- function(X,
 
   # Output
   cat('\n Elapsed time', modelReturn$calcMins, 'mins \n')
+
+
+
+
+
 
   # Return final object
   return(modelReturn)

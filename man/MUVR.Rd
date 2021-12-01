@@ -21,6 +21,8 @@ MUVR(
   modReturn = FALSE,
   logg = FALSE,
   parallel = TRUE,
+  weigh_added = FALSE,
+  weighing_matrix,
   keep,
   ...
 )
@@ -57,6 +59,10 @@ MUVR(
 \item{logg}{Boolean for whether to sink model progressions to `log.txt`}
 
 \item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
+
+\item{weigh_added}{To add a weighing matrix when it is classfication}
+
+\item{weighing_matrix}{The matrix used for get a miss classfication score}
 
 \item{keep}{Confounder variables can be added. NB: Variables (columns) must match column names.}
 
