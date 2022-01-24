@@ -98,7 +98,7 @@ rfInner <- function(xTrain,
   if (fitness == 'MISS') {
     # cat(' miss',count)
     if (DA) returnIn$miss <- sum(yValInner != yVal)
-     else {
+     else {                                         ###ML
       yClassInner <- ifelse(yValInner > 0, 1, -1)   #####classification binary??????Why?????
       returnIn$miss <- sum(yClassInner != yVal)
     }
@@ -112,7 +112,8 @@ rfInner <- function(xTrain,
 
 
   if (fitness == 'AUROC') {
-    returnIn$auc <- roc(yVal,rfModIn$test$votes[,1])$auc  ####what is votes
+    returnIn$auc <- roc(yVal,
+                        rfModIn$test$votes[,1])$auc  ####what is votes
   }
   # if test set is given (through the xtest or additionally ytest arguments), this component is a list which contains the
   # corresponding predicted, err.rate, confusion, votes (for classification) or predicted, mse and rsq (for regression) for

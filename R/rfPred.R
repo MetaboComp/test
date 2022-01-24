@@ -47,8 +47,8 @@ rfPred <- function(xTrain,
                                           ###giving the fraction or number of (OOB) `votes' from the random forest.
       return$predicted <- return$model$test$votes  ###what is test$vote
     } else {
-      return$fit <- return$model$predicted
-      return$predicted <- return$model$test$predicted
+      return$fit <- return$model$predicted   ###this is to predict y Train
+      return$predicted <- return$model$test$predicted  ##This is to predict ytest
     }
   } else if(method == 'ranger') {
     probability <- ifelse(DA, TRUE, FALSE)

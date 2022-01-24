@@ -5,12 +5,15 @@
 \title{Make custom parameters for MUVR internal modelling,not rdCV}
 \usage{
 customParams(
-  method = c("RF", "PLS", "randomForest", "ranger", "SVM"),
+  method = c("RF", "PLS", "SVM", "ANN"),
   robust = 0.05,
   ntreeIn = 150,
   ntreeOut = 300,
   mtryMaxIn = 150,
   compMax = 5,
+  layers = 10,
+  threshold = 0.1,
+  stepmax = 1e+08,
   scoring_matrix = F,
   oneHot,
   NZV,
@@ -32,6 +35,12 @@ customParams(
 
 \item{compMax}{PLS parameter: Maximum number of PLS components (defaults to 5)}
 
+\item{layers}{ann parameter:}
+
+\item{threshold}{ann parameter:}
+
+\item{stepmax}{ann parameter:}
+
 \item{scoring_matrix}{A matrix that its score can be adjusted}
 
 \item{oneHot}{T or F using onehot endcoding or not}
@@ -41,6 +50,8 @@ customParams(
 \item{rfMethod}{randomforest method, which includes randomForest and ranger}
 
 \item{svmMethod}{support vector machine method which includes 3 different support vector machine methods}
+
+\item{annMethod}{artificail neural network method which include 2 different ann methods}
 }
 \value{
 a `methParam` object

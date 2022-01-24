@@ -41,7 +41,7 @@ MUVR <- function(X,
                  varRatio = 0.75,
                  DA = FALSE,
                  fitness = c('AUROC', 'MISS', 'BER', 'RMSEP'),
-                 method = c('PLS', ' RF'),
+                 method = c('PLS', ' RF',"ANN","SVM"),
                  methParam,
                  ML = FALSE,
                  modReturn = FALSE,
@@ -60,7 +60,7 @@ MUVR <- function(X,
   # Default core modelling method
   if (missing(method)) {method <- 'RF'}
   if (!missing(method)){
-    if (method != "PLS" &method != "RF") {
+    if (method != "PLS" &method != "RF"&method != "ANN"&method != "SVM") {
       stop("This method could not be implemented.")
     }
   }
@@ -185,7 +185,7 @@ MUVR <- function(X,
 
   if(exists("nkeeps")){
     if (nkeep > 0) {
-      while (nVar > nkeep) {
+      while (nVar > nkeep & nVar > 1) {
         cnt <- cnt + 1
         var <- c(var, nVar)
         nVar <- max(floor(varRatio*nVar), nkeep)   ##it is possible that in the end nVar<nkeep
@@ -195,18 +195,14 @@ MUVR <- function(X,
       #####Could it be remove? actually I think it could be simplified to
       ###if (nVar==nkeep){var <- c(var, nVar)}
 
-      if (!any(var == nkeep)) {
+      if (!any(var == nkeep)& nVar > 1) {
         cnt <- cnt + 1
         nVar2 <- ifelse(nVar >= nkeep, nVar, nkeep)
         nVar <- nVar2
         var <- c(var, nVar)    ##add next nVar or nkeep into it
       }
-
-
-
-
     } }else {
-      while (nVar > 1) {
+      while (nVar > 1) {   ##limited it to 2
         cnt <- cnt + 1
         var <- c(var, nVar)
         nVar <- floor(varRatio * nVar)
@@ -218,7 +214,33 @@ MUVR <- function(X,
   # Number of inner segments
   if (missing(nInner)){nInner <- nOuter - 1} # Default value for inner segments
 
+  ##Set up ANN packages
+  if (method == 'ANN') {
+    if (methParam$annMethod == 'neuralnet') {
+      library("neuralnet")
+      library("NeuralNetTools")
+    } else if (methParam$annMethod == 'nnet') {
+      library("NeuralNetTools")
+      library("nnet")
+    } else{
+      stop('Aritificial network method incorrectly specified in methParam')
+    }
+  }
 
+
+  if (method == 'SVM') {
+    if (methParam$svmMethod == 'svm') {
+      ##library("neuralnet")
+    } else if (methParam$svmMethod == 'ksvm') {
+      ##library("NeuralNetTools")
+      ##library("nnet")
+    } else if(methParam$svmMethod == 'svmlight'){
+      ##library()
+    }
+    else {
+      stop('Support vector machine method incorrectly specified in methParam')
+    }
+  }
 
   # Set up randomForest package
   if (method == 'RF') {
@@ -279,6 +301,8 @@ MUVR <- function(X,
       cat('\nMissing fitness -> RMSEP')
     }
   }
+
+
 
   # Additional sanity check
   if (nrow(X) != length(Y)){stop('Must have same nSamp in X and Y.')}
@@ -620,7 +644,21 @@ MUVR <- function(X,
                               ntree = methParam$ntreeIn,
                               method = methParam$rfMethod
                             )
-                          } else {
+                          } else if(method=="ANN"){
+                            inMod<-annInner(xTrain,
+                                            yTrain,
+                                            xVal,
+                                            yVal,
+                                            DA=DA,
+                                            fitness=fitness,
+                                            method=methParam$annMethod,
+                                            layers=methParam$layers,
+                                            threshold=methParam$threshold,
+                                            stepmax=methParam$stepmax
+                                            )
+                          }
+
+                          else {
                             stop('No other core modelling techniques available at present.')
                           }
 
@@ -703,9 +741,9 @@ MUVR <- function(X,
                       varOutMid[i] <-
                         round(exp(mean(log(c(
                           var[minIndex], var[maxIndex]
-                        ))))) # Geometric mean of min and max
+                        ))))) # Geometric mean of min and max. This one has decimals
 
-                      # midIndex is closest to nVarMid
+                      # midIndex is closest to nVarMid, this makes it integrals
                       midIndex <- which.min(abs(var - varOutMid[i]))
 
                       # For PLS, extract number of components
@@ -737,7 +775,7 @@ MUVR <- function(X,
                         rownames(VIRankOutMid)[rank(VIRankOutMid[, i]) <= varOutMid[i]]
                       incVarMax <-
                         rownames(VIRankOutMax)[rank(VIRankOutMax[, i]) <= varOutMax[i]]
-
+##################################################pls predict
                       # Consensus models for PLS
                       if (method == 'PLS') {
                         # Build min model
@@ -825,6 +863,7 @@ MUVR <- function(X,
                                              plsOutMid,
                                              plsOutMax)
                         }
+#######################################################################rf predict
                       } else if (method == 'RF') {
                         # min model
                         rfOutMin <- rfPred(
@@ -891,7 +930,68 @@ MUVR <- function(X,
                             rfOutMax = rfOutMax$model
                           )
                         }
-                      } else {
+###################################################################################Ann predict
+                      } else if (method=="ANN"){
+                        if(DA==F){
+                        annOutMin <- annpredict(
+                          xTrain = subset(xIn, select = incVarMin),
+                          yTrain = yIn,
+                          xTest = subset(xTest, select = incVarMin),
+                          yTest = yTest,
+                          DA = DA,
+                          layers=methParam$layers,
+                          threshold=methParam$threshold,
+                          stepmax=methParam$stepmax,
+                          method=methParam$annMethod
+
+                        )
+                        yPredMinR[testIndex] <- annOutMin$predicted
+
+                        annOutMid <- annpredict(
+                          xTrain = subset(xIn, select = incVarMid),
+                          yTrain = yIn,
+                          xTest = subset(xTest, select = incVarMid),
+                          yTest = yTest,
+                          DA = DA,
+                          layers=methParam$layers,
+                          threshold=methParam$threshold,
+                          stepmax=methParam$stepmax,
+                          method=methParam$annMethod
+
+                        )
+                        yPredMidR[testIndex] <- annOutMid$predicted
+                        annOutMax <- annpredict(
+                          xTrain = subset(xIn, select = incVarMax),
+                          yTrain = yIn,
+                          xTest = subset(xTest, select = incVarMax),
+                          yTest = yTest,
+                          DA = DA,
+                          layers=methParam$layers,
+                          threshold=methParam$threshold,
+                          stepmax=methParam$stepmax,
+                          method=methParam$annMethod
+
+                        )
+                        yPredMaxR[testIndex] <- annOutMax$predicted
+                        if (modReturn) {
+                          outMod[[i]] <- list(
+                            annOutMin = annOutMin$model,
+                            annOutMid = annOutMid$model,
+                            annOutMax = annOutMax$model
+                          )
+                        }
+                        }
+                      if(DA==T){
+
+
+                      }
+
+
+
+
+
+                      }else if (method=="SVM"){}
+                      else{
                         stop('Other core models not implemented')
                       }
                       ###################################################################################################################
@@ -1182,11 +1282,13 @@ MUVR <- function(X,
 
   # Store inData
   modelReturn$inData <- InData
-
-  ## Build overall "Fit-Predict" models for calculating R2 and visualisations
+#############################################################################################################3
+  ## Build overall "Fit-Predict" models for calculating R2 and visualizations
   incVarMin <- names(VIRank[rank(VIRank[, 1]) <= round(nVar[1]), 1])
   incVarMid <- names(VIRank[rank(VIRank[, 2]) <= round(nVar[2]), 2])
   incVarMax <- names(VIRank[rank(VIRank[, 3]) <= round(nVar[3]), 3])
+
+
   if (method == 'PLS') {
     ######################
     # PLS Min fit-predict
@@ -1338,9 +1440,64 @@ MUVR <- function(X,
       rfFitMid = rfFitMid,
       rfFitMax = rfFitMax
     )
-  } else
-    stop ('Other ML methods not implemented')
+  } else if(method=="ANN"){
+    if(DA==F){
+    annFitMin <-
+      suppressWarnings(annpredict(
+        xTrain = subset(X, select = incVarMin),
+        yTrain = Y,
+        DA = DA,
+        layers=methParam$layers,
+        threshold=methParam$threshold,
+        stepmax=methParam$stepmax,
+        method = methParam$annMethod
+      ))
+    yFitMin <- annFitMin$fit
 
+    annFitMid<-
+      suppressWarnings(annpredict(
+        xTrain = subset(X, select = incVarMid),
+        yTrain = Y,
+        DA = DA,
+        layers=methParam$layers,
+        threshold=methParam$threshold,
+        stepmax=methParam$stepmax,
+        method = methParam$annMethod
+      ))
+    yFitMid <- annFitMid$fit
+
+    annFitMax<-
+      suppressWarnings(annpredict(
+        xTrain = subset(X, select = incVarMax),
+        yTrain = Y,
+        DA = DA,
+        layers=methParam$layers,
+        threshold=methParam$threshold,
+        stepmax=methParam$stepmax,
+        method = methParam$annMethod
+      ))
+    yFitMax<- annFitMax$fit
+
+    yFit <- cbind(yFitMin, yFitMid, yFitMax)
+    yRep <- ncol(yFit) / 3
+    colnames(yFit) <- rep(c('min', 'mid', 'max'), each = yRep)
+    rownames(yFit) <- ID
+    modelReturn$Fit <- list(
+      yFit = yFit,
+      annFitMin = annFitMin,
+      annFitMid = annFitMid,
+      annFitMax = annFitMax
+    )
+    }
+    if(DA==T){
+
+    }
+  } else if(method=="SVM"){
+
+  }
+  else{
+    stop ('Other ML methods not implemented')
+  }
 
   # Calculate fit statistics
   if (!DA) {
@@ -1417,10 +1574,6 @@ MUVR <- function(X,
 
   # Output
   cat('\n Elapsed time', modelReturn$calcMins, 'mins \n')
-
-
-
-
 
 
   # Return final object

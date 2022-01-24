@@ -236,7 +236,7 @@ MUVRoriginal <- function(X,
                                                       ncol = nOuter,
                                                       dimnames = list(paste('repetition', 1:nRep, sep = ''),
                                                                       paste('segment', 1:nOuter, sep='')))
-  VIPRepMin <- VIPRepMid <- VIPRepMax <- matrix(data = nVar0,
+  VIRankRepMin <- VIRankRepMid <- VIRankRepMax <- matrix(data = nVar0,
                                                 nrow = nVar0,
                                                 ncol = nRep,
                                                 dimnames = list(colnames(X),

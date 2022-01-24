@@ -44,7 +44,7 @@ plsInner=function(xTrain,
                         newdata=xVal,
                         onlyPred=TRUE,
                         scale=scale)$predict[,,]    ##observation new, y variables col, component 1
-    },
+    }, ##extract the mean sd of training and use it to scale xVal
     error=function(e) return('error'))
 ###tryCatch(stop(e), error = function(e) e, finally = print("Hello"))
 ###[1] "Hello"
