@@ -22,7 +22,7 @@ plotPerm(
 
 \item{distribution}{Null hypothesis (permutation) distribution of similar metric as `actual`}
 
-\item{xlab}{Label for x-axis (e.g. 'Q2', 'AUROC', or 'Misclassifications')}
+\item{xlab}{Label for x-axis (e.g. 'Q2 using real value',"Q2 using distributions","BER" 'AUROC', or 'Misclassifications')}
 
 \item{side}{Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))}
 

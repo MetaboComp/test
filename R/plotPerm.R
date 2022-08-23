@@ -5,7 +5,7 @@
 #'
 #' @param actual Actual model fitness (e.g. Q2, AUROC or number of misclassifications)
 #' @param distribution Null hypothesis (permutation) distribution of similar metric as `actual`
-#' @param xlab Label for x-axis (e.g. 'Q2', 'AUROC', or 'Misclassifications')
+#' @param xlab Label for x-axis (e.g. 'Q2 using real value',"Q2 using distributions","BER" 'AUROC', or 'Misclassifications')
 #' @param side Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))
 #' @param type Choice of Student's t-distribution of original ('t', default) or ranked ('non') data for non-parametric test
 #' @param xlim Choice of user-specified x-limits (if default is not adequate)
@@ -34,10 +34,11 @@ plotPerm=function(actual,
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
 
 ######when it is Q2 or MISS
+  if(!missing(pos)){pos_rev=6-pos}
+  if(missing(side)) {side=ifelse(actual<median(distribution),'smaller','greater')}
 
-  if(missing(side)) side=ifelse(actual<median(distribution),'smaller','greater')
-
-  if(missing(pos)) pos=ifelse(side=='smaller',4,2)
+  if(missing(pos)) {pos<-ifelse(side=='smaller',4,2)
+                    pos_rev<-ifelse(side=='smaller',2,4)}
   ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
   ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
   pP=pPerm(actual,
@@ -76,6 +77,21 @@ plotPerm=function(actual,
        ##For signif the recognized values of digits are 1...22, and non-missing values are rounded to the nearest integer in that range.
        ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
        ##Each element of the vector is rounded individually, unlike printing.
+  text(actual,    ###x position of the text
+       max(h$density)*0.003,        ##y position of the text
+       pos=3,
+       ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+       labels=paste0(signif(actual,4))
+  )
+
+  text(median(distribution),    ###x position of the text
+       max(h$density)*0.003,        ##y position of the text
+       pos=3,
+       ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+       labels=paste0("median=",
+                    signif(median(distribution),4)
+                    )
+  )
 }
 
 

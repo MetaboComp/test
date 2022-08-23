@@ -11,7 +11,7 @@
 #' @param nOuter number of outer validation segments for each permutation (defaults to value of actual model)
 #' @param varRatio varRatio for each permutation (defaults to value of actual model)
 #' @param parallel whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)
-#' @param permutation_type Either AUROC,Q2 or MISS or BER
+#' @param permutation_type Either AUROC,Q2_dist,Q2_real or MISS or BER
 #' @return  permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
 #'
 #' @export
@@ -38,7 +38,7 @@ permutations=function(MUVRclassObject,
                       nOuter,
                       varRatio,
                       parallel,
-                      permutation_type= c('AUROC', 'MISS', 'RMSEP',"BER")) {
+                      permutation_type= c('AUROC', 'MISS', 'Q2_real',"Q2_dist","BER")) {
   if (!any(class(MUVRclassObject) == 'MUVR')) stop('Wrong object class')
 ##substitute() is often paired with deparse(). That function takes the result of substitute(), an expression,
 ##and turns it into a character vector.
@@ -75,32 +75,39 @@ name=deparse(substitute(MUVRclassObject))   ###the output is "MUVRclassObject"
 ###########################################################################################################################3
 #I added a new variabler permutation type to include AUROC
   if(!missing(permutation_type)){
-    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2"&permutation_type!="BER")
+    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2_real"&permutation_type!="Q2_dist"&permutation_type!="BER")
     {stop("permutation_type is not correct")}
-    if(permutation_type=="Q2"&!any(class(MUVRclassObject)=='Regression'))
+    if(permutation_type=="Q2_real"&!any(class(MUVRclassObject)=='Regression'))
     {stop("Classification and Multilevel must use AUROC or MISS for permutation")}
-    if(permutation_type!="Q2"&any(class(MUVRclassObject)=='Regression'))
+    if(permutation_type=="Q2_dist"&!any(class(MUVRclassObject)=='Regression'))
+    {stop("Classification and Multilevel must use AUROC or MISS for permutation")}
+
+    if(!(permutation_type%in% c("Q2_real","Q2_dist"))&any(class(MUVRclassObject)=='Regression'))
     {stop("Regression must use Q2 for permutation")}
-      }
+  }
   if(missing(permutation_type)){
-    if (any(class(MUVRclassObject)=='Regression')){permutation_type!="Q2"}
+    if (any(class(MUVRclassObject)=='Regression')){permutation_type="Q2_dist"}
         else{permutation_type="MISS"}
   }
 
 
 
-  if(permutation_type=="Q2"|permutation_type=="MISS"|permutation_type=="BER"){
+  if(permutation_type=="Q2_real"|permutation_type=="MISS"|permutation_type=="BER"){
   startTime=proc.time()[3]
-  permutation_output=matrix(ncol=3,nrow=nPerm)   ##row is permutation number col is 3 (min,mid,max)
+  permutation_output=matrix(ncol=3,
+                            nrow=nPerm)   ##row is permutation number col is 3 (min,mid,max)
   colnames(permutation_output)=c('Min','Mid','Max')
-  rownames(permutation_output)=paste("permutation",1:nPerm)
+  rownames(permutation_output)=paste("permutation",
+                                     1:nPerm)
 ##################################################################################################################################
 ###I also added permutation test for auc when it is classfication
 ###hBER could be added too when we want to integrate it into the permutationtest
  for (p in 1:nPerm) {   ####these is to repeat random selection for nPerm times
     cat('\n"',name,'" permutation ',p,' of ',nPerm,'\n',sep = '')
 
-    if (ML) YPerm=sample(c(-1,1),size=nSamp,replace=TRUE)   ##choose the same size sample randomly bootstrapping
+    if (ML==T) {YPerm=sample(c(-1,1),   ##when ML is T, DA =F
+                             size=nSamp,
+                             replace=TRUE) }  ##choose the same size sample randomly bootstrapping
       else YPerm=sample(Y)      ##sample(x, size, replace = FALSE, prob = NULL)
                                 ## default for size is the number of items inferred from the first argument,
 
@@ -139,8 +146,54 @@ name=deparse(substitute(MUVRclassObject))   ###the output is "MUVRclassObject"
   return(lst)
   }
 ##############################################################################################333
-#When permutation is BER
+#When permutation is Q2_real
+  if(permutation_type=="Q2_dist"){
+   if(ML==T|DA==T){stop("Y is supposed to be continuous,cannot be multilevel")}
+    startTime=proc.time()[3]
+    permutation_output=matrix(ncol=3,
+                              nrow=nPerm)   ##row is permutation number col is 3 (min,mid,max)
+    colnames(permutation_output)=c('Min','Mid','Max')
+    rownames(permutation_output)=paste("permutation",
+                                       1:nPerm)
+    for (p in 1:nPerm) {   ####these is to repeat random selection for nPerm times
+      cat('\n"',name,'" permutation ',p,' of ',nPerm,'\n',sep = '')
+    denss = density(x=YR,
+                    from=min(Y),
+                    to=max(Y),
+                    n=10000)
+    YPerm=sample(x=denss$x,
+                 prob=denss$y,
+                 size=length(Y),)
+    permMod=MUVR(X=X,
+                 Y=YPerm,
+                 ID=ID,
+                 scale=scale,
+                 DA=DA,
+                 ML=ML,
+                 nRep=nRep,
+                 nOuter=nOuter,
+                 nInner=nInner,
+                 varRatio=varRatio,
+                 fitness=fitness,
+                 method=method,
+                 methParam=methParam,
+                 parallel=parallel)
 
+    permutation_output[p,]=permMod$fitMetric$Q2
+    nowTime=proc.time()[3]
+
+    timePerRep=(nowTime-startTime)/p
+
+    timeLeft=(timePerRep*(nPerm-p))/60
+
+    cat('\nEstimated time left:',timeLeft,'mins\n\n')
+    }
+    lst<-list(permutation_type,
+              permutation_output)
+    names(lst)<-c("permutation_type",
+                  "permutation_output")
+    return(lst)
+  }
 
 
 
@@ -148,7 +201,9 @@ name=deparse(substitute(MUVRclassObject))   ###the output is "MUVRclassObject"
 #when permutation is AUROC
   if(permutation_type=="AUROC"){
   startTime=proc.time()[3]
-  permutation_output=array(NA,dim=c(nPerm,3,ncol(MUVRclassObject$auc)),
+  permutation_output=array(NA,dim=c(nPerm,
+                                    3,
+                                    ncol(MUVRclassObject$auc)),
              dimnames=list(c(paste("permutation",1:nPerm)),
                            c('Min','Mid','Max'),
                            colnames(MUVRclassObject$auc))) ###if use auc this is a list
@@ -157,8 +212,10 @@ name=deparse(substitute(MUVRclassObject))   ###the output is "MUVRclassObject"
   for (p in 1:nPerm) {   ####these is to repeat random selection for nPerm times
     cat('\n"',"group",s,name,'" permutation ',p,' of ',nPerm,'\n',sep = '')
 
-    if (ML) YPerm=sample(c(-1,1),size=nSamp,replace=TRUE)   ##choose the same size sample randomly bootstrapping
-    else YPerm=sample(Y)      ##sample(x, size, replace = FALSE, prob = NULL)
+    if (ML) {YPerm=sample(c(-1,1),  ##DA is F in this case
+                          size=nSamp,
+                          replace=TRUE)}   ##choose the same size sample randomly bootstrapping
+    else {YPerm=sample(Y)}      ##sample(x, size, replace = FALSE, prob = NULL)
     ## default for size is the number of items inferred from the first argument,
 
     permMod=MUVR(X=X,

@@ -11,7 +11,7 @@ permutations(
   nOuter,
   varRatio,
   parallel,
-  permutation_type = c("AUROC", "MISS", "RMSEP", "BER")
+  permutation_type = c("AUROC", "MISS", "Q2_real", "Q2_dist", "BER")
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ permutations(
 
 \item{parallel}{whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)}
 
-\item{permutation_type}{Either AUROC,Q2 or MISS or BER}
+\item{permutation_type}{Either AUROC,Q2_dist,Q2_real or MISS or BER}
 }
 \value{
 permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)

@@ -18,8 +18,11 @@ Imports:
     foreach,
     kernlab,
     klaR,
-    microbenchmark
+    microbenchmark,
+    nnet,
+    neuralnet,
+    caret
 License: GPL-2
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Encoding: UTF-8
