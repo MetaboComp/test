@@ -478,6 +478,7 @@ rdCV=function(X,
     yClass=as.factor(apply(yPredAve,
                            1,
                            function(x) levels(Y)[which.max(x)]))
+    yClass=factor(yClass,levels=levels(Y))
     miss=sum(yClass!=Y)
     ber=getBER(actual=Y,
                predicted=yClass)
