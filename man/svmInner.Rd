@@ -4,26 +4,24 @@
 \alias{svmInner}
 \title{Support vector machine model in inner CV loop}
 \usage{
-svmInner(x, y, epsilon, kernal, cost, gamma, degree)
+svmInner(xTrain, yTrain, xVal, yVal, DA, fitness, kernel, method)
 }
 \arguments{
-\item{cost}{cost}
-
 \item{xTrain}{Training data (samples as rows; variables as columns)}
 
 \item{yTrain}{Training response}
 
 \item{xVal}{Validation data}
 
-\item{yVal}{Validation response (for tuning)}
+\item{yVal}{Validation response (f´´or tuning)}
 
 \item{DA}{Logical for discriminant analysis (classification)}
 
 \item{fitness}{Fitness function ('MISS', 'AUROC' or 'RMSEP')}
 
-\item{ntree}{See original function (`randomForest`). Passed from wrapper.}
+\item{kernel}{What kernel to choose: polynomial, radical, linear, sigmoid}
 
-\item{method}{Choice of Random Forest implementation (randomForest, ranger or Rborist). Passed from wrapper.}
+\item{method}{Choice of Support vector machine implementation ("svm", "ksvm", "svmlight"). Passed from wrapper.}
 }
 \value{
 An object containing:

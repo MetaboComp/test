@@ -9,22 +9,23 @@
 #' @param ntreeOut RF parameter: Number of trees in outer (consensus) cross-validation loop models (defaults to 300)
 #' @param mtryMaxIn RF parameter: Max number of variables to sample from at each node in the inner CV loop (defaults to 150). Will be further limited by standard RF rules (see randomForest documentation)
 #' @param compMax PLS parameter: Maximum number of PLS components (defaults to 5)
-##### @param neuralMax  ann parameter: Maximum number of ANN (defaults to 20)
-#' @param layers ann parameter:
+#'
+#' @param neuralMaxIn  ann parameter: Maximum number of ANN (defaults to 20)
+#' @param nodes ann parameter:
 #' @param threshold ann parameter:
 #' @param stepmax ann parameter:
-#' @param
-#' @param
-#' @param
-#' @param
-#' @param
-#' @param
-#' @param
+
 #' @param oneHot  T or F using onehot endcoding or not
 #' @param scoring_matrix  A matrix that its score can be adjusted
 #' @param NZV T or F using NZV or not
 #' @param rfMethod randomforest method, which includes randomForest and ranger
-#' @param svmMethod support vector machine method which includes 3 different support vector machine methods
+#'
+#' @param svmMethod support vector machine method, which includes svm, ksvm, s
+#' @param kernel svm parameter: kernal function to use, which includes sigmoid, radical, polynomial
+## @param nu svm parameter: ratios of errors allowed in the training set range from 0-1
+## @param degree svm parameter: needed for polynomial kernel in svm
+## @param gamma svm parameters: needed for "vanilladot","polydot","rbfdot" kernel in svm
+#'
 #' @param annMethod artificail neural network method which include 2 different ann methods
 #' @return a `methParam` object
 #' @export
@@ -45,11 +46,15 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
                          mtryMaxIn = 150,
                          compMax = 5,
 
-                         layers=10,
-                         threshold=0.1,
-                         stepmax=1e+08,
-                         ##neuralMax=20,
+                         nodes=200,
+                         threshold=0.1,  ###neuralnet default
+                         stepmax=1e+08,   ###neuralnet default
+                         neuralMaxIn=10,
 
+                         kernel=c("vanilladot","polydot","rbfdot"),
+                         nu=0.1,
+                         gamma=1,
+                         degree=1,
 
                          scoring_matrix = F,
                          oneHot,
@@ -102,9 +107,11 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
       }
       methParam$method <- "SVM"
       methParam$svmMethod <- svmMethod
-      #     methParam$
-      #      methParam$
-      #        methParam$
+
+      methParam$kernel<-kernel
+      methParam$nu<-nu
+      methParam$gamma<-gamma
+      methParam$degree<-degree
       ####Here new method could be added
     } else if (!missing(annMethod)) {
       if (annMethod != "nnet" & annMethod != "neuralnet")
@@ -112,12 +119,14 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
         stop('other annMethods not implemented')
       }
       methParam$method <- "ANN"
-      methParam$svmMethod <- annMethod
-      methParam$layers <-layers
+      methParam$annMethod <- annMethod
+      methParam$nodes <-nodes
       methParam$threshold <-threshold
       methParam$stepmax<-stepmax
     }
-    else{methParam$method <- "PLS"}
+    else{methParam$method <- "PLS"
+    methParam$compMax<-compMax
+    }
 
   }
 
@@ -183,21 +192,21 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
         if (!missing(svmMethod)) {
           stop('Method is ANN. There should not be svmMethod')
         }
-        if (!missing(annMethod)) {
+        if (missing(annMethod)) {
+          methParam$annMethod <- "neuralnet"
+
+        }else{
           if (annMethod != "nnet" & annMethod != "neuralnet" ) {
             stop("This annMethod not implemented")
           }
           methParam$annMethod <- annMethod
 
         }
-        if (missing(annMethod)) {
-          methParam$annMethod <- "neuralnet"
 
-          #           methParam$
-        }
-          methParam$layers <-layers
+          methParam$nodes <-nodes
           methParam$threshold <-threshold
           methParam$stepmax<-stepmax
+          methParam$neuralMaxIn<-neuralMaxIn
       }
 
       if (method == "SVM")
@@ -207,19 +216,20 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
         if (!missing(annMethod)) {
           stop('Method is SVM. There should not be annMethod')
         }
-        if (!missing(svmMethod)) {
+          if (missing(svmMethod)) {
+          methParam$svmMethod = "ksvm"
+
+        }else{
           if (svmMethod != "svm" & svmMethod != "ksvm" & svmMethod != "svmlight") {
             stop("This svmMethod not implemented")
           }
           methParam$svmMethod <- svmMethod
 
         }
-        if (missing(svmMethod)) {
-          methParam$svmMethod = "svm"
-
-        }
-        #          methParam$
-          #           methParam$
+        methParam$kernel<-kernel
+        methParam$nu<-nu
+        methParam$gamma<-gamma
+        methParam$degree<-degree
       }
 
 
@@ -258,6 +268,8 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
       {
         oneHot <- FALSE
       } else  {oneHot <- FALSE}
+
+
     }
 
     methParam$oneHot <- oneHot
@@ -269,8 +281,8 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
         NZV <- FALSE
       } else if (methParam$method == "SVM")
       {
-        NZV <- FALSE
-      }else{NZV <- FALSE}
+        NZV <- TRUE
+      }else{NZV <- TRUE}
     }
     methParam$NZV <- NZV
 

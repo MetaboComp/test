@@ -216,6 +216,12 @@ MUVR <- function(X,
 
   ##Set up ANN packages
   if (method == 'ANN') {
+    max_x<-apply(X,2,max)
+    min_x<-apply(X,2,min)
+    X<-scale(X,
+            center=min_x,
+            scale=max_x-min_x)
+
     if (methParam$annMethod == 'neuralnet') {
       library("neuralnet")
       library("NeuralNetTools")
@@ -229,11 +235,15 @@ MUVR <- function(X,
 
 
   if (method == 'SVM') {
+    X<-scale(X,
+             center=T,
+             scale=T)
     if (methParam$svmMethod == 'svm') {
-      ##library("neuralnet")
+      library(e1071)
+      library(rminer)
     } else if (methParam$svmMethod == 'ksvm') {
-      ##library("NeuralNetTools")
-      ##library("nnet")
+      library(kernlab)
+      library(rminer)
     } else if(methParam$svmMethod == 'svmlight'){
       ##library()
     }
@@ -560,7 +570,7 @@ MUVR <- function(X,
 
                         # Intermediate info output
                         cat(nVar)
-
+###############################################################################################################################################################################
                         # Tweak method parameters for low number of variables
                         if (method == 'PLS')
                         {comp <-min(c(nVar, methParam$compMax))} # nComp cannot be > nVar
@@ -571,7 +581,11 @@ MUVR <- function(X,
                           ) # Standard but with upper limit
                           mtryIn <- max(c(2, mtryIn)) # Lower limit
                         }
-
+                        #if(method=="ANN"){
+                        #  neuralIn<-min(c(methParam$neuralmaxIn,floor(nVar/2)))
+                        #  neuralIn <- max(c(2, neuralIn))
+                        #}
+###############################################################################################################################################################################
                         # PERFORM SEGMENTATION INTO INNER SEGMENTS
                         if (DA & identical(unikID, ID)) {
                           groupIDVal <- list()
@@ -652,13 +666,23 @@ MUVR <- function(X,
                                             DA=DA,
                                             fitness=fitness,
                                             method=methParam$annMethod,
-                                            layers=methParam$layers,
+                                            #nodes=neuralIn,
+                                            nodes=methParam$nodes,
                                             threshold=methParam$threshold,
                                             stepmax=methParam$stepmax
                                             )
-                          }
+                          } else if(method=="SVM"){
+                            inMod<-svmInner(xTrain,
+                                            yTrain,
+                                            xVal,
+                                            yVal,
+                                            DA=DA,
+                                            fitness=fitness,
+                                            method=methParam$svmMethod,
+                                            kernel=methParam$kernel
 
-                          else {
+                            )
+                          } else {
                             stop('No other core modelling techniques available at present.')
                           }
 
@@ -748,7 +772,7 @@ MUVR <- function(X,
 
                       # For PLS, extract number of components
                       if (method == 'PLS') {
-                        nCompOutMin[i] <- round(mean(nCompIn[, minIndex]))
+                        nCompOutMin[i] <- round(mean(nCompIn[, minIndex]))  ### under a cnt, the average number of component for inner
                         nCompOutMid[i] <- round(mean(nCompIn[, midIndex]))
                         nCompOutMax[i] <- round(mean(nCompIn[, maxIndex]))
                       }
@@ -932,20 +956,26 @@ MUVR <- function(X,
                         }
 ###################################################################################Ann predict
                       } else if (method=="ANN"){
-                        if(DA==F){
+                        #if(DA==F){
                         annOutMin <- annpredict(
                           xTrain = subset(xIn, select = incVarMin),
                           yTrain = yIn,
                           xTest = subset(xTest, select = incVarMin),
                           yTest = yTest,
                           DA = DA,
-                          layers=methParam$layers,
+                          nodes=methParam$nodes,
+                          #nodes=min(c(methParam$neuralmaxIn,floor(sqrt(length(incVarMin))))),
                           threshold=methParam$threshold,
                           stepmax=methParam$stepmax,
                           method=methParam$annMethod
 
                         )
-                        yPredMinR[testIndex] <- annOutMin$predicted
+                        if (DA)
+                        {
+                          yPredMinR[testIndex, ] <- annOutMin$predicted
+                        } else {
+                          yPredMinR[testIndex] <- annOutMin$predicted
+                        }
 
                         annOutMid <- annpredict(
                           xTrain = subset(xIn, select = incVarMid),
@@ -953,26 +983,40 @@ MUVR <- function(X,
                           xTest = subset(xTest, select = incVarMid),
                           yTest = yTest,
                           DA = DA,
-                          layers=methParam$layers,
+                          nodes=methParam$nodes,
+                          #nodes=min(c(methParam$neuralmaxIn,floor(sqrt(length(incVarMid))))),
                           threshold=methParam$threshold,
                           stepmax=methParam$stepmax,
                           method=methParam$annMethod
 
                         )
-                        yPredMidR[testIndex] <- annOutMid$predicted
+
+                        if (DA)
+                        {
+                          yPredMidR[testIndex, ] <- annOutMid$predicted
+                        } else {
+                          yPredMidR[testIndex] <- annOutMid$predicted
+                        }
+
                         annOutMax <- annpredict(
                           xTrain = subset(xIn, select = incVarMax),
                           yTrain = yIn,
                           xTest = subset(xTest, select = incVarMax),
                           yTest = yTest,
                           DA = DA,
-                          layers=methParam$layers,
+                          nodes=methParam$nodes,
+                          #nodes=min(c(methParam$nodes,floor(sqrt(length(incVarMax))))),
                           threshold=methParam$threshold,
                           stepmax=methParam$stepmax,
                           method=methParam$annMethod
 
                         )
-                        yPredMaxR[testIndex] <- annOutMax$predicted
+                        if (DA)
+                        {
+                          yPredMaxR[testIndex, ] <- annOutMax$predicted
+                        } else {
+                          yPredMaxR[testIndex] <- annOutMax$predicted
+                        }
                         if (modReturn) {
                           outMod[[i]] <- list(
                             annOutMin = annOutMin$model,
@@ -980,18 +1024,84 @@ MUVR <- function(X,
                             annOutMax = annOutMax$model
                           )
                         }
+                      #  }
+
+
+
+
+
+                      }else if (method=="SVM"){
+                        #if(DA==F){
+                        svmOutMin <- svmpredict(
+                          xTrain = subset(xIn, select = incVarMin),
+                          yTrain = yIn,
+                          xTest = subset(xTest, select = incVarMin),
+                          yTest = yTest,
+                          DA = DA,
+                          method = methParam$svmMethod,
+                          kernel=methParam$kernel
+                          #nu=methParam$nu,
+                          #degree=methParam$degree,
+                          #gamma=methParam$gamma
+
+                        )
+                        if (DA)
+                        {
+                          yPredMinR[testIndex, ] <- svmOutMin$predicted
+                        } else {
+                          yPredMinR[testIndex] <- svmOutMin$predicted
                         }
-                      if(DA==T){
+
+                        svmOutMid <- svmpredict(
+                          xTrain = subset(xIn, select = incVarMid),
+                          yTrain = yIn,
+                          xTest = subset(xTest, select = incVarMid),
+                          yTest = yTest,
+                          DA = DA,
+                          method = methParam$svmMethod,
+                          kernel=methParam$kernel
+                          #nu=methParam$nu,
+                          #degree=methParam$degree,
+                          #gamma=methParam$gamma
+
+                        )
+
+                        if (DA)
+                        {
+                          yPredMidR[testIndex, ] <- svmOutMid$predicted
+                        } else {
+                          yPredMidR[testIndex] <- svmOutMid$predicted
+                        }
+
+                        svmOutMax <- svmpredict(
+                          xTrain = subset(xIn, select = incVarMax),
+                          yTrain = yIn,
+                          xTest = subset(xTest, select = incVarMax),
+                          yTest = yTest,
+                          DA = DA,
+                          method = methParam$svmMethod,
+                          kernel=methParam$kernel
+                          #nu=methParam$nu,
+                          #degree=methParam$degree,
+                          #gamma=methParam$gamma
+
+                        )
+                        if (DA)
+                        {
+                          yPredMaxR[testIndex, ] <- svmOutMax$predicted
+                        } else {
+                          yPredMaxR[testIndex] <- svmOutMax$predicted
+                        }
+                        if (modReturn) {
+                          outMod[[i]] <- list(
+                            svmOutMin = svmOutMin$model,
+                            svmOutMid = svmOutMid$model,
+                            svmOutMax = svmOutMax$model
+                          )
+                        }
 
 
-                      }
-
-
-
-
-
-                      }else if (method=="SVM"){}
-                      else{
+                      } else{
                         stop('Other core models not implemented')
                       }
                       ###################################################################################################################
@@ -1441,13 +1551,13 @@ MUVR <- function(X,
       rfFitMax = rfFitMax
     )
   } else if(method=="ANN"){
-    if(DA==F){
+    #if(DA==F){
     annFitMin <-
       suppressWarnings(annpredict(
         xTrain = subset(X, select = incVarMin),
         yTrain = Y,
         DA = DA,
-        layers=methParam$layers,
+        nodes=methParam$nodes,
         threshold=methParam$threshold,
         stepmax=methParam$stepmax,
         method = methParam$annMethod
@@ -1459,7 +1569,7 @@ MUVR <- function(X,
         xTrain = subset(X, select = incVarMid),
         yTrain = Y,
         DA = DA,
-        layers=methParam$layers,
+        nodes=methParam$nodes,
         threshold=methParam$threshold,
         stepmax=methParam$stepmax,
         method = methParam$annMethod
@@ -1471,7 +1581,7 @@ MUVR <- function(X,
         xTrain = subset(X, select = incVarMax),
         yTrain = Y,
         DA = DA,
-        layers=methParam$layers,
+        nodes=methParam$nodes,
         threshold=methParam$threshold,
         stepmax=methParam$stepmax,
         method = methParam$annMethod
@@ -1488,12 +1598,57 @@ MUVR <- function(X,
       annFitMid = annFitMid,
       annFitMax = annFitMax
     )
-    }
-    if(DA==T){
 
-    }
   } else if(method=="SVM"){
+    svmFitMin <-
+      suppressWarnings(svmpredict(
+        xTrain = subset(X, select = incVarMin),
+        yTrain = Y,
+        DA = DA,
+        method = methParam$svmMethod,
+        kernel=methParam$kernel,
+        #nu=methParam$nu,
+        #degree=methParam$degree,
+        #gamma=methParam$gamma
+      ))
+    yFitMin <- svmFitMin$fit
 
+    svmFitMid<-
+      suppressWarnings(svmpredict(
+        xTrain = subset(X, select = incVarMid),
+        yTrain = Y,
+        DA = DA,
+        method = methParam$svmMethod,
+        kernel=methParam$kernel,
+        #nu=methParam$nu,
+        #degree=methParam$degree,
+        #gamma=methParam$gamma
+      ))
+    yFitMid <- svmFitMid$fit
+
+    svmFitMax<-
+      suppressWarnings(svmpredict(
+        xTrain = subset(X, select = incVarMax),
+        yTrain = Y,
+        DA = DA,
+        method = methParam$svmMethod,
+        kernel=methParam$kernel,
+        #nu=methParam$nu,
+        #degree=methParam$degree,
+        #gamma=methParam$gamma
+      ))
+    yFitMax<- svmFitMax$fit
+
+    yFit <- cbind(yFitMin, yFitMid, yFitMax)
+    yRep <- ncol(yFit) / 3
+    colnames(yFit) <- rep(c('min', 'mid', 'max'), each = yRep)
+    rownames(yFit) <- ID
+    modelReturn$Fit <- list(
+      yFit = yFit,
+      svmFitMin = svmFitMin,
+      svmFitMid = svmFitMid,
+      svmFitMax = svmFitMax
+    )
   }
   else{
     stop ('Other ML methods not implemented')

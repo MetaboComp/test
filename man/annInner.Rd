@@ -9,7 +9,7 @@ annInner(
   yTrain,
   xVal,
   yVal,
-  layers,
+  nodes,
   threshold,
   stepmax,
   DA,
@@ -26,8 +26,6 @@ annInner(
 
 \item{yVal}{Validation response (for tuning)}
 
-\item{layers}{Number of layers and how many node in each layed. If multiple layers, it writes as c(n,n,n)}
-
 \item{threshold}{the Threshold of step size}
 
 \item{stepmax}{Maximum step in each annInner loop}
@@ -35,6 +33,8 @@ annInner(
 \item{DA}{Logical for discriminant analysis (classification)}
 
 \item{fitness}{Fitness function ('MISS', 'AUROC' or 'RMSEP')}
+
+\item{layers}{Number of layers and how many node in each layed. If multiple layers, it writes as c(n,n,n)}
 }
 \value{
 An object containing:

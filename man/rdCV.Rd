@@ -12,7 +12,7 @@ rdCV(
   nOuter = 6,
   nInner,
   DA = FALSE,
-  fitness = c("AUROC", "MISS", "RMSEP"),
+  fitness = c("AUROC", "MISS", "RMSEP", "BER"),
   method = c("PLS", "RF"),
   methParam,
   ML = FALSE,

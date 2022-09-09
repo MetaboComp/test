@@ -11,9 +11,14 @@ customParams(
   ntreeOut = 300,
   mtryMaxIn = 150,
   compMax = 5,
-  layers = 10,
+  nodes = 200,
   threshold = 0.1,
   stepmax = 1e+08,
+  neuralMaxIn = 10,
+  kernel = c("vanilladot", "polydot", "rbfdot"),
+  nu = 0.1,
+  gamma = 1,
+  degree = 1,
   scoring_matrix = F,
   oneHot,
   NZV,
@@ -35,11 +40,15 @@ customParams(
 
 \item{compMax}{PLS parameter: Maximum number of PLS components (defaults to 5)}
 
-\item{layers}{ann parameter:}
+\item{nodes}{ann parameter:}
 
 \item{threshold}{ann parameter:}
 
 \item{stepmax}{ann parameter:}
+
+\item{neuralMaxIn}{ann parameter: Maximum number of ANN (defaults to 20)}
+
+\item{kernel}{svm parameter: kernal function to use, which includes sigmoid, radical, polynomial}
 
 \item{scoring_matrix}{A matrix that its score can be adjusted}
 
@@ -49,7 +58,7 @@ customParams(
 
 \item{rfMethod}{randomforest method, which includes randomForest and ranger}
 
-\item{svmMethod}{support vector machine method which includes 3 different support vector machine methods}
+\item{svmMethod}{support vector machine method, which includes svm, ksvm, s}
 
 \item{annMethod}{artificail neural network method which include 2 different ann methods}
 }

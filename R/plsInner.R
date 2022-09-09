@@ -23,7 +23,7 @@ plsInner=function(xTrain,
                   yVal,
                   DA,
                   fitness,
-                  comp,
+                  comp=5,
                   scale=TRUE) {
   cond=TRUE
   while(cond) {
@@ -123,7 +123,7 @@ plsInner=function(xTrain,
 ##################################################################################################################################################
       if (fitness=='RMSEP') {
         # cat(' rmsep',count)
-        rmsep=apply(yValInner,
+        rmsep=apply(yValInner ,
                     2,
                     function(x) sqrt(sum((yVal-x)^2,na.rm=T)/(length(yVal)-sum(is.na(x)))))
         ####RMSEP = sqrt(mean((y[i] - yhat[i])^2))

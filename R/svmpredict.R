@@ -4,8 +4,12 @@
 #' @param yTrain yTrain
 #' @param xTest xTest
 #' @param yTest yTest
-
-#' @param kernelmethod  The build in method of svm "linear","radical","polynomial","sigmoid"
+#' @param method method
+#' @param kernel The build in method of svm "linear","radical","polynomial","sigmoid"
+## @param nu
+## @param degree
+## @param gamma
+#'
 #' @param DA DA or not, coming form MUVR
 #'
 #' @return  The predicted value of yTest
@@ -14,19 +18,13 @@ svmpredict <- function(xTrain,
                    yTrain,
                    xTest,
                    yTest,
-                   scale,
                    method=c("svm","ksvm","svmlight"),
-                   kernelmethod=c("linear",
-                                  "radical",
-                                  "polynomial",
-                                  "sigmoid"),
-                   type=c("C-classification",
-                          "nu-classification",
-                          "one-classification",
-                          "eps-regression",
-                          "nu-regression")
-
-                   ) {
+                   kernel=c("vanilladot","polydot","rbfdot"),
+                   #nu,
+                   #degree,
+                   #gamma,
+                   DA
+                   ){
 
 
   # Allocate return object
@@ -36,16 +34,17 @@ svmpredict <- function(xTrain,
     xTest <- xTrain
     yTest <- yTrain
   }
-  dat<-data.frame(x=xTrain,
-                  y=yTrain)                           #####one thing to notice is that when using svm, y must be a factor
+  #dat<-data.frame(x=xTrain,
+  #                y=yTrain)                           #####one thing to notice is that when using svm, y must be a factor
   # Use "Train" for "Testing" if lacking (for fit-predict)
 
   if(class(yTest)!=class(yTrain)){stop("yTrain must be the same class as yTest")
   }
-  tesdat<-data.frame(x=xTest,
-                     y=yTest)
+  #tesdat<-data.frame(x=xTest,
+  #                   y=yTest)
+
   if(missing(method))
-    {method="svm"}
+    {method="ksvm"}
   if(!method %in% c("svm","ksvm","svmlight"))
     {stop("This method is not applied")}
   ##some notes
@@ -58,99 +57,110 @@ svmpredict <- function(xTrain,
 #####method 1
 if(method=="svm"){
 library(e1071)
-  if (missing(kernelmethod)) { kernelmethod = "radial"}
-  if (!kernelmethod %in% c("linear", "radial", "polynomial", "sigmoid"))
+  if (missing(kernel)) { kernel = "radial"}
+  if (!kernel %in% c("linear", "radial", "polynomial", "sigmoid"))
   {stop("This method is not included in svm")}
+  xTrain<-as.data.frame(xTrain)
+  xTest<-as.data.frame(xTest)
+  data = cbind(xTrain,yTrain)
+    if(DA==F){
 
-  if (missing(type)) {
-    if (class(Y) == "numeric"){type = "C-Classification"}
-    if (class(Y) == "numeric" | class(Y) == "integer"){type = "eps-regression"}
+      return$model <-svm(yTrain~.,
+                         data=data,
+                         kernel=kernel,
+                         nu=nu,
+                         gamma=gamma,
+                         degree=degree,
+                         type="nu-regression"
+
+      )
+      return$fit <-predict(return$model ,xTrain)
+      return$predicted<-predict(return$model ,xTest)
+    }
+
+  if(DA==T){
+
+    return$model <-svm(yTrain~.,
+                       data=data,
+                       kernel=kernel,
+                       nu=nu,
+                       gamma=gamma,
+                       degree=degree,
+                       type="nu-classification"
+
+    )
+    return$fit <-predict(return$model ,xTrain)
+    return$predicted<-predict(return$model ,xTest)
   }
+  #if (missing(type)) {
+  #  if (class(Y) == "numeric"){type = "nu-Classification"}
+  #  if (class(Y) == "numeric" | class(Y) == "integer"){type = "nu-regression"}
+  #}
 
-  if (!type %in% c("C-classification","nu-classification","one-classification","eps-regression","nu-regression" ))
-  { stop("This type is not included in svm")}
+  #if (!type %in% c("nu-classification","nu-regression" ))
+  #{ stop("This type is not included in svm")}
 
-  if (type %in% c("C-classification","nu-classification","one-classification")) {
-    if (class(Y) != "factor") { stop("dependent variable has to be of factor type for classification mode.")}
-  }
-  if (type %in% c("C-classification", "nu-classification","one-classification")) {
-    if (class(Y) != "numeric" | class(Y) != "integer") { stop("Need numeric dependent variable for regression")}
-  }
-
-
-
-
-
-
- suppressWarnings(
-  if(kernelmethod=="radial")
-   {tunesvm=tune(svm,
-                   y~.,
-                   data=dat,
-                  kernel=kernelmethod,
-                   type=type,
-                   ranges=list(cost=c(0.0001,0.001,0.01,0.1,1,10,100,1000),
-                               gamma=c(0.000001,0.00001,0.0001,0.001,0.01,0.1,1)))
-
- bestcost<-tunesvm$best.model$cost
- bestgamma<-tunesvm$best.model$gamma ###gamma is only used when kernel method i radial
-}   else{tunesvm=tune(svm,
-                      y~.,
-                      data=dat,
-                       kernel=kernelmethod,
-                      type=type,
-                      ranges=list(cost=c(0.0001,0.001,0.01,0.1,1,10,100,1000))
-                     )
-bestcost<-tunesvm$best.model$cost
-       }
- )
-###Here there are 2 methods which should be used.
-#(1) use directly best model from tuning
-#(2) use parameter selected from tunning to run a new model
- #####################################################
-  if(kernelmethod=="radial")
-  {return$model <- svm(y~.,
-                      data=dat,
-                      kernel=kernelmethod,
-                      type=type,
-                      cost=bestcost,
-                      gamma=bestgamma
-                      )
-  }else {return$model <- svm(y~.,
-                            data=dat,
-                            kernel=kernelmethod,
-                            type=type,
-                            cost=bestcost
-                            )
-  }
-################################################
-
-return$model<-tunesvm$best.model
-
-  return$fit<-fitted(return$model)
-
-  return$predicted<-predict(return$model,testdat)
-  table(predict=predicted,truth=testdat$y)
+  #if (type %in% c("nu-classification")) {
+  #  if (class(Y) != "factor") { stop("dependent variable has to be of factor type for classification mode.")}
+  #}
+  #if (type %in% c( "nu-regression")) {
+  #  if (class(Y) != "numeric" | class(Y) != "integer") { stop("Need numeric dependent variable for regression")}
+  #}
+###########################################
 }
+
+
+
+
 
 ####for ksvm there are 9 types in total. For simplicity, I will just include the method that is included in svm
 ####method 2
 
+
+
 if(method=="ksvm")
 {library(kernlab)
-  if(type)
-ksvm(y~.,
-     data=dat,
-     type)
-
-}
-
-  if(method=="svmlight")
-  {library(klaR)
-
-
+  if (missing(kernel)) { kernel = "vanilladot"}
+  if (!kernel %in% c("vanilladot","polydot","rbfdot" ))
+  {stop("This method is not included in svm")}
+  xTrain<-as.data.frame(xTrain)
+  xTest<-as.data.frame(xTest)
+  data = cbind(xTrain,yTrain)
+  if(DA==F){
+    M<-fit(yTrain~.,
+                  data=data,
+                  model="ksvm",          ##ranking could different in different kernel
+                  task="reg",
+                  search=list(search=list(nu=seq(0.001,0.9,0.001))),
+                  #nu=0.001,
+                  type="nu-svr",
+                  #kpar=list(sigma=gamma),
+                  kernel=kernel
+    )
+    return$model<-M
+    a<-ksvm(yTrain~.,data=data,type="nu-svr",nu=M@mpar$nu)
+    return$fit <-predict(a,xTrain)
+    return$predicted<-predict(a ,xTest)
   }
 
+  if(DA==T){
+    M<-fit(yTrain~.,
+                      data=data,
+                      model="ksvm",          ##ranking could different in different kernel
+                      task="class",
+                      search=list(search=list(nu=seq(0.001,0.9,0.001))),
+                      #nu=0.001,
+                      type="nu-svc",
+                      #kpar=list(sigma=gamma),
+                      kernel=kernel
+    )
+    return$model<-M
+    a<-ksvm(yTrain~.,data=data,type="nu-svc",nu=M@mpar$nu)
+    return$fit <-predict(a,xTrain)
+    return$predicted<-predict(a ,xTest)
+  }
+
+}
 
 
 

@@ -4,17 +4,7 @@
 \alias{annpredict}
 \title{ANN predictions for outer segments and consensus models}
 \usage{
-annpredict(
-  xTrain,
-  yTrain,
-  xTest,
-  yTest,
-  DA,
-  layers,
-  threshold,
-  stepmax,
-  method
-)
+annpredict(xTrain, yTrain, xTest, yTest, DA, nodes, threshold, stepmax, method)
 }
 \arguments{
 \item{xTrain}{xTrain}

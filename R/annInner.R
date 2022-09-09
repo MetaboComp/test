@@ -20,7 +20,7 @@ annInner <- function(xTrain,
                     yTrain,
                     xVal,
                     yVal,
-                    layers,
+                    nodes,
                     threshold,
                     stepmax,
                     DA,
@@ -28,6 +28,7 @@ annInner <- function(xTrain,
                     method) {
   # Allocate return object
   returnIn <- list()
+  ###Put it in the main MUVR
 if(DA==F){
 
  if(method=="neuralnet"){
@@ -39,20 +40,40 @@ if(DA==F){
                        data=data,
                        threshold=threshold,
                        stepmax=stepmax,
-                       hidden=layers,
-                       lifesign="none",
-                       act.fct="logistic",
-                       err.fct="sse"
+                       hidden=nodes,
+                       lifesign="none",  ##a string specifying how much the function will print during the calculation of the neural network. 'none', '
+                       #act.fct="logistic",
+                       #act.fct="linear",
+                       err.fct="sse",
+                       linear.output = T
                        )
 
    yValInner<-predict(annModIn,xVal)
-   returnIn$virank <- rank(-garson(annModIn,bar_plot=F))
-   names(returnIn$virank) <- rownames(garson(annModIn,bar_plot=F))
+   returnIn$virank <- rank(-abs(olden(annModIn,bar_plot=F)$importance))
+   names(returnIn$virank) <- rownames(olden(annModIn,bar_plot=F))
 
  }
 
-   if (method=="nnet"){##annModIn<-nnet()
+   else if (method=="nnet"){##annModIn<-nnet()
+
+     annModIn<-nnet(yTrain~.,
+                    x=xTrain,
+                    y=yTrain,
+                    data=data,
+                    #decay=threshold,
+                    maxit=stepmax,
+                    size=nodes,
+                    MaxNWts = 100000,
+                    #linout=F
+
+     )
+
    }
+  else{
+    stop('other ANN methods not yet implemented')
+  }
+
+
 }
 
   if(DA==T){
@@ -62,13 +83,9 @@ if(DA==F){
       yTrain<-with(ytrain,
                    data.frame(model.matrix(~yTrain+0)))
       data<-cbind(xTrain,yTrain)
-      names_x<-names(xTrain)
+      names_x<-colnames(xTrain)
       names_y<-names(yTrain)
-      f=as.formula(
-            paste(paste(names_y,collapse="+"),
-            "~",
-            paste(names_x,collapse="+")
-            ))
+
       annModIn<-neuralnet(as.formula(
                             paste(paste(names_y,collapse="+"),
                            "~",
@@ -77,23 +94,35 @@ if(DA==F){
                           data=data,
                           threshold=threshold,
                           stepmax=stepmax,
-                          hidden=layers,
+                          hidden=nodes,
                           lifesign="none",
-                          act.fct="logistic",
-                          err.fct="sse",
+                          act.fct="logistic",  ##sigmoid is logistic
+
+                          err.fct="ce",
                           linear.output = F
       )
       yValInner<-levels(yVal)[apply(predict(annModIn,xVal),
                         1,
                         which.max)]
- ###     returnIn$virank <- rank(-garson(annModIn,bar_plot=F))
- ###  names(returnIn$virank) <- rownames(garson(annModIn,bar_plot=F))
 
 
+  olden_frame<-olden(annModIn,
+                     x_names=names_x,
+                     y_names=colnames(annModIn$response),
+                     out_var=colnames(annModIn$response),
+                     bar_plot=F)
+  returnIn$virank <- rank(-abs(olden_frame$importance))
+  names(returnIn$virank) <- rownames(olden_frame)
+
+
+  #returnIn$virank <- rank(-garson(annModIn,bar_plot=F)$rel_imp)
+  #names(returnIn$virank) <- rownames(garson(annModIn,bar_plot=F))
 
     }
 
     if (method=="nnet"){##annModIn<-nnet()
+
+
     }
     }
 

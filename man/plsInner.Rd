@@ -4,7 +4,7 @@
 \alias{plsInner}
 \title{PLS model in inner CV loop}
 \usage{
-plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp, scale = TRUE)
+plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp = 5, scale = TRUE)
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}

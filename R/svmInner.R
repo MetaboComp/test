@@ -5,12 +5,15 @@
 #' @param xTrain Training data (samples as rows; variables as columns)
 #' @param yTrain Training response
 #' @param xVal Validation data
-#' @param yVal Validation response (for tuning)
+#' @param yVal Validation response (f´´or tuning)
 #' @param DA Logical for discriminant analysis (classification)
 #' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
-#' @param ntree See original function (`randomForest`). Passed from wrapper.
-#' @param method Choice of Random Forest implementation (randomForest, ranger or Rborist). Passed from wrapper.
-#' @param cost cost
+#'
+#' @param kernel What kernel to choose: polynomial, radical, linear, sigmoid
+#' @param method Choice of Support vector machine implementation ("svm", "ksvm", "svmlight"). Passed from wrapper.
+## @param nu An upper bound on the fraction of training errors and a lower bound of the fraction of support vectors". (0,1)
+## @param gamma
+## @param degree
 #'
 #' @return An object containing:
 #' @return (`miss`,`ber`,`auc` or `rmsep`) A fitness metric
@@ -19,32 +22,147 @@
 #'
 #'
 #'
-#'
-#'
-#'
-#'
-#'
-#'
-
-svmInner<-function(x,
-                   y,
-                   epsilon,
-                   kernal,
-                   cost,
-                   gamma,
-                   degree){
 
 
+svmInner<-function(xTrain,
+                   yTrain,
+                   xVal,
+                   yVal,
+                   DA,
+                   fitness,
+
+                   kernel,
+                   #nu,
+                   #gamma,
+                   #degree,
+
+                   method){
+
+  returnIn <- list()
+  ###Put it in the main MUVR
+  xTrain<-as.data.frame(xTrain)
+  xVal<-as.data.frame(xVal)
+  data = cbind(xTrain,yTrain)
+  if (DA == F) {
+    if (method == "ksvm") {
+#####Test for stability
+      ###doing nu regression
+      ##
+      svmModIn<-fit(yTrain~.,
+             data=data,
+             model="ksvm",          ##ranking could different in different kernel
+             task="reg",
+             search=list(search=list(nu=seq(0.001,0.9,0.001))),
+             #nu=0.001,
+             type="nu-svr",
+             #kpar=list(sigma=gamma),
+             kernel=kernel
+             )
+      b<-ksvm(yTrain~.,data=data,type="nu-svr",nu=svmModIn@mpar$nu)
+      yValInner<-predict(b,xVal)
+      svm_imp<-Importance(svmModIn,
+                          data=xTrain)
+      names(svm_imp$imp)<-colnames(xTrain)
+      returnIn$virank<-rank(-svm_imp$imp)
+
+
+      #svmModIn <- svm(
+       # yTrain ~ .,
+       # kernel=kernel,
+      # scale=F,
+      # type="nu-regression",
+      # data = data,
+      # nu = nu,
+      # gamma = gamma,
+      # kernel = kernel,
+      #
+      # )
+
+
+    }
 
 }
+
+  if (DA == T) {
+    if (method == "ksvm") {
+      #####Test for stability
+      svmModIn<-fit(yTrain~.,
+                    data=data,
+                    model="ksvm",
+                    task="class",
+                    search=list(search=list(nu=seq(0.001,0.9,0.001))),
+                    #nu=0.001,
+                    type="nu-svc",
+                    #kpar=list(sigma=gamma),
+                    kernel=kernel
+                    )
+      b<-ksvm(yTrain~.,data=data,type="nu-svc",nu=svmModIn@mpar$nu)
+      yValInner<-predict(b,xVal)
+      svm_imp<-Importance(svmModIn,
+                          data=xTrain)
+
+      #####somehow it gives NA
+
+      names(svm_imp$imp)<-colnames(xTrain)   ##should I add here
+      svm_imp$imp<-svm_imp$imp[!is.na(names(svm_imp$imp))]
+      returnIn$virank<-rank(-svm_imp$imp)
+
+
+      #svmModIn <- svm(
+      # yTrain ~ .,
+      # kernel=kernel,
+      # scale=F,
+      # type="nu-regression",
+      # data = data,
+      # nu = nu,
+      # gamma = gamma,
+      # kernel = kernel,
+      #
+      # )
+
+    }
+
+  }
 
 ####tune for gamma and cost
 
 
+  if (fitness == 'MISS') {
+    # cat(' miss',count)
+    if (DA) returnIn$miss <- sum(yValInner != yVal)
+    else {                                         ###ML
+      yClassInner <- ifelse(yValInner > 0, 1, -1)   #####classification binary??????Why?????
+      returnIn$miss <- sum(yClassInner != yVal)
+    }
+  }
+
+  if (fitness == 'BER') {
+    returnIn$ber <- getBER(actual = yVal,
+                           predicted = yValInner)  ###getBER from MUVR
+  }
+  ##Balance error rate
+
+
+  if (fitness == 'AUROC') {
+    returnIn$auc <- roc(yVal,
+                        rfModIn$test$votes[,1])$auc  ####what is votes
+  }
+  # if test set is given (through the xtest or additionally ytest arguments), this component is a list which contains the
+  # corresponding predicted, err.rate, confusion, votes (for classification) or predicted, mse and rsq (for regression) for
+  # the test set. If proximity=TRUE, there is also a component, proximity, which contains the proximity among the test set
+  # as well as proximity between test and training data.
+  if (fitness == 'RMSEP') {
+    returnIn$rmsep <- sqrt(sum((yVal - yValInner) ^ 2, na.rm = T) / (length(yVal) - sum(is.na(yValInner))))
+  }
+  ##RMSEP root mean squared error of prediction
+
+  return(returnIn)
+}
 
 
 
 
+##svmInner(xTrain=x_train,yTrain=y_train, xVal=x_test,yVal=y_test,DA=F,method="svm")
 
 
 

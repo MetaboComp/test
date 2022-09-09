@@ -11,11 +11,12 @@ permutations(
   nOuter,
   varRatio,
   parallel,
-  permutation_type = c("AUROC", "MISS", "Q2_real", "Q2_dist", "BER")
+  realorsimulation = "simulation",
+  permutation_type
 )
 }
 \arguments{
-\item{MUVRclassObject}{A 'MUVR' class obvject}
+\item{MUVRclassObject}{A 'MUVR' class object}
 
 \item{nPerm}{number of permutations to run}
 
@@ -27,7 +28,9 @@ permutations(
 
 \item{parallel}{whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)}
 
-\item{permutation_type}{Either AUROC,Q2_dist,Q2_real or MISS or BER}
+\item{realorsimulation}{Either real or simulation, To decide the permutation sampling is performed on original Y values or the probability(If Y categorical)/distributions(If Y continuous) of Y values}
+
+\item{permutation_type}{Either AUROC,Q2, or MISS or BER}
 }
 \value{
 permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)

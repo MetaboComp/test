@@ -24,7 +24,7 @@ rdCV=function(X,
               nOuter=6,
               nInner,
               DA=FALSE,
-              fitness=c('AUROC','MISS','RMSEP'),
+              fitness=c('AUROC','MISS','RMSEP',"BER"),
               method=c('PLS','RF'),
               methParam,
               ML=FALSE,
@@ -103,15 +103,19 @@ rdCV=function(X,
       if (length(unique(Y))>2) {    ##when y class>2
         fitness='MISS'
         cat('\nMissing fitness -> MISS')
-      } else {
+      } else if(length(levels(Y))>2) {
         fitness='AUROC'
         cat('\nMissing fitness -> AUROC')
+        }else {
+          fitness='BER'
+          cat('\nMissing fitness -> BER')
+        }
       }
     } else {
       fitness='RMSEP'
       cat('\nMissing fitness -> RMSEP')
     }
-  }
+
 
   if (nrow(X)!=length(Y)) {
     cat('\nMust have same nSamp in X and Y: Return NULL')
@@ -159,8 +163,8 @@ rdCV=function(X,
     yPredR=numeric(length(Y))
   }
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
-  nCompRep=missRep=numeric(nRep)    ##length is nRep
-  names(nCompRep)=names(missRep)=paste(rep('rep',nRep),1:nRep,sep='')
+  nCompRep=missRep=berRep=numeric(nRep)    ##length is nRep
+  names(nCompRep)=names(missRep)=names(berRep)=paste(rep('rep',nRep),1:nRep,sep='')
 
   VIRankRep=matrix(data=nVar0,     ###nVar0 is ncol(X) it is the each value in the matrix
                 nrow=nVar0,    ##row is X variable
@@ -259,9 +263,9 @@ rdCV=function(X,
 
       ## Allocate variables for later use
       ## for inner segment
-      missIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=1)
-      rownames(rmsepIn)=rownames(PRESSIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
-      colnames(rmsepIn)=colnames(PRESSIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=nVar
+      missIn=berIn=aucIn=rmsepIn=PRESSIn=nCompIn=matrix(nrow=nInner,ncol=1)
+      rownames(rmsepIn)=rownames(berIn)=rownames(PRESSIn)=rownames(missIn)=rownames(aucIn)=rownames(nCompIn)=paste(rep('inSeg',nInner),1:nInner,sep='')
+      colnames(rmsepIn)=colnames(berIn)=colnames(PRESSIn)=colnames(missIn)=colnames(aucIn)=colnames(nCompIn)=nVar
       ##nVar is ncol(X)
 
       VIRankInner=matrix(data=nVar0,
@@ -326,8 +330,7 @@ rdCV=function(X,
                            yVal,
                            DA,
                            fitness,
-                           comp,
-                           methParam$mode)
+                           comp)
             nCompIn[j,1]=inMod$nComp
           } else {
             inMod=rfInner(xTrain,
@@ -344,6 +347,8 @@ rdCV=function(X,
             missIn[j,1]=inMod$miss   ###matrix(nrow=nInner,ncol=1)
           } else if (fitness=='AUROC') {
             aucIn[j,1]=inMod$auc     ###row is X variable numbers
+          } else if (fitness=='BER') {
+            berIn[j,1]=inMod$ber     ###row is X variable numbers
           } else {
             rmsepIn[j,1]=inMod$rmsep
             PRESSIn[j,1]=(inMod$rmsep^2)*length(yVal)
@@ -370,6 +375,11 @@ rdCV=function(X,
         fitRank[]=rank(fitRank)
         fitRank=colMeans(fitRank)
         VALRep[i,]=colSums(missIn)   ##colsum of miss in
+      }else if (fitness=='BER') {
+        fitRank=berIn
+        fitRank[]=rank(fitRank)
+        fitRank=colMeans(fitRank)
+        VALRep[i,]=colSums(berIn)   ##colsum of ber in
       }else {
         fitRank=rmsepIn
         fitRank[]=rank(fitRank)
@@ -403,7 +413,7 @@ rdCV=function(X,
 
         xTest=subset(xTest,select=incVar)
 
-        yPredR[testIndex]=plspredict(plsOut,
+        yPredR[testIndex]=predict(plsOut,
                                   newdata=xTest)$predict[,,nCompOut[i]]  #
         # Prediction of newdata
         if (modReturn) outMod[[i]]=plsOut
@@ -469,13 +479,17 @@ rdCV=function(X,
                            1,
                            function(x) levels(Y)[which.max(x)]))
     miss=sum(yClass!=Y)
+    ber=getBER(actual=Y,
+               predicted=yClass)
     modelReturn$yClass=yClass
     modelReturn$miss=miss
     modelReturn$auc=auc
-
+    modelReturn$ber=ber
   } else if (ML) {
     modelReturn$yClass=ifelse(yPredAve>=0,1,-1)
     modelReturn$miss=sum(modelReturn$yClass!=Y)
+    modelReturn$ber=getBER(actual=Y,
+                           predicted=modelReturn$yClass)
     modelReturn$auc=roc(Y,
                         yPredAve)$auc
   }
@@ -505,7 +519,7 @@ rdCV=function(X,
 
     if (length(plsFit$nzv$Position)>0) removeVar=rownames(plsFit$nzv$Metrics) else removeVar=NA
     incVar=colnames(X)[!colnames(X)%in%removeVar]
-    yFit=plspredict(plsFit,
+    yFit=predict(plsFit,
                  newdata=subset(X,select=incVar))$predict[,,round(nComp)]  #
     modelReturn$Fit=list(yFit=yFit,     ##yFit is the predicted one when removed nzc
                          plsFit=plsFit) ##plsFir is a list of pls result

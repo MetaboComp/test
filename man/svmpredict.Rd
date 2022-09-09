@@ -9,11 +9,9 @@ svmpredict(
   yTrain,
   xTest,
   yTest,
-  scale,
   method = c("svm", "ksvm", "svmlight"),
-  kernelmethod = c("linear", "radical", "polynomial", "sigmoid"),
-  type = c("C-classification", "nu-classification", "one-classification",
-    "eps-regression", "nu-regression")
+  kernel = c("vanilladot", "polydot", "rbfdot"),
+  DA
 )
 }
 \arguments{
@@ -25,7 +23,9 @@ svmpredict(
 
 \item{yTest}{yTest}
 
-\item{kernelmethod}{The build in method of svm "linear","radical","polynomial","sigmoid"}
+\item{method}{method}
+
+\item{kernel}{The build in method of svm "linear","radical","polynomial","sigmoid"}
 
 \item{DA}{DA or not, coming form MUVR}
 }

@@ -50,13 +50,12 @@ permutation_type<-permutation_result$permutation_type
 permutation_output<-permutation_result$permutation_output
 
 if(!missing(permutation_type)){
-    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2_real"&permutation_type!="Q2_dist"&permutation_type!="BER")
+    if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2"&permutation_type!="BER")
     {stop("permutation_type is not correct")}
-    if(permutation_type=="Q2_real"&!any(class(MUVRclassObject)=='Regression'))
+    if(permutation_type=="Q2"&!any(class(MUVRclassObject)%in%c('Regression',"Multilevel")))
     {stop("Classification and Multilevel must use AUROC or MISS for permutation")}
-  if(permutation_type=="Q2_dist"&!any(class(MUVRclassObject)=='Regression'))
-  {stop("Classification and Multilevel must use AUROC or MISS for permutation")}
-  if(!(permutation_type%in% c("Q2_real","Q2_dist"))&any(class(MUVRclassObject)=='Regression'))
+
+  if(!(permutation_type%in% c("Q2"))&any(class(MUVRclassObject)=='Regression'))
   {stop("Regression must use Q2 for permutation")}
 
 }
@@ -76,21 +75,23 @@ if(missing(type)) {type='t'}
 
 ###############################################################################################################################33
 ###For actual value or vector in 3 scenario
-if (permutation_type=="Q2_real"|permutation_type=="Q2_dist") {
+if (permutation_type=="Q2") {
     actual=MUVRclassObject$fitMetric$Q2[nModel]
     if (missing(xlab)) xlab='Q2'
   } else if(permutation_type=="MISS") {
     actual=MUVRclassObject$miss[nModel]
     if (missing(xlab)) xlab='Misclassifications'
   }else if(permutation_type=="AUROC")
-    { actual=MUVRclassObject$auc[nModel,]    ###a vector
+    { actual=ifelse(dim(permutation_output)[3]!=1,
+                    MUVRclassObject$auc[nModel,],
+                    MUVRclassObject$auc[nModel])    ###a vector
       if (missing(xlab)) xlab='AUROC'}
   else {actual=MUVRclassObject$ber[nModel]
   if (missing(xlab)) xlab='Balance Error Rate'}
 
 #########################################################################################################################
 ########when it is Q2 or MISS
-if(permutation_type=="Q2_real"|permutation_type=="Q2_dist"|permutation_type=="MISS"|permutation_type=="BER"){
+if(permutation_type=="Q2"|permutation_type=="MISS"|permutation_type=="BER"){
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
   if(!missing(side)){if(side!=ifelse(actual<median(permutation_output[,nModel]),
                                      'smaller',

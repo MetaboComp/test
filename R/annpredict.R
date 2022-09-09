@@ -6,7 +6,7 @@
 #' @param yTest yTest
 #' @param method method
 #' @param DA DA
-#' @param layers
+#' @param nodes
 #' @param stepmax
 #' @param threshold
 #' @return  The predicted value of yTest
@@ -16,7 +16,7 @@ annpredict <- function(xTrain,
                    xTest,
                    yTest,
                    DA,
-                   layers,
+                   nodes,
                    threshold,
                    stepmax,
                    #If set to FALSE, the forest will not be retained in the output object. If xtest is given, defaults to FALSE.
@@ -38,12 +38,14 @@ annpredict <- function(xTrain,
     data=cbind(xTrain,yTrain)
     return$model <- neuralnet(yTrain~.,
                               data=data,
-                              hidden=layers,
+                              hidden=nodes,
                               threshold=threshold,
                               stepmax=stepmax,
                               lifesign="minimal",
                               act.fct="logistic",
-                              err.fct="sse")
+                              err.fct="sse"
+                              #linear.output = F
+                              )
     return$fit <-predict(return$model ,xTrain)
     return$predicted<-predict(return$model ,xTest)
     }
@@ -58,6 +60,32 @@ annpredict <- function(xTrain,
   }
 }
 if(DA==T){
+  if(method=="neuralnet"){
+    data=cbind(xTrain,yTrain)
+    ytrain<-as.data.frame(yTrain)
+    yTrain<-with(ytrain,
+                 data.frame(model.matrix(~yTrain+0)))
+    data<-cbind(xTrain,yTrain)
+    names_x<-colnames(xTrain)
+    names_y<-names(yTrain)
+
+    return$model<-neuralnet(as.formula(
+      paste(paste(names_y,collapse="+"),
+            "~",
+            paste(names_x,collapse="+")
+      )),
+      data=data,
+      threshold=threshold,
+      stepmax=stepmax,
+      hidden=nodes,
+      lifesign="none",
+      act.fct="logistic",
+      err.fct="sse",
+      linear.output = F
+    )
+    return$fit <-predict(return$model ,xTrain)
+    return$predicted<-predict(return$model ,xTest)
+  }
 
 }
 
