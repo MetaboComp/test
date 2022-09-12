@@ -14,7 +14,8 @@ plotPerm(
   ylim = NULL,
   breaks = "Sturges",
   pos,
-  main = NULL
+  main = NULL,
+  permutation_visual = c("mean", "median", "none")
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ plotPerm(
 \item{pos}{Choice of position of p-value label (if default is not adequate)}
 
 \item{main}{Choice of user-specified plot title}
+
+\item{permutation_visual}{choice of showing median or mean or none}
 }
 \value{
 Plot

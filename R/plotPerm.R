@@ -12,6 +12,7 @@
 #' @param ylim Choice of user-specified y-limits (if default is not adequate)
 #' @param breaks Choice of user-specified histogram breaks (if default is not adequate)
 #' @param main Choice of user-specified plot title
+#' @param permutation_visual choice of showing median or mean or none
 #' @param pos Choice of position of p-value label (if default is not adequate)
 #'
 #' @return Plot
@@ -25,11 +26,13 @@ plotPerm=function(actual,
                   ylim=NULL,
                   breaks='Sturges',
                   pos,  ####Choice of position of p-value label (if default is not adequate)
-                  main=NULL) {
+                  main=NULL,
+                  permutation_visual="none"
+                  ) {
 
-
-  if(!missing(type)){if(type!="t"&type!="non")stop("This type can not be implemented")}
-  if(missing(type)) type='t'
+  if(!permutation_visual%in%c("mean","median","none")){stop("this type not supoorted")}
+  if(!missing(type)){if(type!="t"&type!="non"){stop("This type can not be implemented")}}
+  if(missing(type)) {type='t'}
 
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
 
@@ -83,15 +86,31 @@ plotPerm=function(actual,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
        labels=paste0(signif(actual,4))
   )
-
+if(permutation_visual=="mean"){
   text(median(distribution),    ###x position of the text
        max(h$density)*0.003,        ##y position of the text
        pos=3,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
        labels=paste0("median=",
-                    signif(median(distribution),4)
+                    signif(mean(distribution),4)
                     )
   )
+}
+
+  if(permutation_visual=="median"){
+    text(median(distribution),    ###x position of the text
+         max(h$density)*0.003,        ##y position of the text
+         pos=3,
+         ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+         labels=paste0("mean=",
+                       signif(median(distribution),4)
+         )
+    )
+  }
+
+  if(permutation_visual=="none"|missing(permutation_visual)){
+
+  }
 }
 
 
