@@ -111,6 +111,7 @@ if(permutation_visual=="mean"){
   if(permutation_visual=="none"|missing(permutation_visual)){
 
   }
+
 }
 
 
