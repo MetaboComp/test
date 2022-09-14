@@ -23,7 +23,7 @@ rfPred <- function(xTrain,
 
   # Allocate return object
   return <- list()
-
+  if(missing(method)){method="randomForest"}
   # Use "Train" for "Testing" if lacking (for fit-predict)
   if(missing(xTest)) {
     xTest <- xTrain
