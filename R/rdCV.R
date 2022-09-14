@@ -339,8 +339,10 @@ rdCV=function(X,
                           yVal,
                           DA,
                           fitness,
-                          ntree=methParam$ntreeIn,
-                          mtry=mtryIn)
+
+                          mtry = mtryIn,
+                          ntree = methParam$ntreeIn,
+                          method = methParam$rfMethod)
           }
           # Store fitness metric
           if (fitness=='MISS') {

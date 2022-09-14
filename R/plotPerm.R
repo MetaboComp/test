@@ -91,7 +91,7 @@ if(permutation_visual=="mean"){
        max(h$density)*0.003,        ##y position of the text
        pos=3,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
-       labels=paste0("median=",
+       labels=paste0("mean=",
                     signif(mean(distribution),4)
                     )
   )
@@ -102,7 +102,7 @@ if(permutation_visual=="mean"){
          max(h$density)*0.003,        ##y position of the text
          pos=3,
          ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
-         labels=paste0("mean=",
+         labels=paste0("median=",
                        signif(median(distribution),4)
          )
     )
