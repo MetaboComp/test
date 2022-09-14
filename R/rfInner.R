@@ -28,7 +28,7 @@ rfInner <- function(xTrain,
                     method) {
   # Allocate return object
   returnIn <- list()
-
+  if(missing(method)){method="randomForest"}
   # Different functions for different RF implementations
   if(method == 'randomForest') {
     rfModIn <- randomForest(xTrain,

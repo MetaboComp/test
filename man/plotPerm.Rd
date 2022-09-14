@@ -15,7 +15,7 @@ plotPerm(
   breaks = "Sturges",
   pos,
   main = NULL,
-  permutation_visual = c("mean", "median", "none")
+  permutation_visual = "none"
 )
 }
 \arguments{
