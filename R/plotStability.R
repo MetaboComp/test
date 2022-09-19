@@ -1,87 +1,124 @@
 #' Plot stability of selected variables and prediction fitness as a function of number of repetitions
 #'
-#' @param MUVRclassObject MUVR class object
+#' @param MUVRrdCVclassObject MUVR class object or rdCV object
 #' @param model 'min' (default), 'mid' or 'max'
 #' @param VAll Option of specifying which variables (i.e. names) to consider as reference set.
-#'             Defaults to variables selected from the `model` of the `MUVRclassObject`
+#'             Defaults to variables selected from the `model` of the `MUVRrdCVclassObject`
 #' @param nVarLim Option of specifying upper limit for number of variables
 #' @param missLim Option of specifying upper limit for number of misclassifications
-#'
+
 #' @return Plot of number of variables, proportion of variables overlapping with reference and prediction accuracy (Q2 for regression; MISS otherwise) as a function of number of repetitions.
 #' @export
-plotStability=function(MUVRclassObject,
+plotStability=function(MUVRrdCVclassObject,
                        model='min',
                        VAll,
                        nVarLim,
                        missLim) {
 
-  regr=any(class(MUVRclassObject)=='Regression')
-  DA=MUVRclassObject$inData$DA
-  ML=MUVRclassObject$inData$ML
-  Y=MUVRclassObject$inData$Y
+  regr=any(class(MUVRrdCVclassObject)=='Regression')
+  classification=any(class(MUVRrdCVclassObject)=='Classification')
+  DA=MUVRrdCVclassObject$inData$DA
+  ML=MUVRrdCVclassObject$inData$ML
+  Y=MUVRrdCVclassObject$inData$Y
 
   nModel=ifelse(model=='min',
                 1,
                 ifelse(model=='mid',
                        2,
                        3))
-  nVar=round(MUVRclassObject$nVar[nModel])
+  ######### if rdCV
+  if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+  nVar=round(MUVRrdCVclassObject$nVar[nModel])
+  if(missing(VAll)) {VAll=names(sort(MUVRrdCVclassObject$VIRank[,nModel])[1:nVar])}
 
-  if(missing(VAll)) VAll=names(sort(MUVRclassObject$VIRank[,nModel])[1:nVar])
+  } else {nVar=ncol(MUVRrdCVclassObject$indata$X)
+
+
+  }
+
+
   ##sort the column of of the selected model(min, mid, max).choose the first nVar variables' names
 
   # Final selection of variables
 
-  nRep=MUVRclassObject$inData$nRep
-  nVRep=VARep=missRep=r2Rep=q2Rep=nV=VA=miss=r2=q2=numeric(nRep)
+  nRep=MUVRrdCVclassObject$inData$nRep
+  nVRep=VARep=missRep=berRep=r2Rep=q2Rep=nV=VA=miss=ber=r2=q2=numeric(nRep)
   ### anumeric vector of length nRep
 
   for (i in 1:nRep) {
-    nVRep[i]=MUVRclassObject$nVarPerRep[[nModel]][i]
+
+    if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+    nVRep[i]=MUVRrdCVclassObject$nVarPerRep[[nModel]][i]
     ##number of nVar for each repetition in min model.It is the same length as nRep
 
-    nV[i]=round(mean(MUVRclassObject$nVarPerRep[[nModel]][1:i]))
+    ######### if rdCV
+    nV[i]=round(mean(MUVRrdCVclassObject$nVarPerRep[[nModel]][1:i]))
     ## the mean of nVarPerRep of first i repetitions in min model. It is the same length as nRep
 
-    VARep[i]=sum(names(sort(MUVRclassObject$VIRankPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
+
+    VARep[i]=sum(names(sort(MUVRrdCVclassObject$VIRankPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
     ###in repetition i,if the variables selected as included in that repetition is in the VAll, save there names
     ##before sum() Each VARep[i] is a vector of variable names. Each repetition has a vector
     ###sum() add 1 if name is in it
     ##output is a number of variables in VALL for  repetition i
 
     VA[i]=sum(names(sort(
-      rowMeans(MUVRclassObject$VIRankPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
+      rowMeans(MUVRrdCVclassObject$VIRankPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
     ##calculate  the mean of  first i repetitions of VIRankPerRep first and then rank them
     ##choose the first nV[i] and keep the ones that are in VALL
     ###sum() add 1 if name is in it
     ##output is a number of variables in VALL for first i repetition
+    }
+
 
     if(DA) {         ############discuss the scenario of DA
-      predsRep=MUVRclassObject$yPredPerRep[[nModel]][,,i,drop=F]
+      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      predsRep=MUVRrdCVclassObject$yPredPerRep[[nModel]][,,i,drop=F]
+      } else{
+        predsRep=MUVRrdCVclassObject$yPredPerRep[,,i,drop=F]
+      }
       ##row is observations, column is groups, The first value is for the first repetition,
       ##it will be substituted for each i
 
+      ###balance error rate
+      berRep[i]=getBER(predicted=levels(Y)[apply(predsRep,1,which.max)],
+                       actual=Y)
+
       missRep[i]=sum(levels(Y)[apply(predsRep,1,which.max)]!=Y)
       ##a number for each repetition, which is miss classification numbers
-
-      preds=MUVRclassObject$yPredPerRep[[nModel]][,,1:i]
+      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      preds=MUVRrdCVclassObject$yPredPerRep[[nModel]][,,1:i]
+      } else{
+        preds=MUVRrdCVclassObject$yPredPerRep[,,1:i]
+      }
       ###for the first i repetitions, it is a list
 
       preds=apply(preds,c(1,2),mean)
       ###mean for first i repetitions,output is a matrix (row is observarion, column is group)
-
+      ber[i]=getBER(predicted=levels(Y)[apply(preds,1,which.max)],
+                    actual=Y)
       miss[i]=sum(levels(Y)[apply(preds,1,which.max)]!=Y)
       ##  ##a number for first i repetition, which is miss classification numbers
 
     } else {
-      predsRep=MUVRclassObject$yPredPerRep[[nModel]][,i,drop=F]
+
+      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      predsRep=MUVRrdCVclassObject$yPredPerRep[[nModel]][,i,drop=F]
+      } else{
+        predsRep=MUVRrdCVclassObject$yPredPerRep[,i,drop=F]
+
+      }
+
       ###each repetition,The first value is for the first repetition, it will be substituted
       ##row is all observations, column is one column, which is repetition i
       PRESS=sum((Y-predsRep)^2)
       TSS=sum((Y-mean(Y))^2)
       q2Rep[i]=1-(PRESS/TSS)  ###one q2 for each repetition
-
-      preds=MUVRclassObject$yPredPerRep[[nModel]][,1:i,drop=F]
+      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      preds=MUVRrdCVclassObject$yPredPerRep[[nModel]][,1:i,drop=F]
+      }else{
+        preds=MUVRrdCVclassObject$yPredPerRep[,1:i,drop=F]
+      }
       ####row is all observations, column is first i repetitions
       preds=rowMeans(preds)   ###row means,  row is all observations, column is one column,
       PRESS=sum((Y-preds)^2)
@@ -92,9 +129,13 @@ plotStability=function(MUVRclassObject,
     if(ML) {
       class=ifelse(preds<0,-1,1)
       miss[i]=sum(class!=Y)
+      ber[i]=getBER(predicted=class,
+                    actual =Y )
     }
   }
 
+
+  if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
   VARep=VARep/length(VAll)    ####Originally, Each VARep[i] is a vector of variable names that is in VALL. Each repetition has a vector
   ##output is a percentage
   VA=VA/length(VAll)
@@ -104,16 +145,25 @@ plotStability=function(MUVRclassObject,
     pot=10^floor(log10(max(nV))) ###number become smaller
     nVarLim=ceiling(max(c(nV,nVRep))/pot)*pot ###nV and nVRep both has the same length as nREP
     ###number becomes bigger
+    }
+
   }
+
+
 ######################################################################################################
 ##takes a single numeric argument x and returns a numeric vector containing the smallest integers
 ##not less than the corresponding elements of x.
-  nPlot=ifelse(ML,4,3)
+  if(any(class(MUVRrdCVclassObject)=='rdCVObject')){nPlot=ifelse(ML,3,ifelse(regr,1,2))
   par(mfrow=c(nPlot,1))
   par(mar=c(3,4,0,0)+.5)
-
+  }else{
+  nPlot=ifelse(ML,5,ifelse(regr,3,4))
+  par(mfrow=c(nPlot,1))
+  par(mar=c(3,4,0,0)+.5)
+  }
 ######################
 #Plot 1 Number of selected variables vs number of repetions
+  if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
   plot(nVRep,                  ###each repetition
        ylim=c(0,nVarLim),
        type='l',
@@ -143,10 +193,12 @@ plotStability=function(MUVRclassObject,
          col=c('pink','red'),
          lty=1,                   ###linetype
          bty='n')
+  }
 #######################
 ####Plot 3 Number of Missclassification vs number of repetitions
 
   if(DA | ML) {
+
     if(missing(missLim)) missLim=length(Y)
     plot(missRep,             ######each repetition
          ylim=c(0,missLim),
@@ -162,6 +214,25 @@ plotStability=function(MUVRclassObject,
            col=c('lightblue','blue'),
            lty=1,
            bty='n')
+
+
+
+
+      plot(berRep,             ######each repetition
+           ylim=c(0,1),
+           type='l',
+           col='lightblue',
+           xlab='',
+           ylab='Balance ErrorRate',
+           bty='l')
+      lines(ber,                ####cumulative
+            col='blue')
+      legend('bottomright',
+             c('Per repetition','Cumulative'),
+             col=c('lightblue','blue'),
+             lty=1,
+             bty='n')
+
   }
 ########################
 ##Plot 4 Q2 vs number of repetitions

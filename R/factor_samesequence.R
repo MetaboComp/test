@@ -1,4 +1,4 @@
-#'
+#'factor_samesequence
 #'
 #'
 #' @param X a factor variable

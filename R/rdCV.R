@@ -33,7 +33,7 @@ rdCV=function(X,
 
   ### Code adapted from MVWrap - Brokenness and oddities are most likely due to this
   library(pROC)
-  # Initialise modelReturn with function call
+  # Initialize modelReturn with function call
   modelReturn=list(call=match.call())
   # Start timer
   start.time=proc.time()[3]
@@ -57,30 +57,32 @@ rdCV=function(X,
     cat('\nMissing ID -> Assume all unique (i.e. sample independence)')
     ID=1:nSamp
   }
-  if (missing(nInner)) nInner=nOuter-1
-  if (missing(method)) method='RF'
-  if (method=='RF') library(randomForest) else library(mixOmics)
+  if (missing(nInner)) {nInner=nOuter-1}
+  if (missing(method)) {method='RF'}
+  if (method=='RF') {library(randomForest)
+  } else {library(mixOmics)}
+
+
   if (missing(methParam)) {
     if (method=='PLS') {
-      methParam=list(compMax=ifelse(nVar<5,nVar,5),mode='regression')  ##if the variable number is less than 5 then the component number cannot be 5
+
+      methParam=list(compMax=ifelse(nVar<5,nVar,5),mode='regression',method="PLS")  ##if the variable number is less than 5 then the component number cannot be 5
     } else {
-      methParam=list(ntreeIn=150,ntreeOut=300,mtryMaxIn=150)
+
+      methParam=customParams(method="RF")
     }
   }
 
 ##############################################################################################
 #(1)When ML, what if Y is not missing
 #
-#(2)add BER in the fittnesss of rdCV when DA=T
-#
-#
-#
+
 ###############################################################################################33333
 
 
   if (ML) {
     X=rbind(X,-X)
-    Y=rep(c(-1,1),each=nSamp)
+    if(missing(Y)){Y=rep(c(-1,1),each=nSamp)}
     nSamp=2*nSamp
     ID=c(ID,ID)
     DA=FALSE
@@ -89,11 +91,12 @@ rdCV=function(X,
   }
 
 
-  if (is.character(Y)) Y=factor(Y)
+  if (is.character(Y)) {Y=factor(Y)}
   if (is.factor(Y)) {
     cat('\nY is factor -> Classification (',length(unique(Y)),' classes)',sep='')
     DA=TRUE
-  }
+  }else{DA=F}
+
   if (is.numeric(Y) & DA) {
     Y=as.factor(Y)
     cat('\nDA=TRUE -> Y as factor -> Classification (',length(unique(Y)),' classes)',sep='')
@@ -110,11 +113,11 @@ rdCV=function(X,
           fitness='BER'
           cat('\nMissing fitness -> BER')
         }
-      }
-    } else {
+      } else {
       fitness='RMSEP'
       cat('\nMissing fitness -> RMSEP')
-    }
+      }
+  }
 
 
   if (nrow(X)!=length(Y)) {
@@ -342,7 +345,8 @@ rdCV=function(X,
 
                           mtry = mtryIn,
                           ntree = methParam$ntreeIn,
-                          method = methParam$rfMethod)
+                          method = methParam$rfMethod
+                          )
           }
           # Store fitness metric
           if (fitness=='MISS') {
@@ -367,6 +371,8 @@ rdCV=function(X,
           ##Here VIRankInner rearranged as the name sequence as the inMod$virank
 
       }    ###col ncol(X),
+      ####################################################################where Inner ends
+
       if (fitness=='AUROC') {
         fitRank=-aucIn       ###-aucin smaller the better
         fitRank[]=rank(fitRank)
@@ -402,12 +408,12 @@ rdCV=function(X,
 
 
       if (method=='PLS'){
-        if (DA) plsOut=plsda(xIn,
+        if (DA) {plsOut=MUVR::plsda(xIn,
                              yIn,
                              ncomp=nCompOut[i])
-        else plsOut=pls(xIn,
+       } else {plsOut=MUVR::pls(xIn,
                         yIn,
-                        ncomp=nCompOut[i])
+                        ncomp=nCompOut[i])}
         if (length(plsOut$nzv$Position)>0) removeVar=rownames(plsOut$nzv$Metrics)
         else removeVar=NA
 
@@ -421,6 +427,23 @@ rdCV=function(X,
         if (modReturn) outMod[[i]]=plsOut
       }
       else {
+        if(DA){
+        if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
+
+          #xIn<-Xotu[1:15,]
+          #yIn<-Yotu[1:15]
+          #xVal<-Xotu[16:29,]
+          #yVal<-Yotu[16:29]
+          #original_levels_yIn<-levels(yTrain)
+          #original_levels_yVal<-levels(yVal)
+          #real_levels_yIn<-levels(droplevels(yTrain))
+          #real_levels_yTest<-levels(droplevels(yTest))
+          yIn=droplevels(yIn)
+          xTest<-xVal[!is.na(factor(yVal, levels=levels(yIn))),]
+          yTest<-factor(yTest[!is.na(factor(yTest, levels=levels(yIn)))],levels=levels(yIn))
+
+        }
+        }
         rfOut=randomForest(xIn,
                            yIn,
                            xTest,
@@ -432,7 +455,9 @@ rdCV=function(X,
         }
         if (modReturn) outMod[[i]]=rfOut
       }
-    }            ###where outer ends
+    }
+    ####################################################################where Outer ends
+
 
     # Per repetition: Average outer loop variables, nComp and VIP ranks
     parReturn=list(yPred=yPredR)
@@ -447,7 +472,9 @@ rdCV=function(X,
     if (logg) sink()
     return(parReturn)
     # reps[[r]]=parReturn
-  }
+     }
+
+  ################where repetition ends
   if (modReturn) outMods=list()
   for (r in 1:nRep) {
     if (DA) yPred[,,r]=reps[[r]]$yPred ###reps is a list
@@ -517,8 +544,8 @@ rdCV=function(X,
 
   ## Build overall "Fit" method for calculating R2 and visualisations
   if (method=='PLS'){
-    if (DA) plsFit=plsda(X,Y,ncomp=round(nComp)) else
-      plsFit=pls(X,Y,ncomp=round(nComp))
+    if (DA) plsFit=MUVR::plsda(X,Y,ncomp=round(nComp)) else
+      plsFit=MUVR::pls(X,Y,ncomp=round(nComp))
 
     if (length(plsFit$nzv$Position)>0) removeVar=rownames(plsFit$nzv$Metrics) else removeVar=NA
     incVar=colnames(X)[!colnames(X)%in%removeVar]

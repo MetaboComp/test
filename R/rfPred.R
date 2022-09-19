@@ -31,6 +31,21 @@ rfPred <- function(xTrain,
   }
 
   if(method == 'randomForest') {
+    if(length(levels(yTrain))!=length(levels(droplevels(yTrain)))){
+
+      #xTrain<-Xotu[1:15,]
+      #yTrain<-Yotu[1:15]
+      #xTest<-Xotu[16:29,]
+      #yTest<-Yotu[16:29]
+      #original_levels_yTrain<-levels(yTrain)
+      #original_levels_yTest<-levels(yTest)
+      #real_levels_yTrain<-levels(droplevels(yTrain))
+      #real_levels_yTest<-levels(droplevels(yTest))
+      yTrain=droplevels(yTrain)
+      xTest<-xTest[!is.na(factor(yTest, levels=levels(yTrain))),]
+      yTest<-factor(yTest[!is.na(factor(yTest, levels=levels(yTrain)))],levels=levels(yTrain))
+
+    }
     return$model <- randomForest(x = xTrain,
                                  y = yTrain,
                                  xtest = xTest,

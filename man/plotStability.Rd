@@ -4,15 +4,15 @@
 \alias{plotStability}
 \title{Plot stability of selected variables and prediction fitness as a function of number of repetitions}
 \usage{
-plotStability(MUVRclassObject, model = "min", VAll, nVarLim, missLim)
+plotStability(MUVRrdCVclassObject, model = "min", VAll, nVarLim, missLim)
 }
 \arguments{
-\item{MUVRclassObject}{MUVR class object}
+\item{MUVRrdCVclassObject}{MUVR class object or rdCV object}
 
 \item{model}{'min' (default), 'mid' or 'max'}
 
 \item{VAll}{Option of specifying which variables (i.e. names) to consider as reference set.
-Defaults to variables selected from the `model` of the `MUVRclassObject`}
+Defaults to variables selected from the `model` of the `MUVRrdCVclassObject`}
 
 \item{nVarLim}{Option of specifying upper limit for number of variables}
 

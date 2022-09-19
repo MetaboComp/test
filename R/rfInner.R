@@ -31,6 +31,23 @@ rfInner <- function(xTrain,
   if(missing(method)){method="randomForest"}
   # Different functions for different RF implementations
   if(method == 'randomForest') {
+    if(is.factor(yTrain)){
+    if(length(levels(yTrain))!=length(levels(droplevels(yTrain)))){
+
+      #xTrain<-Xotu[1:15,]
+      #yTrain<-Yotu[1:15]
+      #xVal<-Xotu[16:29,]
+      #yVal<-Yotu[16:29]
+      #original_levels_yTrain<-levels(yTrain)
+      #original_levels_yVal<-levels(yVal)
+      #real_levels_yTrain<-levels(droplevels(yTrain))
+      #real_levels_yVal<-levels(droplevels(yVal))
+      yTrain=droplevels(yTrain)
+      xVal<-xVal[!is.na(factor(yVal, levels=levels(yTrain))),]
+      yVal<-factor(yVal[!is.na(factor(yVal, levels=levels(yTrain)))],levels=levels(yTrain))
+
+    }
+    }
     rfModIn <- randomForest(xTrain,
                             yTrain,
                             xVal,

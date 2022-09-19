@@ -1,3 +1,4 @@
+#' Q2 calculation
 #'@param yhat prediction values
 #'@param y real values
 #'
