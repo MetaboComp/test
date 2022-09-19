@@ -400,7 +400,7 @@ rdCV=function(X,
         nCompOut[i]=round(mean(nCompIn[,1]))
       }
 
-      VIRankOut[,i]=apply(VIRankInner,1,mean)
+      VIRankOut[,i]=apply(VIRankInner,1,mean,na.rm=T)
 
       # Build outer model for min and max nComp and predict YTEST
       xIn=X[!testIndex,] # Perform Validation on all samples except holdout set
@@ -461,7 +461,7 @@ rdCV=function(X,
 
     # Per repetition: Average outer loop variables, nComp and VIP ranks
     parReturn=list(yPred=yPredR)
-    parReturn$VIRankRep=apply(VIRankOut,1,mean)
+    parReturn$VIRankRep=apply(VIRankOut,1,mean,na.rm=T)
     if (method=='PLS'){
       parReturn$nCompRep=round(mean(nCompOut))
     }
@@ -489,9 +489,9 @@ rdCV=function(X,
 
   # Average predictions
   if (DA) {
-    yPredAve=apply(yPred,c(1,2),mean)
+    yPredAve=apply(yPred,c(1,2),mean,na.rm=T)
   } else {
-    yPredAve=apply(yPred,1,mean)
+    yPredAve=apply(yPred,1,mean,na.rm=T)
   }
 
   modelReturn$yPred=yPredAve
@@ -524,7 +524,7 @@ rdCV=function(X,
                         yPredAve)$auc
   }
   # Average VIP ranks over repetitions
-  VIRank=apply(VIRankRep,1,mean)
+  VIRank=apply(VIRankRep,1,mean,na.rm=T)
   modelReturn$VIRank=VIRank
   modelReturn$VIRankPerRep=VIRankRep
 

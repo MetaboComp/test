@@ -716,7 +716,7 @@ MUVR <- function(X,
                         # Average inner VIP ranks before variable elimination - Tweak for `keeps`
                         VIRankInAve <- apply(VIRankInner[, count, ],
                                              1,
-                                             mean)
+                                             mean,na.rm=T)
                         ### This is the average of VIRank of Inner segmnet for each x variable and each cnt
 
                         # VIRankInAve[keeps] <- 0
@@ -779,11 +779,11 @@ MUVR <- function(X,
 
                       # Average VIP ranks
                       VIRankOutMin[, i] <-
-                        apply(VIRankInner[, minIndex,], 1, mean)
+                        apply(VIRankInner[, minIndex,], 1, mean,na.rm=T)
                       VIRankOutMid[, i] <-
-                        apply(VIRankInner[, midIndex,], 1, mean)
+                        apply(VIRankInner[, midIndex,], 1, mean,na.rm=T)
                       VIRankOutMax[, i] <-
-                        apply(VIRankInner[, maxIndex,], 1, mean)
+                        apply(VIRankInner[, maxIndex,], 1, mean,na.rm=T)
 
                       # Build outer model for min, mid and max and predict YTEST
                       # Extract all inner data
@@ -1232,15 +1232,15 @@ MUVR <- function(X,
   # Average predictions
   if (DA) {
     yPred <- list()
-    yPred[['min']] <- apply(yPredMin, c(1, 2), mean)
-    yPred[['mid']] <- apply(yPredMid, c(1, 2), mean)
-    yPred[['max']] <- apply(yPredMax, c(1, 2), mean)
+    yPred[['min']] <- apply(yPredMin, c(1, 2), mean,na.rm=T)
+    yPred[['mid']] <- apply(yPredMid, c(1, 2), mean,na.rm=T)
+    yPred[['max']] <- apply(yPredMax, c(1, 2), mean,na.rm=T)
   } else {
     yPred <-
-      cbind(apply(yPredMin, 1, mean)[1:nrow(X)],
+      cbind(apply(yPredMin, 1, mean,na.rm=T)[1:nrow(X)],
             # Is the [1:nrow(X)] really necessary?
-            apply(yPredMid, 1, mean)[1:nrow(X)],
-            apply(yPredMax, 1, mean)[1:nrow(X)])
+            apply(yPredMid, 1, mean,na.rm=T)[1:nrow(X)],
+            apply(yPredMax, 1, mean,na.rm=T)[1:nrow(X)])
     colnames(yPred) <- c('min', 'mid', 'max')
     rownames(yPred) <- paste(1:nSamp, ID, sep = '_ID')
   }
@@ -1341,7 +1341,7 @@ MUVR <- function(X,
                                    maxModel = VIRankRepMax)
 
   # Recalculate fitness averaged over all the repetitions
-  fitRankAll <- apply(VAL, 2, mean)
+  fitRankAll <- apply(VAL, 2, mean,na.rm=T)
   if (fitness == 'AUROC')
     fitRankAll <-
     -fitRankAll # AUROC fitness (higher is better) goes in opposite direction of all other metrics (lower is better)
