@@ -58,6 +58,9 @@ rdCVnet <- function(X,   ## X should be a dataframe
     }
   } else {X <- as.matrix(X)}
   # Remove nearZeroVariance variables
+
+  modelReturn <- list(call=match.call())
+
   if (NZV) {
     nzv <- MUVR::nearZeroVar(X)
     if (length(nzv$Position)>0) {
@@ -99,7 +102,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   } else{ "%doVersion%" <- get("%do%")}
 
   # Initialise modelReturn with function call
-  modelReturn <- list(call=match.call())
+
 
   # Start timer
   start.time <- proc.time()[3]
