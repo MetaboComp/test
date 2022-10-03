@@ -31,6 +31,9 @@ rfPred <- function(xTrain,
   }
 
   if(method == 'randomForest') {
+
+    ## safeguard measure in case some class is not appear after separating segment
+    if(is.factor(yTrain)){
     if(length(levels(yTrain))!=length(levels(droplevels(yTrain)))){
 
       #xTrain<-Xotu[1:15,]
@@ -45,6 +48,7 @@ rfPred <- function(xTrain,
       xTest<-xTest[!is.na(factor(yTest, levels=levels(yTrain))),]
       yTest<-factor(yTest[!is.na(factor(yTest, levels=levels(yTrain)))],levels=levels(yTrain))
 
+    }
     }
     return$model <- randomForest(x = xTrain,
                                  y = yTrain,

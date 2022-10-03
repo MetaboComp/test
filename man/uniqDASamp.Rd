@@ -2,7 +2,8 @@
 % Please edit documentation in R/uniqDASamp.R
 \name{uniqDASamp}
 \alias{uniqDASamp}
-\title{Stratified sampling for classification and unique individuals}
+\title{Stratified sampling for classification and unique individuals
+Even if it is stratified sampling, it may lead to some fold have more than 1 samples than others}
 \usage{
 uniqDASamp(Y, ID, folds)
 }
@@ -18,6 +19,7 @@ A master list of segments
 }
 \description{
 Stratified sampling for classification and unique individuals
+Even if it is stratified sampling, it may lead to some fold have more than 1 samples than others
 }
 \examples{
 Y <- rep(LETTERS[1:2],10)

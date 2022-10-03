@@ -6,9 +6,9 @@
 #' @param yTest yTest
 #' @param method method
 #' @param DA DA
-#' @param nodes
-#' @param stepmax
-#' @param threshold
+#' @param nodes nodes
+#' @param stepmax stepmax
+#' @param threshold threshold
 #' @return  The predicted value of yTest
 #' @export
 annpredict <- function(xTrain,

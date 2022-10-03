@@ -99,11 +99,12 @@ MUVR <- function(X,
 
   ###When the data is data frame, oneHotencoding transformthe dataframe to matrix
   ##when the data is a matrix, it does not need onehotencoding anyway becase the output is the same amtrix
+  if(methParam$oneHot==T){
   if(any(class(X)%in% c("data.frame"))) {
     X <- onehotencoding(X)
     cat("X is transformed to a matrix by onehotencoding.", "\n")
   }
-
+  }
   ##now the X here is the new X after onehot encoding
 
   #by doing so.We do not need methParam$oneHot
@@ -594,9 +595,11 @@ MUVR <- function(X,
                           }
                           groupVal <- list()  ## Allocate list for samples within group
                           for (gV in 1:groups) {
-                            groupVal[[gV]] <- vectSamp(groupIDVal[[gV]], n = nInner)  # Draw random samples within group
+                            groupVal[[gV]] <- vectSamp(groupIDVal[[gV]],
+                                                       n = nInner)  # Draw random samples within group
                           }
                           allVal <- groupVal[[1]] # Add 1st groups to 'Master' sample of all groups
+
                           for (gV in 2:groups) {
                             # Add subsequent groups
                             allVal <- allVal[order(sapply(allVal, length))]

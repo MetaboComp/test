@@ -17,6 +17,12 @@ annpredict(xTrain, yTrain, xTest, yTest, DA, nodes, threshold, stepmax, method)
 
 \item{DA}{DA}
 
+\item{nodes}{nodes}
+
+\item{threshold}{threshold}
+
+\item{stepmax}{stepmax}
+
 \item{method}{method}
 }
 \value{

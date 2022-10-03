@@ -2,7 +2,7 @@
 % Please edit documentation in R/foldVector.R
 \name{foldVector}
 \alias{foldVector}
-\title{Convert folds in listformat to vectorformat}
+\title{Convert folds in listformat to vectorformat. Specifcy for each ID which group they are in}
 \usage{
 foldVector(foldList, ID)
 }
@@ -15,7 +15,7 @@ foldVector(foldList, ID)
 a vector with folds
 }
 \description{
-Convert folds in listformat to vectorformat
+Convert folds in listformat to vectorformat. Specifcy for each ID which group they are in
 }
 \examples{
 Y <- rep(LETTERS[1:2],10)

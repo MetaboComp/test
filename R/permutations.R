@@ -16,7 +16,7 @@
 #' @return  permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
 #'
 #' @export
-#' @examples
+
 ## library(MUVR)
 ##  library(doParallel)
 ##  nCore=detectCores()-1

@@ -31,6 +31,7 @@ rfInner <- function(xTrain,
   if(missing(method)){method="randomForest"}
   # Different functions for different RF implementations
   if(method == 'randomForest') {
+    # safeguard measure in case some class is not appear after separating segment
     if(is.factor(yTrain)){
     if(length(levels(yTrain))!=length(levels(droplevels(yTrain)))){
 

@@ -4,14 +4,12 @@
 \alias{vectSamp}
 \title{Sampling of a vector}
 \usage{
-vectSamp(vect, n = 4, sampLen)
+vectSamp(vect, n = 4)
 }
 \arguments{
 \item{vect}{A vector to be sampled into groups}
 
 \item{n}{Number of groups}
-
-\item{sampLen}{A vector with custom number of samples per group. Is calculated if missing (best choice).}
 }
 \value{
 a list with n groups containing sub sampled `vect`

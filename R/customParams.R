@@ -51,7 +51,7 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
                          stepmax=1e+08,   ###neuralnet default
                          neuralMaxIn=10,
 
-                         kernel=c("vanilladot","polydot","rbfdot"),
+                         kernel="vanilladot",
                          nu=0.1,
                          gamma=1,
                          degree=1,
@@ -291,7 +291,7 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
     if (methParam$method == "PLS" &
         oneHot == F) {
       stop("PLS method must use oneHot encoding. ")
-    }
+   }
     if (methParam$method == "PLS" &
         NZV == F) {
       stop("PLS method must use near zero variance. ")
