@@ -43,6 +43,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
                     parallel=TRUE,
                     keep=NULL,
                     ...){
+  library(glmnet)
   X_original<-X
 
   # methParams
@@ -316,7 +317,6 @@ rdCVnet <- function(X,   ## X should be a dataframe
                penaltyfactor[filter]<-0
           }
 
-
           suppressWarnings(inMod <- cv.glmnet(x = xIn,
                                               y = yIn,
                                               alpha=alpha,
@@ -346,6 +346,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
                                           penalty.factor=penaltyfactor,
                                           family=methParam$family,
                                           foldid = foldID))
+
       if (modReturn){ outMod[[i]] <- inMod}
 
       whichMin <- which.min(inMod$cvm)
