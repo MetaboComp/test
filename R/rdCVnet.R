@@ -47,7 +47,9 @@ rdCVnet <- function(X,   ## X should be a dataframe
   X_original<-X
 
   # methParams
-  if (missing(methParam)){methParam <- rdcvNetParams()}
+  if (missing(methParam)){
+    methParam <- rdcvNetParams()
+    }
 
   ## If DA, multinomial, if not gaussian
 
@@ -211,7 +213,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
     # Predictions per repetition
     yPredSeg <- numeric(length(Y))
   }
-######################################################################################################################################
+##########################################0############################################################################################
   #########################################################################################3
   # tuning values for alpha
   if (alog) {   ## Whether to space tuning of alpha in logarithmic scale (TRUE; default) or normal/arithmetic scale (FALSE)
@@ -242,6 +244,8 @@ rdCVnet <- function(X,   ## X should be a dataframe
     # Sampling into holdout segments
     if (DA & identical(unikID,ID)) {
       allTest <- uniqDASamp(Y, ID, nOuter)
+
+      ##a problem is that in some groups there are only 2 levels
     } else {
       allTest <- vectSamp(unikID,n=nOuter)
     }
@@ -281,7 +285,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
       testID <- allTest[[i]] # Draw out segment = holdout set BASED ON UNIQUE ID
       testIndex <- ID%in%testID # Boolean for samples included
       xTest <- X[testIndex,]
-      yTest <- Y[testIndex]
+      yTest <- Y[testIndex]  ## some of the ytest here may only have 1 level
       inID <- unikID[!unikID%in%testID]  # IDs not in test set
       inIndex <- ID%in%inID
       xIn <- X[inIndex,]
@@ -316,6 +320,24 @@ rdCVnet <- function(X,   ## X should be a dataframe
                filter<-which(colnames(xIn)%in% keep)
                penaltyfactor[filter]<-0
           }
+####################################### drop levels if the class not appear
+################# safe guard measure  first time
+          if(is.factor(yIn)){
+            if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
+
+              yIn=droplevels(yIn)
+            }
+            if(any(table(yIn)==1)){
+
+              remove_samp<-yIn==names(table(yIn))[which(table(yIn)==1)]
+              xIn<-xIn[-which(remove_samp),]
+              yIn<-yIn[-which(remove_samp)]
+            }
+            if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
+
+              yIn=droplevels(yIn)
+            }
+          }
 
           suppressWarnings(inMod <- cv.glmnet(x = xIn,
                                               y = yIn,
@@ -340,6 +362,26 @@ rdCVnet <- function(X,   ## X should be a dataframe
         penaltyfactor[filter]<-0
       }
 
+################################### drop levels if the class not appear
+############## safe guard measure  second time
+      if(is.factor(yIn)){
+        if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
+
+          yIn=droplevels(yIn)
+        }
+        if(any(table(yIn)==1)){
+
+          remove_samp<-yIn==names(table(yIn))[which(table(yIn)==1)]
+          xIn<-xIn[-which(remove_samp),]
+          yIn<-yIn[-which(remove_samp)]
+        }
+        if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
+
+          yIn=droplevels(yIn)
+        }
+      }
+
+
       suppressWarnings(inMod <- cv.glmnet(x = xIn,
                                           y = yIn,
                                           alpha=alphaSeg[i],
@@ -355,7 +397,23 @@ rdCVnet <- function(X,   ## X should be a dataframe
       if(DA) {
         coefs <- coef(inMod,
                       s = lambdaSeg[i]) %>% sapply(., as.matrix)
+
         coefs <- coefs[-1,]   #### remove the intercept
+###############################################################
+################if one column missing add a new column
+        coefs_correct<-matrix(0,
+                              nrow(coefs),
+                              length(levels(Y)))
+        colnames(coefs_correct)<-levels(Y)
+        for(m in 1:ncol(coefs_correct)){
+          if(colnames(coefs_correct)[m]%in%colnames(coefs)){
+            for(n in 1:nrow(coefs_correct))
+            {coefs_correct[n,m]<-coefs[n,colnames(coefs_correct)[m]]}
+          }
+        }
+
+        coefs<-coefs_correct
+#########################################################################
         rownames(coefs) <- colnames(X)
 
         coefSeg[,,i] <- coefs
@@ -577,6 +635,25 @@ rdCVnet <- function(X,   ## X should be a dataframe
   if(!is.null(keep)){
     filter<-which(colnames(X)%in% keep)
     penaltyfactor[filter]<-0
+  }
+
+  ####################################### drop levels if the class not appear
+  ################# safe guard measure  first time
+  if(is.factor(Y)){
+    if(length(levels(Y))!=length(levels(droplevels(Y)))){
+
+      Y=droplevels(Y)
+    }
+    if(any(table(Y)==1)){
+
+      remove_samp<-Y==names(table(Y))[which(table(Y)==1)]
+      xIn<-xIn[-which(remove_samp),]
+      Y<-Y[-which(remove_samp)]
+    }
+    if(length(levels(Y))!=length(levels(droplevels(Y)))){
+
+      Y=droplevels(Y)
+    }
   }
 
   ### Use the overall alpha to get the best lambda
