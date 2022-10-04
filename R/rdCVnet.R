@@ -362,7 +362,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
         penaltyfactor[filter]<-0
       }
 
-################################### drop levels if the class not appear
+################################### drop levels if the class not appear or only appear one time
 ############## safe guard measure  second time
       if(is.factor(yIn)){
         if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
