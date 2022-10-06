@@ -6,6 +6,7 @@
 #' @param family the options could be "gaussian", "binomial", "poisson", "multinomial", "cox", "mgaussian"
 #' @param oneHot T or F using onehot endcoding or not
 #' @param nRepInner how many nRepInner
+#' @param NZV NZV
 #' @return a `methParam` object
 #' @export
 #'
@@ -15,6 +16,7 @@
 rdcvNetParams <- function(robust=0.05,
                           family='gaussian',
                           nRepInner=1,
+                          NZV=T,
                           oneHot=T) {
   if(!family%in%c("gaussian", "binomial", "poisson", "multinomial", "cox", "mgaussian")){
     stop("Wrong family")
@@ -22,6 +24,8 @@ rdcvNetParams <- function(robust=0.05,
   methParam <- list(robust=robust,
                     family=family,
                     nRepInner=nRepInner,
-                    oneHot=oneHot)
+                    oneHot=oneHot,
+                    NZV=NZV
+                    )
   return(methParam)
 }

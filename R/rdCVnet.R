@@ -64,7 +64,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
   modelReturn <- list(call=match.call())
 
-  if (NZV) {
+  if (methParam$NZV==T) {
     nzv <- MUVR::nearZeroVar(X)
     if (length(nzv$Position)>0) {
       modelReturn$nzv=colnames(X)[nzv$Position]
@@ -92,9 +92,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
     cat('\nMultilevel -> Regression on (-1,1) & fitness=MISS')
   }
 
-  if(missing(methParam)){
-    methParam=rdcvNetParams()
-    }
+
   # Call in packages
   library(pROC) # for roc and auroc
   library(magrittr) # for pipe operator
@@ -276,67 +274,89 @@ rdCVnet <- function(X,   ## X should be a dataframe
     varSeg <- list()
 
     if(DA) {varSegClass <- list()}
+
+    a<-1
     ## Perform outer loop segments -> one "majority vote" MV model per segment
     for (i in 1:nOuter) {
+
       # i <- 1
       # i <- i+1
-      cat('\n Segment ',i,' (Inner repeat): ',sep='') # Counter
-      ## Draw out test set
-      testID <- allTest[[i]] # Draw out segment = holdout set BASED ON UNIQUE ID
-      testIndex <- ID%in%testID # Boolean for samples included
-      xTest <- X[testIndex,]
-      yTest <- Y[testIndex]  ## some of the ytest here may only have 1 level
-      inID <- unikID[!unikID%in%testID]  # IDs not in test set
-      inIndex <- ID%in%inID
-      xIn <- X[inIndex,]
-      yIn <- Y[inIndex]
-      idIn <- ID[inIndex]
-      # Allocate variables for inner repetitions
-      VALInner <- matrix(nrow=methParam$nRepInner,
-                         ncol=astep)
-      # Repeat inner CV several times for improved stability
+
+    i<-a
+
+
+    cat('\n Segment ',i,' (Inner repeat): ',sep='') # Counter
+    ## Draw out test set
+    testID <- allTest[[i]] # Draw out segment = holdout set BASED ON UNIQUE ID
+    testIndex <- ID%in%testID # Boolean for samples included
+    xTest <- X[testIndex,]
+    yTest <- Y[testIndex]  ## some of the ytest here may only have 1 level
+    inID <- unikID[!unikID%in%testID]  # IDs not in test set
+    inIndex <- ID%in%inID
+    xIn <- X[inIndex,]
+    yIn <- Y[inIndex]
+    idIn <- ID[inIndex]
+    # Allocate variables for inner repetitions
+    VALInner <- matrix(nrow=methParam$nRepInner,
+                       ncol=astep)
+    # Repeat inner CV several times for improved stability
+
+
+
+    if(is.factor(yIn)){
+      if(length(levels(yIn))!=length(levels(droplevels(yIn)))|any(table(yIn)==1)|any(table(yIn)==2)){
+        a<-i
+      }else{a<-i+1}
+    }else{a<-i+1}
+
+
+
+
+##########################################################################
+########safeguard code
+      if(is.factor(yIn)){
+        if(length(levels(yIn))!=length(levels(droplevels(yIn)))|any(table(yIn)==1)|any(table(yIn)==2)){
+
+          next
+
+        }
+
+      }
+
 
       for (j in 1:methParam$nRepInner) {  ##Is the same as nInners
         cat(j,'... ')
+
+
+
         if (DA & identical(unikID,ID)) {
           inY <- unikY[!unikID%in%testID]  # Counterintuitive, but needed for grouping by Ynames
-          allVal <- uniqDASamp(inY, inID, nInner)
+
+          allVal <- uniqDASamp(inY, inID, nInner)    ####### Where randomness is introduced
         } else {
           allVal <- vectSamp(inID,n=nInner)
         }
         foldID <- foldVector(foldList = allVal,
                              ID = idIn)  ## identify each ID is in which group
+
+
         ## Perform steps with different a
         for (count in 1:astep) {  # Build models with successively fewer variables. Quality metric = number of missclassifications for Validation set
           # count <- 1 # for testing
           # count <- count + 1
           alpha <- avect[count]  ## avect is the alpha vector
+
+
+
+
           penaltyfactor<-rep(1,ncol(xIn))
           if(!is.null(keep)){
-          if(any(!keep%in%colnames(X_original))){
-            stop("Could not find that variable(s) in X")}
-          if(any(!keep%in%colnames(X))){
+            if(any(!keep%in%colnames(X_original))){
+              stop("Could not find that variable(s) in X")}
+            if(any(!keep%in%colnames(X))){
               stop("Some variables you want to keep are of near zero varance")}
-               filter<-which(colnames(xIn)%in% keep)
-               penaltyfactor[filter]<-0
-          }
-####################################### drop levels if the class not appear
-################# safe guard measure  first time
-          if(is.factor(yIn)){
-            if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
-
-              yIn=droplevels(yIn)
-            }
-            if(any(table(yIn)==1)){
-
-              remove_samp<-yIn==names(table(yIn))[which(table(yIn)==1)]
-              xIn<-xIn[-which(remove_samp),]
-              yIn<-yIn[-which(remove_samp)]
-            }
-            if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
-
-              yIn=droplevels(yIn)
-            }
+            filter<-which(colnames(xIn)%in% keep)
+            penaltyfactor[filter]<-0
           }
 
           suppressWarnings(inMod <- cv.glmnet(x = xIn,
@@ -356,29 +376,13 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
       alphaSeg[i] <- avect[which.min(VALSeg[i,])]
 
+
+
+
       penaltyfactor<-rep(1,ncol(xIn))
       if(!is.null(keep)){
         filter<-which(colnames(xIn)%in% keep)
         penaltyfactor[filter]<-0
-      }
-
-################################### drop levels if the class not appear or only appear one time
-############## safe guard measure  second time
-      if(is.factor(yIn)){
-        if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
-
-          yIn=droplevels(yIn)
-        }
-        if(any(table(yIn)==1)){
-
-          remove_samp<-yIn==names(table(yIn))[which(table(yIn)==1)]
-          xIn<-xIn[-which(remove_samp),]
-          yIn<-yIn[-which(remove_samp)]
-        }
-        if(length(levels(yIn))!=length(levels(droplevels(yIn)))){
-
-          yIn=droplevels(yIn)
-        }
       }
 
 
@@ -647,7 +651,13 @@ rdCVnet <- function(X,   ## X should be a dataframe
     if(any(table(Y)==1)){
 
       remove_samp<-Y==names(table(Y))[which(table(Y)==1)]
-      xIn<-xIn[-which(remove_samp),]
+      X<-X[-which(remove_samp),]
+      Y<-Y[-which(remove_samp)]
+    }
+    if(any(table(Y)==2)){
+
+      remove_samp<-yIn==names(table(Y))[which(table(Y)==2)]
+      X<-X[-which(remove_samp),]
       Y<-Y[-which(remove_samp)]
     }
     if(length(levels(Y))!=length(levels(droplevels(Y)))){

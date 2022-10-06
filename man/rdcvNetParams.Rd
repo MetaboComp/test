@@ -4,7 +4,13 @@
 \alias{rdcvNetParams}
 \title{Make custom parameters for rdcvNet internal modelling}
 \usage{
-rdcvNetParams(robust = 0.05, family = "gaussian", nRepInner = 1, oneHot = T)
+rdcvNetParams(
+  robust = 0.05,
+  family = "gaussian",
+  nRepInner = 1,
+  NZV = T,
+  oneHot = T
+)
 }
 \arguments{
 \item{robust}{Robustness (slack) criterion for determining min and max knees (defaults to 0.05)}
@@ -12,6 +18,8 @@ rdcvNetParams(robust = 0.05, family = "gaussian", nRepInner = 1, oneHot = T)
 \item{family}{the options could be "gaussian", "binomial", "poisson", "multinomial", "cox", "mgaussian"}
 
 \item{nRepInner}{how many nRepInner}
+
+\item{NZV}{NZV}
 
 \item{oneHot}{T or F using onehot endcoding or not}
 }
