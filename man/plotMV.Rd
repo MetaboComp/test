@@ -4,7 +4,7 @@
 \alias{plotMV}
 \title{Plot MV object Swim lane plot for classification, for regression}
 \usage{
-plotMV(MUVRclassObject, model = "mid", factCols, sampLabels, ylim = NULL)
+plotMV(MUVRclassObject, model = "min", factCols, sampLabels, ylim = NULL)
 }
 \arguments{
 \item{MUVRclassObject}{An MUVR class object obtained from the MVWrap function}

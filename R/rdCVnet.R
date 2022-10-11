@@ -184,7 +184,8 @@ rdCVnet <- function(X,   ## X should be a dataframe
                  fitness=fitness,
                  methParam=methParam,
                  ML=ML,
-                 parallel=parallel)
+                 parallel=parallel,
+                 method="rdCVnet")
 
   ## Sort sampling based on subjects and not index
   unik <- !duplicated(ID)  # boolean of unique IDs
@@ -334,7 +335,8 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
           allVal <- uniqDASamp(inY, inID, nInner)    ####### Where randomness is introduced
         } else {
-          allVal <- vectSamp(inID,n=nInner)
+          allVal <- vectSamp(inID, n=nInner)
+          ###
         }
         foldID <- foldVector(foldList = allVal,
                              ID = idIn)  ## identify each ID is in which group
@@ -358,6 +360,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
             filter<-which(colnames(xIn)%in% keep)
             penaltyfactor[filter]<-0
           }
+
 
           suppressWarnings(inMod <- cv.glmnet(x = xIn,
                                               y = yIn,
@@ -393,7 +396,10 @@ rdCVnet <- function(X,   ## X should be a dataframe
                                           family=methParam$family,
                                           foldid = foldID))
 
-      if (modReturn){ outMod[[i]] <- inMod}
+      if (modReturn){ outMod[[i]] <- inMod
+                     outMod[[i]]$X<-xIn
+                     outMod[[i]]$Y<-yIn
+      }
 
       whichMin <- which.min(inMod$cvm)
       lambdaSeg[i] <- inMod$lambda.min
@@ -477,7 +483,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
       parReturn$nonZeroClass <- nonZeroSegClass
     }
     # Return underlying models
-    if (modReturn) parReturn$outModel=outMod
+    if (modReturn) {parReturn$outModel=outMod}
     return(parReturn)
     # reps[[r]] <- parReturn
   }   ## Repetition loop end
@@ -608,7 +614,6 @@ rdCVnet <- function(X,   ## X should be a dataframe
                                     sep='_ID')
   }
 
-  # Calculate overall nVar
   VAL <- apply(VALRep,
                2,
                mean)  ### averaged all Repetition and Outer loop to get the overall error
@@ -623,6 +628,99 @@ rdCVnet <- function(X,   ## X should be a dataframe
   modelReturn$VAL$VALRep <- VALRep
   modelReturn$VAL$VAL <- VAL
   modelReturn$VAL$avect <- avect
+  modelReturn$X<-X
+
+#################################################################################
+####### adding nVar part for variable selection. Min mid max is built baseing on 2.5%, 50% and 97.5%
+####### Calculate overall nVar
+#### caluate how many times each feature show up accross nRep and nOuter round, this is already done in varTable
+  varTable<-modelReturn$varTable
+
+  minlimit=floor(length(varTable)*0.975)  ### take the floor value in case no value is selected
+  midlimit=floor(length(varTable)*0.5)  ###
+  maxlimit=ceiling(length(varTable)*0.025)
+
+  cum_varTable<-numeric(length(table(varTable)))
+  cum_varTable[1]<-table(varTable)[1]
+  for(s in 2:length(table(varTable))){
+    cum_varTable[s]<-cum_varTable[s-1]+table(varTable)[s]
+  }
+  names(cum_varTable)<-names(table(varTable))
+
+  ##min limit: take less
+  for(s in 1:length(table(cum_varTable))){
+    ## set safeguard argument in case there are 0 values
+    if(s!=length(table(cum_varTable))){
+    if(minlimit<=cum_varTable[s]){
+      minlimit_num<-as.numeric(names(cum_varTable)[s+1:length(table(cum_varTable))])
+      minlimit_num<-minlimit_num[!is.na(minlimit_num)]
+      break}
+    }else{
+      if(minlimit>cum_varTable[s-1]){
+        minlimit_num<-as.numeric(names(cum_varTable)[s])
+        minlimit_num<-minlimit_num[!is.na(minlimit_num)]
+        break}
+    }
+  }
+
+  ##min limit: take less
+  for(s in 1:length(table(cum_varTable))){
+    ## set safeguard argument in case there are 0 values
+    if(s!=length(table(cum_varTable))){
+      if(midlimit<=cum_varTable[s]){
+        midlimit_num<-as.numeric(names(cum_varTable)[s+1:length(table(cum_varTable))])
+        midlimit_num<-midlimit_num[!is.na(midlimit_num)]
+        break}
+    }else{
+      if(midlimit>cum_varTable[s-1]){
+        midlimit_num<-as.numeric(names(cum_varTable)[s])
+        midlimit_num<-midlimit_num[!is.na(midlimit_num)]
+        break}
+    }
+  }
+
+  ##min limit: take less
+  for(s in 1:length(table(cum_varTable))){
+    ## set safeguard argument in case there are 0 values
+    if(s!=length(table(cum_varTable))){
+      if(maxlimit<=cum_varTable[s]){
+        maxlimit_num<-as.numeric(names(cum_varTable)[s+1:length(table(cum_varTable))])
+        maxlimit_num<-maxlimit_num[!is.na(maxlimit_num)]
+        break}
+    }else{
+      if(maxlimit>cum_varTable[s-1]){
+        maxlimit_num<-as.numeric(names(cum_varTable)[s])
+        maxlimit_num<-maxlimit_num[!is.na(maxlimit_num)]
+        break}
+    }
+  }
+
+  minnames<-vector()
+  midnames<-vector()
+  maxnames<-vector()
+  for(s in 1:length(varTable)){
+    if(varTable[s]%in%minlimit_num){minnames<-c(minnames,names(varTable)[s])}
+    if(varTable[s]%in%midlimit_num){midnames<-c(midnames,names(varTable)[s])}
+    if(varTable[s]%in%maxlimit_num){maxnames<-c(maxnames,names(varTable)[s])}
+  }
+
+
+
+
+
+  nVar <- c(length(minnames),length(midnames),length(maxnames))
+  Var<-list(min=minnames,
+            mid=midnames,
+            max=maxnames
+            )
+
+  names(nVar)<-c("min","mid","max")
+
+  modelReturn$Var<- Var
+  modelReturn$nVar<- nVar
+  #############################################################################
+
+
   if (DA) {
     modelReturn$varClassRep <- sapply(varsClassRep,
                                       function(x) {unlist(x) %>% table %>% sort(., decreasing = T)})
@@ -700,6 +798,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   class(modelReturn) <- c('MUVR',
                           ifelse(DA,
                                  'Classification',
-                                 ifelse(ML,'Multilevel','Regression')))
+                                 ifelse(ML,'Multilevel','Regression')),
+                          "rdCVnet")
   return(modelReturn)
 }

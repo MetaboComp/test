@@ -4,10 +4,10 @@
 \alias{plotVIRank}
 \title{Plots variable importance ranking in MUVR object}
 \usage{
-plotVIRank(MUVRclassObject, n, model = "mid", cut)
+plotVIRank(MUVRclassObject, n, model = "min", cut)
 }
 \arguments{
-\item{MUVRclassObject}{An MUVR class object}
+\item{MUVRclassObject}{An MUVR class object only applied to PLS, RF not rdCVnet}
 
 \item{n}{Number of top ranking variables to plot (defaults to those selected by MUVR)}
 

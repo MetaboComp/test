@@ -1734,6 +1734,11 @@ MUVR <- function(X,
   cat('\n Elapsed time', modelReturn$calcMins, 'mins \n')
 
 
+  ################################# add Var
+  Var<-list(min=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,1])][1:modelReturn$nVar[1]],
+            mid=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,2])][1:modelReturn$nVar[2]],
+            max=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,3])][1:modelReturn$nVar[3]])
+  modelReturn$Var<-Var
   # Return final object
   return(modelReturn)
 }

@@ -2,17 +2,71 @@
 #'
 #' Regardless of MV core method, variables are sorted by rank, where lower is better. `plotVIRank` produces boxplots of variable rankings for all model repetitions.
 #'
-#' @param MUVRclassObject An MUVR class object
+#' @param MUVRclassObject An MUVR class object only applied to PLS, RF not rdCVnet
 #' @param n Number of top ranking variables to plot (defaults to those selected by MUVR)
 #' @param cut Optional value to cut length of variable names to `cut` number of characters
 #' @param model Which model to choose ('min', 'mid' {default} or 'max')
 #'
 #' @return Barplot of variable rankings (lower is better)
 #' @export
-plotVIRank=function(MUVRclassObject,n,model='mid',cut) {
-  nModel=ifelse(model=='min',1,ifelse(model=='mid',2,3))
+plotVIRank=function(MUVRclassObject,
+                    n,
+                    model='min',
+                    cut) {
+  if (!(class(MUVRclassObject)[1]=='MUVR')) {
+    cat('\nWrong object class: Return NULL')
+
+  }
+  if(missing(n)){n=ncol(MUVRclassObject$inData$X)}
+
+  if ((class(MUVRclassObject)[3]=='rdCVnet')) {
+  matrix_count<-matrix(0,
+                       nrow=length(MUVRclassObject$nonZeroRep),
+                       ncol=ncol(MUVRclassObject$inData$X))
+  names_shown<-names(MUVRclassObject$varTable)
+  names_notshown<-vector()
+  for(i in 1:ncol(MUVRclassObject$inData$X)){
+  if(!colnames(MUVRclassObject$inData$X)[i]%in%names_shown){
+    names_notshown<-c(names_notshown,colnames(MUVRclassObject$inData$X)[i])
+
+  }
+  }
+  colnames(MUVRclassObject$inData$X)<-c(names_shown,names_notshown)
+  colnames(matrix_count)<-colnames(MUVRclassObject$inData$X)
+
+  for(i in 1:length(MUVRclassObject$varRep)){
+    for(j in 1:ncol(MUVRclassObject$inData$X)){
+      if(colnames(MUVRclassObject$inData$X)[j]%in%MUVRclassObject$varRep[[i]]){
+        matrix_count[i,j]<-1
+      }
+    }
+  }
+
+  plot(1, type = "n",                         # Remove all elements of plot
+       xlab = "All variables",
+       ylab = "nRep*nOuter",
+       ylim = c(0, length(MUVRclassObject$varRep)),
+       xlim = c(0, n)
+       )
+
+  for(i in 1:length(MUVRclassObject$varRep)){
+    for(j in 1:n){
+      col<-ifelse(matrix_count[i,j]==1,
+                  "red",
+                  "grey")
+      points(x=j,
+             y=i,
+             col=col)
+
+    }
+  }
+  }else{
+
+  nModel=ifelse(model=='min',
+                1,
+                ifelse(model=='mid',2,3))
   nFeat=round(MUVRclassObject$nVar[nModel])
-  if(missing(n)) n=nFeat
+  if(missing(n)) {n=nFeat}
   VIRank=MUVRclassObject$VIRank[,nModel]
   VIRankRep=MUVRclassObject$VIRankPerRep[[nModel]]
 ####################################################################################################
@@ -24,9 +78,12 @@ plotVIRank=function(MUVRclassObject,n,model='mid',cut) {
 ########################################################################################################
 
   if(n>nFeat) {
-    VIRankRep=rbind(VIRankRep[1:nFeat,],rep(NA,ncol(VIRankRep)),VIRankRep[(nFeat+1):n,])
-    col=rep(c('yellow','grey'),c(nFeat,(n-nFeat+1)))    ###repeat yellow nFeat times, repear grey n-nFeat+1 times
-  } else col=NULL
+    VIRankRep=rbind(VIRankRep[1:nFeat,],
+                    rep(NA,ncol(VIRankRep)),
+                    VIRankRep[(nFeat+1):n,])
+    col=rep(c('yellow','grey'),
+            c(nFeat,(n-nFeat+1)))    ###repeat yellow nFeat times, repear grey n-nFeat+1 times
+  } else {col=NULL}
   ####
   VIRankRep=VIRankRep[nrow(VIRankRep):1,]             ###reverse
   col=rev(col)                                          ###reverse the sequence of col
@@ -37,7 +94,7 @@ plotVIRank=function(MUVRclassObject,n,model='mid',cut) {
   axis(1)                                         ###manually add x axis
   labels=rownames(VIRankRep)                    ##add labels
 
-  if(!missing(cut)) labels=substring(labels,1,cut)  ###Extract or replace substrings in a character vector
+  if(!missing(cut)) {labels=substring(labels,1,cut)}  ###Extract or replace substrings in a character vector
                                                     ###xxx <- c("asfef", "qwerty", "yuiop[", "b", "stuff.blah.yech")
                                                     ###substr(xxx, 2, 5)
                                                     ###[1] "sfef" "wert" "uiop" ""     "tuff"
@@ -47,4 +104,8 @@ plotVIRank=function(MUVRclassObject,n,model='mid',cut) {
        labels=labels)                          ###name of label
   if (n>nFeat) abline(h=(n-nFeat+1))           ###add a line that separate the variable inside and outside n
   box(bty='o')                                       ###add a box that has o shape
-}
+
+
+  }
+
+  }

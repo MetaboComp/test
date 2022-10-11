@@ -14,13 +14,13 @@
 #
 ####################################################################################################
 plotMV <- function(MUVRclassObject,
-                   model = 'mid',
+                   model = 'min',
                    factCols,
                    sampLabels,
                    ylim = NULL) {
 
   # Basic sanity
-  if (!any(class(MUVRclassObject) == 'MUVR')) stop('Wrong object class')
+  if (!any(class(MUVRclassObject) == 'MUVR')) {stop('Wrong object class')}
 
   # Model number min 1, mid 2, max 3
   modNum <- ifelse(model == 'min',
@@ -31,7 +31,7 @@ plotMV <- function(MUVRclassObject,
   nSamp <- length(Y)
 #################################
   ##When it is classification it is useful, when it is regression, although it has a values it is not used
-  if(missing(sampLabels)) sampLabels <- Y
+  if(missing(sampLabels)) {sampLabels <- Y}
 #####################
   # Sanity check sample labels
   if(length(sampLabels)!=nSamp) stop('Length of sampLabels not equal to number of samples in Y.')
@@ -42,12 +42,19 @@ plotMV <- function(MUVRclassObject,
     # REGRESSION PLOT
     ###########################
 
-    # Y-predicted overall
-    YP <- MUVRclassObject$yPred[,modNum]
-    # Y-predicted per repetition
+
+    if(class(MUVRclassObject$yPredPerRep)[1]=="list"){
+      # Y-predicted overall
+      YP <- MUVRclassObject$yPred[,modNum]
+      # Y-predicted per repetition
     YPR <- MUVRclassObject$yPredPerRep[[modNum]]
+    }else{
+      YP <- MUVRclassObject$yPred
+      YPR <- MUVRclassObject$yPredPerRep
+
+    }
     # Y-limits
-    if (is.null(ylim)) ylim <- range(YPR)  ###returns a vector containing the minimum and maximum of all the given arguments
+    if (is.null(ylim)) {ylim <- range(YPR)}  ###returns a vector containing the minimum and maximum of all the given arguments
     # Plot Y-predicted per repetition in grey
     matplot(Y,                                      #####X axis 112 observations
             YPR,                                   ####Y axis 112 obsevations each of them have 7 repetitions
@@ -77,18 +84,25 @@ plotMV <- function(MUVRclassObject,
     ################################
     # CLASSIFICATION SWIMLANE PLOT
     ################################
-
+    if(class(MUVRclassObject$yPredPerRep)=="list"){
     # Y-predicted overall
     YP <- MUVRclassObject$yPred[[modNum]]     ####The probability that belongs to each class
     # Y-predicted per repetition
     YPR <- MUVRclassObject$yPredPerRep[[modNum]]
+    }else{
+      YP <- MUVRclassObject$yPred     ####The probability that belongs to each class
+      # Y-predicted per repetition
+      YPR <- MUVRclassObject$yPredPerRep
+
+    }
     # Y-limits
-    if (is.null(ylim)) ylim <- range(YPR)
+    if (is.null(ylim)) {ylim <- range(YPR)}
     # Unique levels in Y
     classes <- 1:length(levels(Y))
     # Colors per level
-    if(missing(factCols)) factCols=classes+1
-    if(length(factCols)!=length(classes)) stop('Length of factCols not equal to number of levels in Y.')
+    if(missing(factCols)) {factCols=classes+1}
+    if(length(factCols)!=length(classes)) {
+      stop('Length of factCols not equal to number of levels in Y.')}
     # Sort out "jitter"/nudge between levels in the swimlane plot
     ##
     classNudge <- 0.2 * ((classes - mean(classes)) / (mean(classes) - 1))  ###create distance between different classification on x axis
@@ -130,7 +144,9 @@ plotMV <- function(MUVRclassObject,
              col = 'grey')
     }
     # Identify erroneous classifications
+    if(class(MUVRclassObject$yPredPerRep)=="list"){
     yClass <- MUVRclassObject$yClass[,modNum]    ###The class of the most probabilityM
+    } else {yClass <- MUVRclassObject$yClass}
     whichWrong <- which(yClass!=Y)               ###whichWrong is the sequence number of observations
     wrongClass <- as.numeric(Y[whichWrong])      ##Transform to the corresponding real class number of the miss classification ones
     # Mark them out in the plot
@@ -167,11 +183,20 @@ plotMV <- function(MUVRclassObject,
     # MULTILEVEL PLOT
     ###########################
 
-    # Y-predicted overall
-    YP <- MUVRclassObject$yPred[,modNum]      ###predicted value, not classfication
-    # Y-predicted per repetition
-    YPR <- MUVRclassObject$yPredPerRep[[modNum]]
-    # Plot Y-predicted per repetition in grey
+
+
+    if(class(MUVRclassObject$yPredPerRep)=="list"){
+      # Y-predicted overall
+      YP <- MUVRclassObject$yPred[[modNum]]     ####The probability that belongs to each class
+      # Y-predicted per repetition
+      YPR <- MUVRclassObject$yPredPerRep[[modNum]]
+    }else{
+      YP <- MUVRclassObject$yPred     ####The probability that belongs to each class
+      # Y-predicted per repetition
+      YPR <- MUVRclassObject$yPredPerRep
+
+    }
+
     matplot(YPR,
             1:nSamp,
             pch = 20,

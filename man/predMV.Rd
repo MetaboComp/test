@@ -4,7 +4,7 @@
 \alias{predMV}
 \title{Predict MV object using a MUVR class object and a X testing set}
 \usage{
-predMV(MUVRclassobject, newdata, model = "mid")
+predMV(MUVRclassobject, newdata, model = "min")
 }
 \arguments{
 \item{MUVRclassobject}{An 'MUVR' class object obtained from the MVWrap function}

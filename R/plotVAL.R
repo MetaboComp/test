@@ -6,6 +6,27 @@
 #' @return A plot
 #' @export
 plotVAL=function(MUVRclassObject) {
+  if(class(MUVRclassObject)[1]!="MUVR"){stop("Wrong classobject")}
+  if(!is.null(MUVRclassObject$varTable)){
+    dist<-as.matrix(MUVRclassObject$nonZeroRep)
+    s<-hist(dist,
+         xlab="Number of variables",
+         main=NULL,
+         #ylim=c(0,5),
+         xlim=range(0,
+                max(c(max(MUVRclassObject$nonZeroRep),
+                      max(MUVRclassObject$nVar)))*1.1),
+         breaks=nrow(dist)*ncol(dist)
+         )
+    abline(v = MUVRclassObject$nVar[1])
+    text(MUVRclassObject$nVar[1],max(s$counts)*0.8, "min",  adj = c(0, -.1))
+    abline(v =  MUVRclassObject$nVar[2], lwd = 2)
+    text(MUVRclassObject$nVar[2],max(s$counts)*0.8, "mid",  adj = c(0, -.1))
+    abline(v =  MUVRclassObject$nVar[3])
+    text(MUVRclassObject$nVar[3],max(s$counts)*0.8, "max",  adj = c(0, -.1))
+
+
+  }else{
   VAL=MUVRclassObject$VAL$VAL      ### a list of nRep array,  row is outer segment,column is 1147,917,713
   metric=MUVRclassObject$VAL$metric
   count=as.numeric(colnames(VAL))      ###colnames transformed to number
@@ -50,4 +71,7 @@ plotVAL=function(MUVRclassObject) {
          lty=1:3,                   ####line type
          col=2:4,
          bty='n')                   ####no border of the legend
+
+
+  }
 }
