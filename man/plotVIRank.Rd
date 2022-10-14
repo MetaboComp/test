@@ -4,7 +4,7 @@
 \alias{plotVIRank}
 \title{Plots variable importance ranking in MUVR object}
 \usage{
-plotVIRank(MUVRclassObject, n, model = "min", cut)
+plotVIRank(MUVRclassObject, n, model = "min", cut, maptype = "heatmap")
 }
 \arguments{
 \item{MUVRclassObject}{An MUVR class object only applied to PLS, RF not rdCVnet}
@@ -14,6 +14,8 @@ plotVIRank(MUVRclassObject, n, model = "min", cut)
 \item{model}{Which model to choose ('min', 'mid' {default} or 'max')}
 
 \item{cut}{Optional value to cut length of variable names to `cut` number of characters}
+
+\item{maptype}{for rdCvnet dot plot or heat map}
 }
 \value{
 Barplot of variable rankings (lower is better)

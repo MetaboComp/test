@@ -635,61 +635,73 @@ rdCVnet <- function(X,   ## X should be a dataframe
 ####### Calculate overall nVar
 #### caluate how many times each feature show up accross nRep and nOuter round, this is already done in varTable
   varTable<-modelReturn$varTable
-
-  minlimit=floor(length(varTable)*0.975)  ### take the floor value in case no value is selected
-  midlimit=floor(length(varTable)*0.5)  ###
-  maxlimit=ceiling(length(varTable)*0.025)
+  varTable_included<-colnames(modelReturn$X)[colnames(modelReturn$X)%in%names(varTable)]
+  varTable_notincluded<-colnames(modelReturn$X)[!colnames(modelReturn$X)%in%names(varTable)]
+  varTable_all<-c(varTable,rep(0,length(varTable_notincluded)))
+  names(varTable_all)<-c(names(varTable),varTable_notincluded)
+  varTable<-varTable_all
+  modelReturn$varTable<-varTable_all
 
   cum_varTable<-numeric(length(table(varTable)))
-  cum_varTable[1]<-table(varTable)[1]
+  cum_varTable[1]<-table(varTable)[length(table(varTable))]
   for(s in 2:length(table(varTable))){
-    cum_varTable[s]<-cum_varTable[s-1]+table(varTable)[s]
+    cum_varTable[s]<-cum_varTable[s-1]+rev(table(varTable))[s]
   }
-  names(cum_varTable)<-names(table(varTable))
+  names(cum_varTable)<-names(rev(table(varTable)))
+
+
+  minmidmax<-quantile(nonZeroRep, c(0.125, 0.5, 0.875))
+
+
+  minlimit=floor( minmidmax[1])  ### take the floor value in case no value is selected
+  midlimit=floor( minmidmax[2])  ###
+  maxlimit=floor( minmidmax[3])
+
+
 
   ##min limit: take less
-  for(s in 1:length(table(cum_varTable))){
+  for(s in 1:length(cum_varTable)){
     ## set safeguard argument in case there are 0 values
-    if(s!=length(table(cum_varTable))){
-    if(minlimit<=cum_varTable[s]){
-      minlimit_num<-as.numeric(names(cum_varTable)[s+1:length(table(cum_varTable))])
+    if(s!=1){
+    if(minlimit<cum_varTable[s]){
+      minlimit_num<-as.numeric(names(cum_varTable)[1:s-1])
       minlimit_num<-minlimit_num[!is.na(minlimit_num)]
       break}
     }else{
-      if(minlimit>cum_varTable[s-1]){
-        minlimit_num<-as.numeric(names(cum_varTable)[s])
+      if(minlimit<cum_varTable[s]){
+        minlimit_num<-as.numeric(names(cum_varTable)[1])
         minlimit_num<-minlimit_num[!is.na(minlimit_num)]
         break}
     }
   }
 
   ##min limit: take less
-  for(s in 1:length(table(cum_varTable))){
+  for(s in 1:length(cum_varTable)){
     ## set safeguard argument in case there are 0 values
-    if(s!=length(table(cum_varTable))){
-      if(midlimit<=cum_varTable[s]){
-        midlimit_num<-as.numeric(names(cum_varTable)[s+1:length(table(cum_varTable))])
+    if(s!=1){
+      if(midlimit<cum_varTable[s]){
+        midlimit_num<-as.numeric(names(cum_varTable)[1:s-1])
         midlimit_num<-midlimit_num[!is.na(midlimit_num)]
         break}
     }else{
-      if(midlimit>cum_varTable[s-1]){
-        midlimit_num<-as.numeric(names(cum_varTable)[s])
+      if(midlimit<cum_varTable[s]){
+        midlimit_num<-as.numeric(names(cum_varTable)[1])
         midlimit_num<-midlimit_num[!is.na(midlimit_num)]
         break}
     }
   }
 
   ##min limit: take less
-  for(s in 1:length(table(cum_varTable))){
+  for(s in 1:length(cum_varTable)){
     ## set safeguard argument in case there are 0 values
-    if(s!=length(table(cum_varTable))){
-      if(maxlimit<=cum_varTable[s]){
-        maxlimit_num<-as.numeric(names(cum_varTable)[s+1:length(table(cum_varTable))])
+    if(s!=1){
+      if(maxlimit<cum_varTable[s]){
+        maxlimit_num<-as.numeric(names(cum_varTable)[1:s-1])
         maxlimit_num<-maxlimit_num[!is.na(maxlimit_num)]
         break}
     }else{
-      if(maxlimit>cum_varTable[s-1]){
-        maxlimit_num<-as.numeric(names(cum_varTable)[s])
+      if(maxlimit<cum_varTable[s]){
+        maxlimit_num<-as.numeric(names(cum_varTable)[1])
         maxlimit_num<-maxlimit_num[!is.na(maxlimit_num)]
         break}
     }
@@ -698,17 +710,14 @@ rdCVnet <- function(X,   ## X should be a dataframe
   minnames<-vector()
   midnames<-vector()
   maxnames<-vector()
+
   for(s in 1:length(varTable)){
     if(varTable[s]%in%minlimit_num){minnames<-c(minnames,names(varTable)[s])}
     if(varTable[s]%in%midlimit_num){midnames<-c(midnames,names(varTable)[s])}
     if(varTable[s]%in%maxlimit_num){maxnames<-c(maxnames,names(varTable)[s])}
   }
 
-
-
-
-
-  nVar <- c(length(minnames),length(midnames),length(maxnames))
+  nVar <- c(minlimit,midlimit,maxlimit)
   Var<-list(min=minnames,
             mid=midnames,
             max=maxnames

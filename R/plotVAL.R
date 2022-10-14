@@ -13,9 +13,8 @@ plotVAL=function(MUVRclassObject) {
          xlab="Number of variables",
          main=NULL,
          #ylim=c(0,5),
-         xlim=range(0,
-                max(c(max(MUVRclassObject$nonZeroRep),
-                      max(MUVRclassObject$nVar)))*1.1),
+        xlim=range(0,
+                max(MUVRclassObject$nonZeroRep)*1.1),
          breaks=nrow(dist)*ncol(dist)
          )
     abline(v = MUVRclassObject$nVar[1])
@@ -62,13 +61,19 @@ plotVAL=function(MUVRclassObject) {
            lwd=1.5)                                 ####line wide
   }
   legend('topleft',
-         legend=c('Validation segments','Repetitions','Overall'),
+         legend=c('Validation segments',
+                  'Repetitions',
+                  'Overall'),
+         cex = 0.5,
+         trace = F,
          lty=1,
          col=c('lightgrey','darkgrey','black'),
          bty='n')
   legend('topright',
          legend=c("'Min (Minimal-optimal)","'Mid'","'Max' (All-relevant)"),
-         lty=1:3,                   ####line type
+         lty=1:3,
+         cex = 0.5,
+         trace = F,####line type
          col=2:4,
          bty='n')                   ####no border of the legend
 

@@ -43,8 +43,9 @@ permutationPlot=function(MUVRclassObject,
                          ylim=NULL,
                          breaks='Sturges',                ###optional custom histogram breaks (defaults to 'sturges')
                          main=NULL) {
+
 ###################################################################################################################
-  if(!any(class(MUVRclassObject)=='MUVR'))stop("The input is not a MUVR class Object")
+  if(!any(class(MUVRclassObject)=='MUVR')){stop("The input is not a MUVR class Object")}
 
 permutation_type<-permutation_result$permutation_type
 permutation_output<-permutation_result$permutation_output
@@ -75,6 +76,29 @@ if(missing(type)) {type='t'}
 
 ###############################################################################################################################33
 ###For actual value or vector in 3 scenario
+if(class(MUVRclassObject)[3]=='rdCVnet'){
+
+  if (permutation_type=="Q2") {
+    actual=MUVRclassObject$fitMetric$Q2
+    if (missing(xlab)) {xlab='Q2'}
+  } else if(permutation_type=="MISS") {
+    actual=MUVRclassObject$miss
+    if (missing(xlab)) {xlab='Misclassifications'}
+  }else if(permutation_type=="AUROC")
+  { if(dim(permutation_output)[2]!=1){
+    actual=MUVRclassObject$auc
+    }else{actual=MUVRclassObject$auc
+
+    }    ###a vector
+  if (missing(xlab)) {xlab='AUROC'}}
+  else {actual=MUVRclassObject$ber
+  if (missing(xlab)) {xlab='Balance Error Rate'
+  }
+  }
+
+
+}else{
+
 if (permutation_type=="Q2") {
     actual=MUVRclassObject$fitMetric$Q2[nModel]
     if (missing(xlab)) xlab='Q2'
@@ -88,34 +112,84 @@ if (permutation_type=="Q2") {
       if (missing(xlab)) xlab='AUROC'}
   else {actual=MUVRclassObject$ber[nModel]
   if (missing(xlab)) xlab='Balance Error Rate'}
-
+}
 #########################################################################################################################
 ########when it is Q2 or MISS
 if(permutation_type=="Q2"|permutation_type=="MISS"|permutation_type=="BER"){
+
+
+  if(class(MUVRclassObject)[3]=='rdCVnet'){
+    if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
+    if(!missing(side)){if(side!=ifelse(actual<median(permutation_output),
+                                       'smaller',
+                                       'greater')){side=ifelse(actual<median(permutation_output),
+                                                               'smaller',
+                                                               'greater')}}
+    if(missing(side)) {side=ifelse(actual<median(as.vector(as.matrix(permutation_output))),
+                                   'smaller',
+                                   'greater')
+    }
+
+    if(missing(pos)) {pos=ifelse(side=='smaller',4,2)}
+
+    h0=as.vector(as.matrix(permutation_output))
+
+    if(missing(xlim)) {
+      if(side=='smaller') {xlim=c(0,max(h0))}
+      else {xlim=c(min(h0),1)}
+    }
+
+    #####for miss classification and BER, it is smaller, for greater it is Q2 or AUC the biggest value is 1
+
+    if(is.null(main)) {main=paste('Permutation analysis of',
+                                 deparse(substitute(MUVRclassObject)),
+                                 permutation_type)
+    }
+
+    plotPerm(actual = actual,
+             distribution = h0,
+             type = type,
+             pos = pos,
+             side = side,
+             xlab = xlab,
+             xlim = xlim,
+             ylim = ylim,
+             breaks = breaks,
+             main = main)
+
+
+
+  }else{
+
+
+
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
   if(!missing(side)){if(side!=ifelse(actual<median(permutation_output[,nModel]),
                                      'smaller',
                                      'greater')){side=ifelse(actual<median(permutation_output[,nModel]),
                                                             'smaller',
                                                             'greater')}}
-  if(missing(side)) side=ifelse(actual<median(permutation_output[,nModel]),
+  if(missing(side)) {side=ifelse(actual<median(permutation_output[,nModel]),
                                 'smaller',
-                                'greater')
+                                'greater')}
 
-  if(missing(pos)) pos=ifelse(side=='smaller',4,2)
+  if(missing(pos)) {
+    pos=ifelse(side=='smaller',4,2)
+    }
 
 h0=permutation_output[,nModel]
 
 if(missing(xlim)) {
-    if(side=='smaller') xlim=c(0,max(h0))
-    else xlim=c(min(h0),1)
+    if(side=='smaller') {xlim=c(0,max(h0))}
+    else{xlim=c(min(h0),1)}
   }
 
   #####for miss classification and BER, it is smaller, for greater it is Q2 or AUC the biggest value is 1
 
-  if(is.null(main)) main=paste('Permutation analysis of',
+  if(is.null(main)) {main=paste('Permutation analysis of',
                                deparse(substitute(MUVRclassObject)),
                                permutation_type)
+  }
 
 plotPerm(actual = actual,
          distribution = h0,
@@ -129,9 +203,62 @@ plotPerm(actual = actual,
          main = main)
 }
 
+}
 ############################################################################################################
 #######When it is AUROC
   if(permutation_type=="AUROC"){
+    if(class(MUVRclassObject)[3]=='rdCVnet'){
+      for(s in 1:dim(permutation_output)[2]){
+        if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
+        if(!missing(side)){if(side!=ifelse(actual[s]<median(permutation_output[,s]),
+                                           'smaller',
+                                           'greater')){side=ifelse(actual[s]<median(permutation_output[,s]),
+                                                                   'smaller',
+                                                                   'greater')}}
+        if(missing(side)) {side=ifelse(actual[s]<median(permutation_output[,s]),
+                                       'smaller',
+                                       'greater')}
+
+        if(missing(pos)) {
+          pos=ifelse(side=='smaller',4,2)}
+      h0<-matrix(0L,
+                 nrow=dim(permutation_output)[1],
+                 ncol=dim(permutation_output)[2])
+      h0[,s]=permutation_output[,s]   ####   h0 row is permutation, column is group, They are all under nModel
+
+      if(missing(xlim)) {xlim<-list()
+      if(side=='smaller') {xlim=c(0,max(h0[,s]))}
+      else {xlim=c(min(h0[,s]),1)}
+      }
+
+      #####for miss classification, it is smaller, for greater it is Q2 or AUC the biggest value is 1
+
+
+
+      ###if main=NULL, isTRUE(main) is False
+
+      main=paste('Permutation analysis of',
+                 deparse(substitute(MUVRclassObject)),
+                 permutation_type,
+                 "group",s)
+
+      plotPerm(actual = actual[s],
+               distribution = h0[,s],
+               type = type,
+               pos = pos,
+               side = side,
+               xlab = xlab,
+               xlim = xlim,
+               ylim = ylim,
+               breaks = breaks,
+               main = main)
+
+      }
+
+
+
+
+    }else{
     for(s in 1:dim(permutation_output)[3]){
 
     if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
@@ -140,18 +267,19 @@ plotPerm(actual = actual,
                                          'greater')){side=ifelse(actual[s]<median(permutation_output[,nModel,s]),
                                                                  'smaller',
                                                                  'greater')}}
-    if(missing(side)) side=ifelse(actual[s]<median(permutation_output[,nModel,s]),
+    if(missing(side)) {side=ifelse(actual[s]<median(permutation_output[,nModel,s]),
                                       'smaller',
-                                      'greater')
+                                      'greater')}
 
     if(missing(pos)) {
                        pos=ifelse(side=='smaller',4,2)}
-    h0<-matrix(0L,nrow=dim(permutation_output)[1],ncol=dim(permutation_output)[3])
+    h0<-matrix(0L,nrow=dim(permutation_output)[1],
+               ncol=dim(permutation_output)[3])
     h0[,s]=permutation_output[,nModel,s]   ####   h0 row is permutation, column is group, They are all under nModel
 
     if(missing(xlim)) {xlim<-list()
-      if(side=='smaller') xlim=c(0,max(h0[,s]))
-      else xlim=c(min(h0[,s]),1)
+      if(side=='smaller') {xlim=c(0,max(h0[,s]))}
+      else {xlim=c(min(h0[,s]),1)}
     }
 
     #####for miss classification, it is smaller, for greater it is Q2 or AUC the biggest value is 1
@@ -175,6 +303,7 @@ plotPerm(actual = actual,
              ylim = ylim,
              breaks = breaks,
              main = main)
+    }
 
 
 
@@ -182,4 +311,5 @@ plotPerm(actual = actual,
   }
 
   }
-  }
+
+}

@@ -71,6 +71,7 @@ plotMV <- function(MUVRclassObject,
            pch = 20)
     # Add simple regression line
     reg <- lm(YP ~ Y)
+    #clip(x1=min(Y),x2=max(Y),y1=min(YP),y2=max(YP))
     abline(reg)
     # Add legend
     legend('topleft',
@@ -84,7 +85,7 @@ plotMV <- function(MUVRclassObject,
     ################################
     # CLASSIFICATION SWIMLANE PLOT
     ################################
-    if(class(MUVRclassObject$yPredPerRep)=="list"){
+    if(class(MUVRclassObject$yPredPerRep)[1]=="list"){
     # Y-predicted overall
     YP <- MUVRclassObject$yPred[[modNum]]     ####The probability that belongs to each class
     # Y-predicted per repetition
@@ -144,7 +145,7 @@ plotMV <- function(MUVRclassObject,
              col = 'grey')
     }
     # Identify erroneous classifications
-    if(class(MUVRclassObject$yPredPerRep)=="list"){
+    if(class(MUVRclassObject$yPredPerRep)[1]=="list"){
     yClass <- MUVRclassObject$yClass[,modNum]    ###The class of the most probabilityM
     } else {yClass <- MUVRclassObject$yClass}
     whichWrong <- which(yClass!=Y)               ###whichWrong is the sequence number of observations
@@ -185,9 +186,9 @@ plotMV <- function(MUVRclassObject,
 
 
 
-    if(class(MUVRclassObject$yPredPerRep)=="list"){
+    if(class(MUVRclassObject$yPredPerRep)[1]=="list"){
       # Y-predicted overall
-      YP <- MUVRclassObject$yPred[[modNum]]     ####The probability that belongs to each class
+      YP <- MUVRclassObject$yPred[,modNum]     ####The probability that belongs to each class
       # Y-predicted per repetition
       YPR <- MUVRclassObject$yPredPerRep[[modNum]]
     }else{

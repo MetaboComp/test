@@ -29,11 +29,12 @@ predMV=function(MUVRclassobject,
     nComps=MUVRclassobject$nCompPerSeg[[modNum]]  ###row is repetition, column is outer segment
   } else if (method=="RF"){
     library(randomForest)
-  } else {library(glmnet)}
+  } else {library(glmnet)
+    }
   #par(mar=c(4,4,0,0)+.5)
   #####################################
 ####when regression is used
-  if (class(MUVRclassobject)[2]=='Regression') {
+  if (class(MUVRclassobject)[2]=='Regression'|class(MUVRclassobject)[2]=='Multilevel') {
     yPredPerMod=matrix(ncol=length(MUVRclassobject$outModels),   ###when modReturn is set is true, the length is nRep*nOuter
                        nrow=nrow(newdata),   ##number of observations
                        dimnames=list(paste('observation',1:nrow(newdata),sep=''),
@@ -45,6 +46,8 @@ predMV=function(MUVRclassobject,
 
 ###when method is PLS
         if (method=='PLS') {
+
+
           mod=MUVRclassobject$outModels[[n]][[modNum]]   ###
           if (any(!colnames(mod$X)%in%colnames(newdata))) {  ###check if training set has variables that is not included in the tesing set
             cat('\nMismatch variable names in model',n,': Return NULL')
@@ -80,7 +83,7 @@ predMV=function(MUVRclassobject,
           X=subset(newdata,select=colnames(mod$X))   ###keep testing variables only the variables existing in training set
 
           ##yPrePerMod is a matrix of (observation is row, nRep*nOuter)
-          yPredPerMod[,n]=predict(mod,newx=X)$predict
+          yPredPerMod[,n]=predict(mod,newx=as.matrix(X))
           ###How t
 
 
@@ -92,6 +95,7 @@ predMV=function(MUVRclassobject,
     return(list(yPred=yPred,
                 yPredPerMod=yPredPerMod))  ###return
   }
+  #############################################################################################
  ###########################
 ##when it is classification problem
   else if (class(MUVRclassobject)[2]=='Classification') {

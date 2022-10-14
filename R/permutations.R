@@ -41,8 +41,7 @@ permutations = function(MUVRclassObject,
                         parallel,
                         realorsimulation =  "simulation",
                         permutation_type ) {
-  if (!any(class(MUVRclassObject) == 'MUVR'))
-    stop('Wrong object class')
+  if (!any(class(MUVRclassObject) == 'MUVR')){stop('Wrong object class')}
   ##substitute() is often paired with deparse(). That function takes the result of substitute(), an expression,
   ##and turns it into a character vector.
 
@@ -66,12 +65,14 @@ permutations = function(MUVRclassObject,
     nOuter = MUVRclassObject$inData$nOuter
     nInner = MUVRclassObject$inData$nInner
   } else
-    nInner = nOuter - 1
+   { nInner = nOuter - 1}
 
-  if (missing(varRatio))
+  if (missing(varRatio)){
     varRatio = MUVRclassObject$inData$varRatio
-  if (missing(parallel))
+    }
+  if (missing(parallel)){
     parallel = MUVRclassObject$inData$parallel
+    }
 
   if (ML) {
     nSamp = nrow(X) / 2
@@ -103,8 +104,7 @@ permutations = function(MUVRclassObject,
   if (missing(permutation_type)) {
     if (any(class(MUVRclassObject) %in% c('Regression', "Multilevel"))) {
       permutation_type = "Q2"
-    }
-    else{
+    } else {
       permutation_type = "MISS"
     }
   }
@@ -152,6 +152,7 @@ permutations = function(MUVRclassObject,
         #}      ## For classification , it Y perm is a factor, for regression Y perm is a factor
         ##sample(x, size, replace = FALSE, prob = NULL)
         ## default for size is the number of items inferred from the first argument,
+        if(method!="rdCVnet"){
         permMod = MUVR(
           X = X,
           Y = YPerm,
@@ -170,6 +171,27 @@ permutations = function(MUVRclassObject,
           methParam = methParam,
           parallel = parallel
         )
+        } else {
+
+          permMod = rdCVnet(
+            X = X,
+            Y = YPerm,
+            ID = ID,
+            scale = scale,
+            DA = DA,
+            ##
+            ML = ML,
+            ## when ML is T DA is F, When ML = F , Da can be T or F
+            nRep = nRep,
+            nOuter = nOuter,
+            nInner = nInner,
+            varRatio = varRatio,
+            fitness = fitness,
+            method = method,
+            methParam = methParam,
+            parallel = parallel
+          )
+        }
 
 
         if (permutation_type == "Q2") {
@@ -190,6 +212,11 @@ permutations = function(MUVRclassObject,
 
         cat('\nEstimated time left:', timeLeft, 'mins\n\n')
       }
+      if(class(MUVRclassObject)[3]=="rdCVnet"){
+        permutation_output=as.data.frame(permutation_output[,1])
+        colnames(permutation_output)="overall"
+      }
+
       lst <- list(permutation_type,
                   permutation_output)
       names(lst) <- c("permutation_type",
@@ -229,6 +256,7 @@ permutations = function(MUVRclassObject,
                            size = length(Y),
             )
           }
+          if(method!="rdCVnet"){
           permMod = MUVR(
             X = X,
             Y = YPerm,
@@ -245,6 +273,25 @@ permutations = function(MUVRclassObject,
             methParam = methParam,
             parallel = parallel
           )
+          } else {
+            permMod = rdCVnet(
+              X = X,
+              Y = YPerm,
+              ID = ID,
+              scale = scale,
+              DA = DA,
+              ML = ML,
+              nRep = nRep,
+              nOuter = nOuter,
+              nInner = nInner,
+              varRatio = varRatio,
+              fitness = fitness,
+              method = method,
+              methParam = methParam,
+              parallel = parallel
+            )
+
+          }
 
           permutation_output[p, ] = permMod$fitMetric$Q2
           nowTime = proc.time()[3]
@@ -255,6 +302,11 @@ permutations = function(MUVRclassObject,
 
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
+        if(class(MUVRclassObject)[3]=="rdCVnet"){
+          permutation_output=as.data.frame(permutation_output[,1])
+          colnames(permutation_output)="overall"
+        }
+
         lst <- list(permutation_type,
                     permutation_output)
         names(lst) <- c("permutation_type",
@@ -262,7 +314,7 @@ permutations = function(MUVRclassObject,
         return(lst)
       }   ### where if permutation type is Q2
 
-      ## scenario 1.2.1
+      ## scenario 1.2.2
       if (permutation_type == "MISS" | permutation_type == "BER") {
         for (p in 1:nPerm) {
           ####these is to repeat random selection for nPerm times
@@ -289,6 +341,7 @@ permutations = function(MUVRclassObject,
             ))
           }   ##sample(x, size, replace = FALSE, prob = NULL)
           ## default for size is the number of items inferred from the first argument,
+          if(method!="rdCVnet"){
           permMod = MUVR(
             X = X,
             Y = YPerm,
@@ -305,6 +358,27 @@ permutations = function(MUVRclassObject,
             methParam = methParam,
             parallel = parallel
           )
+          } else {
+
+            permMod = rdCVnet(
+              X = X,
+              Y = YPerm,
+              ID = ID,
+              scale = scale,
+              DA = DA,
+              ##
+              ML = ML,
+              ## when ML is T DA is F, When ML = F , Da can be T or F
+              nRep = nRep,
+              nOuter = nOuter,
+              nInner = nInner,
+              varRatio = varRatio,
+              fitness = fitness,
+              method = method,
+              methParam = methParam,
+              parallel = parallel
+            )
+          }
 
           if (any(class(MUVRclassObject) == 'Regression'))
             permutation_output[p, ] = permMod$fitMetric$Q2
@@ -324,6 +398,12 @@ permutations = function(MUVRclassObject,
 
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
+
+        if(class(MUVRclassObject)[3]=="rdCVnet"){
+          permutation_output=as.data.frame(permutation_output[,1])
+          colnames(permutation_output)="overall"
+        }
+
         lst <- list(permutation_type,
                     permutation_output)
         names(lst) <- c("permutation_type",
@@ -360,7 +440,19 @@ permutations = function(MUVRclassObject,
                                  "ML"
                                ))
     } else{
-    permutation_output = array(NA,
+      if(class(MUVRclassObject)[3]=="rdCVnet"){
+        permutation_output = array(NA,
+                                   dim = c(nPerm,
+                                           3,
+                                           length(MUVRclassObject$auc)),
+                                   dimnames = list(
+                                     c(paste("permutation", 1:nPerm)),
+                                     c('Min', 'Mid', 'Max'),
+                                     c(names(MUVRclassObject$auc))
+                                   )) ###if use auc this is a list
+
+      }else{
+        permutation_output = array(NA,
                                dim = c(nPerm,
                                        3,
                                        ncol(MUVRclassObject$auc)),
@@ -369,7 +461,8 @@ permutations = function(MUVRclassObject,
                                  c('Min', 'Mid', 'Max'),
                                  c(colnames(MUVRclassObject$auc))
                                )) ###if use auc this is a list
-    }
+      }
+      }
     if (realorsimulation == "real") {
       if(ML){num=1}else{num=ncol(MUVRclassObject$auc)}
       for (s in 1:num) {
@@ -389,7 +482,7 @@ permutations = function(MUVRclassObject,
           YPerm = sample(Y,
                          size=nSamp)     ##sample(x, size, replace = FALSE, prob = NULL)
           ## default for size is the number of items inferred from the first argument,
-
+        if (method!="rdCVnet"){
           permMod = MUVR(
             X = X,
             Y = YPerm,
@@ -407,11 +500,39 @@ permutations = function(MUVRclassObject,
             methParam = methParam,
             parallel = parallel
           )
+        } else {
+
+          permMod = rdCVnet(
+            X = X,
+            Y = YPerm,
+            ID = ID,
+            scale = scale,
+            DA = DA,
+            ##
+            ML = ML,
+            ## when ML is T DA is F, When ML = F , Da can be T or F
+            nRep = nRep,
+            nOuter = nOuter,
+            nInner = nInner,
+            varRatio = varRatio,
+            fitness = fitness,
+            method = method,
+            methParam = methParam,
+            parallel = parallel
+          )
+        }
+
 
           if(ML){
             permutation_output[p, , s] = permMod$auc[s]
-          }else{permutation_output[p, , s] = t(permMod$auc[, s])}
+          }else{
+            if(class(MUVRclassObject)[3]=="rdCVnet"){
+              permutation_output[p, , s] = t(permMod$auc[s])
+            }else{
+              permutation_output[p, , s] = t(permMod$auc[, s])
+            }
 
+          }
 
           nowTime = proc.time()[3]
 
@@ -422,6 +543,12 @@ permutations = function(MUVRclassObject,
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
       }
+
+      if(class(MUVRclassObject)[3]=="rdCVnet"){
+        permutation_output=permutation_output[,1,]
+
+      }
+
       lst <- list(permutation_type,
                   permutation_output)
       names(lst) <- c("permutation_type",
@@ -432,7 +559,13 @@ permutations = function(MUVRclassObject,
 
 
     if (realorsimulation == "simulation") {
-      if(ML){num=1}else{num=ncol(MUVRclassObject$auc)}
+      if(ML){num=1
+      }else{
+
+        num=ifelse(class(MUVRclassObject)[3]=="rdCVnet",
+                   length(MUVRclassObject$auc),
+                   ncol(MUVRclassObject$auc))
+        }
       for (s in 1:num) {
         for (p in 1:nPerm) {
           ####these is to repeat random selection for nPerm times
@@ -468,6 +601,7 @@ permutations = function(MUVRclassObject,
             ))
           }      ##sample(x, size, replace = FALSE, prob = NULL)
           ## default for size is the number of items inferred from the first argument,
+          if(method!="rdCVnet"){
 
           permMod = MUVR(
             X = X,
@@ -486,10 +620,39 @@ permutations = function(MUVRclassObject,
             methParam = methParam,
             parallel = parallel
           )
+        } else {
+
+          permMod = rdCVnet(
+            X = X,
+            Y = YPerm,
+            ID = ID,
+            scale = scale,
+            DA = DA,
+            ##
+            ML = ML,
+            ## when ML is T DA is F, When ML = F , Da can be T or F
+            nRep = nRep,
+            nOuter = nOuter,
+            nInner = nInner,
+            varRatio = varRatio,
+            fitness = fitness,
+            method = method,
+            methParam = methParam,
+            parallel = parallel
+          )
+        }
+
 
           if(ML){
             permutation_output[p, , s] = permMod$auc[s]
-          }else{permutation_output[p, , s] = t(permMod$auc[, s])}
+          }else{
+            if(class(MUVRclassObject)[3]=="rdCVnet"){
+              permutation_output[p, , s] = t(permMod$auc[s])
+            }else{
+            permutation_output[p, , s] = t(permMod$auc[, s])
+            }
+
+          }
 
           nowTime = proc.time()[3]
 
@@ -500,6 +663,12 @@ permutations = function(MUVRclassObject,
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
       }
+
+      if(class(MUVRclassObject)[3]=="rdCVnet"){
+        permutation_output=permutation_output[,1,]
+
+      }
+
       lst <- list(permutation_type,
                   permutation_output)
       names(lst) <- c("permutation_type",
