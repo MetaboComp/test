@@ -387,6 +387,7 @@ MUVR <- function(X,
   } else {
     # I.e. for regression and ML
     # Allocate final predictions for min mid and max models
+    if(DA==F|method=="SVM"){
     yPredMin <-
       yPredMid <-
       yPredMax <-
@@ -401,6 +402,7 @@ MUVR <- function(X,
       yPredMidR <-
       yPredMaxR <-
       numeric(length(Y)) # Like above but lacking columns (repetitions) -> numeric vector
+    }
   }
 
   # Allocate response vectors and matrices for var's, nComp and VIP ranks over repetitions
@@ -1049,8 +1051,8 @@ MUVR <- function(X,
 
                         )
                         if (DA)
-                        {
-                          yPredMinR[testIndex, ] <- svmOutMin$predicted
+                        { yPredMinR[testIndex] <- svmOutMin$predicted
+                          #yPredMinR[testIndex, ] <- svmOutMin$predicted
                         } else {
                           yPredMinR[testIndex] <- svmOutMin$predicted
                         }
@@ -1070,8 +1072,8 @@ MUVR <- function(X,
                         )
 
                         if (DA)
-                        {
-                          yPredMidR[testIndex, ] <- svmOutMid$predicted
+                        { yPredMidR[testIndex] <- svmOutMid$predicted
+                          #yPredMidR[testIndex, ] <- svmOutMid$predicted
                         } else {
                           yPredMidR[testIndex] <- svmOutMid$predicted
                         }
@@ -1090,8 +1092,8 @@ MUVR <- function(X,
 
                         )
                         if (DA)
-                        {
-                          yPredMaxR[testIndex, ] <- svmOutMax$predicted
+                        {  yPredMaxR[testIndex] <- svmOutMax$predicted
+                          #yPredMaxR[testIndex, ] <- svmOutMax$predicted
                         } else {
                           yPredMaxR[testIndex] <- svmOutMax$predicted
                         }

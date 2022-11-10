@@ -42,7 +42,7 @@ if(DA==F){
                        stepmax=stepmax,
                        hidden=nodes,
                        lifesign="none",  ##a string specifying how much the function will print during the calculation of the neural network. 'none', '
-                       #act.fct="logistic",
+                       # bact.fct="logistic",
                        #act.fct="linear",
                        err.fct="sse",
                        linear.output = T

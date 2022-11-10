@@ -1,7 +1,7 @@
 #' Q2 calculation for classification
 #'@param classification_prediction_matrix prediction values
 #'@param y real values
-#'@param minmidmax
+#'@param minmidmax minmidmax
 #'@export
 #'@return Q2
 # a<-MUVR(Xotu[1:13,],factor(Yotu[1:13]),method="PLS",DA=T,modReturn = T)

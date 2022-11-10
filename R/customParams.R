@@ -51,7 +51,7 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
                          stepmax=1e+08,   ###neuralnet default
                          neuralMaxIn=10,
 
-                         kernel="vanilladot",
+                         kernel="notkernel",
                          nu=0.1,
                          gamma=1,
                          degree=1,
@@ -108,10 +108,14 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
       methParam$method <- "SVM"
       methParam$svmMethod <- svmMethod
 
-      methParam$kernel<-kernel
+
       methParam$nu<-nu
       methParam$gamma<-gamma
       methParam$degree<-degree
+      if (kernel=="notkernel") { if( methParam$svmMethod == "svm"){kernel = "radial"
+      }else if ( methParam$svmMethod == "ksvm"){kernel="vanilladot"}
+      }
+      methParam$kernel<-kernel
       ####Here new method could be added
     } else if (!missing(annMethod)) {
       if (annMethod != "nnet" & annMethod != "neuralnet")
@@ -230,6 +234,13 @@ customParams <- function(method = c('RF', 'PLS', "SVM", "ANN"),
         methParam$nu<-nu
         methParam$gamma<-gamma
         methParam$degree<-degree
+
+
+
+        if (kernel=="notkernel") { if( methParam$svmMethod == "svm"){kernel = "radial"
+        }else if ( methParam$svmMethod == "ksvm"){kernel="vanilladot"}
+          methParam$kernel<-kernel
+        }
       }
 
 

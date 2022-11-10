@@ -44,6 +44,7 @@ plotPerm=function(actual,
                     pos_rev<-ifelse(side=='smaller',2,4)}
   ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
   ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
+
   pP=pPerm(actual,
            distribution,
            side,
@@ -70,7 +71,7 @@ plotPerm=function(actual,
 
   lines(rep(actual,2),     ###x1,x2 for the line
         c(0,h2))          ##y1 ,y2 forthe line
-
+  if(!is.nan(pP)){
   text(actual,    ###x position of the text
        h2,        ##y position of the text
        pos=pos,
@@ -80,7 +81,8 @@ plotPerm=function(actual,
        ##For signif the recognized values of digits are 1...22, and non-missing values are rounded to the nearest integer in that range.
        ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
        ##Each element of the vector is rounded individually, unlike printing.
-  text(actual,    ###x position of the text
+  }
+    text(actual,    ###x position of the text
        max(h$density)*0.003,        ##y position of the text
        pos=3,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,

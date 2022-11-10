@@ -44,6 +44,27 @@ svmInner<-function(xTrain,
   xVal<-as.data.frame(xVal)
   data = cbind(xTrain,yTrain)
   if (DA == F) {
+    if(method=="svm"){
+      svmModIn<-train(x=xTrain,
+            y=yTrain,
+            method="svmLinear2",
+            preProcess="scale",
+            #trControl=trainControl( method = "repeatedcv"),
+            #kernel="radial",
+            scale=F,
+            nu=0.1,   ### not tuning it
+            #tuneGrid=tuneGrid,
+            #cost=2,
+            type="nu-regression"   ## this needs to be specificed with type at the same time
+      )
+      importance<-varImp(svmModIn,scale=F)
+      yValInner<-predict(svmModIn,xVal)
+      returnIn$virank<-importance[[1]][colnames(xTrain),,drop=F]
+      returnIn$virank<-returnIn$virank[,1]
+      names(returnIn$virank)<-colnames(xTrain)
+      returnIn$virank<-rank(-returnIn$virank)
+    }
+
     if (method == "ksvm") {
 #####Test for stability
       ###doing nu regression
@@ -52,8 +73,8 @@ svmInner<-function(xTrain,
              data=data,
              model="ksvm",          ##ranking could different in different kernel
              task="reg",
-             search=list(search=list(nu=seq(0.001,0.9,0.001))),
-             #nu=0.001,
+             #search=list(search=list(nu=seq(0.001,0.9,0.001))),   ### parameter tuning
+             nu=0.1,                                               ## without parameter tuning
              type="nu-svr",
              #kpar=list(sigma=gamma),
              kernel=kernel
@@ -84,21 +105,48 @@ svmInner<-function(xTrain,
 }
 
   if (DA == T) {
+    if(method=="svm"){
+
+      svmModIn<-train(x=xTrain,
+                      y=yTrain,
+                      method="svmLinear2",
+                      preProcess="scale",
+                      #trControl=trainControl(method = "repeatedcv"),  ### parameter tuning
+                      #kernel="radial",
+                      scale=F,
+                      nu=0.001,     ## without parameter tuning
+                      #tuneGrid=expand.grid(cost=c(0.001,0.01,0.1,1,10,100,1000)),
+                      #cost=2,
+                      type="nu-classification"   ## this needs to be specificed with type at the same time
+      )
+      importance<-varImp(svmModIn,scale=F)
+      yValInner<-predict(svmModIn,xVal)
+      returnIn$virank<-importance[[1]][colnames(xTrain),,drop=F]
+
+      for(i in 1:ncol( returnIn$virank)){
+        returnIn$virank[,i]<-rank(-returnIn$virank[,i])
+
+      }
+      returnIn$virank<-rowSums(returnIn$virank)
+      returnIn$virank<-rank(returnIn$virank)
+
+
+    }
     if (method == "ksvm") {
       #####Test for stability
       svmModIn<-fit(yTrain~.,
                     data=data,
                     model="ksvm",
                     task="class",
-                    search=list(search=list(nu=seq(0.001,0.9,0.001))),
-                    #nu=0.001,
+                    #search=list(search=list(nu=seq(0.001,0.9,0.001))),  ### parameter tuning
+                    nu=0.001,                                ### without parameter tuning
                     type="nu-svc",
                     #kpar=list(sigma=gamma),
                     kernel=kernel
                     )
       b<-ksvm(yTrain~.,data=data,type="nu-svc",nu=svmModIn@mpar$nu)
       yValInner<-predict(b,xVal)
-      svm_imp<-Importance(svmModIn,
+      svm_imp<-Importance(svmModIn,   ### it takes sometime to calculate it
                           data=xTrain)
 
       #####somehow it gives NA

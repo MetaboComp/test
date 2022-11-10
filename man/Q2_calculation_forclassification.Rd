@@ -14,6 +14,8 @@ Q2_calculation_forclassification(
 \item{classification_prediction_matrix}{prediction values}
 
 \item{y}{real values}
+
+\item{minmidmax}{minmidmax}
 }
 \value{
 Q2

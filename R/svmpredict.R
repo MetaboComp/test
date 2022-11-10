@@ -64,31 +64,41 @@ library(e1071)
   xTest<-as.data.frame(xTest)
   data = cbind(xTrain,yTrain)
     if(DA==F){
-
-      return$model <-svm(yTrain~.,
-                         data=data,
-                         kernel=kernel,
-                         nu=nu,
-                         gamma=gamma,
-                         degree=degree,
-                         type="nu-regression"
-
+      return$model<-train(x=xTrain,
+                      y=yTrain,
+                      method="svmLinear2",
+                      preProcess="scale",
+                      trControl=trainControl(
+                        method = "none"),
+                      #kernel="radial",
+                      scale=F,
+                      nu=0.1,
+                      #tuneGrid=tuneGrid,
+                      #cost=2,
+                      type="nu-regression"   ## this needs to be specificed with type at the same time
       )
+
+
       return$fit <-predict(return$model ,xTrain)
       return$predicted<-predict(return$model ,xTest)
     }
 
   if(DA==T){
 
-    return$model <-svm(yTrain~.,
-                       data=data,
-                       kernel=kernel,
-                       nu=nu,
-                       gamma=gamma,
-                       degree=degree,
-                       type="nu-classification"
 
+    return$model<-train(x=xTrain,
+                    y=yTrain,
+                    method="svmLinear2",
+                    preProcess="scale",
+                    #trControl=trainControl(method = "repeatedcv"),  ### parameter tuning
+                    #kernel="radial",
+                    scale=F,
+                    nu=0.001,     ## without parameter tuning
+                    #tuneGrid=expand.grid(cost=c(0.001,0.01,0.1,1,10,100,1000)),
+                    #cost=2,
+                    type="nu-classification"   ## this needs to be specificed with type at the same time
     )
+
     return$fit <-predict(return$model ,xTrain)
     return$predicted<-predict(return$model ,xTest)
   }
@@ -131,8 +141,8 @@ if(method=="ksvm")
                   data=data,
                   model="ksvm",          ##ranking could different in different kernel
                   task="reg",
-                  search=list(search=list(nu=seq(0.001,0.9,0.001))),
-                  #nu=0.001,
+                  #search=list(search=list(nu=seq(0.001,0.9,0.001))),
+                  nu=0.1,
                   type="nu-svr",
                   #kpar=list(sigma=gamma),
                   kernel=kernel
@@ -148,8 +158,8 @@ if(method=="ksvm")
                       data=data,
                       model="ksvm",          ##ranking could different in different kernel
                       task="class",
-                      search=list(search=list(nu=seq(0.001,0.9,0.001))),
-                      #nu=0.001,
+                      #search=list(search=list(nu=seq(0.001,0.9,0.001))),
+                      nu=0.001,
                       type="nu-svc",
                       #kpar=list(sigma=gamma),
                       kernel=kernel

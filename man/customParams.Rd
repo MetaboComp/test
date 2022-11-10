@@ -15,7 +15,7 @@ customParams(
   threshold = 0.1,
   stepmax = 1e+08,
   neuralMaxIn = 10,
-  kernel = "vanilladot",
+  kernel = "notkernel",
   nu = 0.1,
   gamma = 1,
   degree = 1,
