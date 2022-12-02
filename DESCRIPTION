@@ -18,6 +18,7 @@ Imports:
     foreach,
     kernlab,
     klaR,
+    beepr,
     microbenchmark,
     nnet,
     neuralnet,

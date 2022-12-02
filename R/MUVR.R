@@ -1741,6 +1741,8 @@ MUVR <- function(X,
             mid=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,2])][1:modelReturn$nVar[2]],
             max=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,3])][1:modelReturn$nVar[3]])
   modelReturn$Var<-Var
+  library(beepr)
+  beep(3)
   # Return final object
   return(modelReturn)
 }
