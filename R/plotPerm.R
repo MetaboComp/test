@@ -7,7 +7,7 @@
 #' @param distribution Null hypothesis (permutation) distribution of similar metric as `actual`
 #' @param xlab Label for x-axis (e.g. 'Q2 using real value',"Q2 using distributions","BER" 'AUROC', or 'Misclassifications')
 #' @param side Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))
-#' @param type Choice of Student's t-distribution of original ('t', default) or ranked ('non') data for non-parametric test
+#' @param type Choice of Student's t-distribution of original ('t', default) or smooth ranked ('non') data for non-parametric test
 #' @param xlim Choice of user-specified x-limits (if default is not adequate)
 #' @param ylim Choice of user-specified y-limits (if default is not adequate)
 #' @param breaks Choice of user-specified histogram breaks (if default is not adequate)
@@ -21,7 +21,7 @@ plotPerm=function(actual,
                   distribution,     ####a distribution
                   xlab=NULL,
                   side=c('greater','smaller'),
-                  type=c('t','non'),
+                  type=c('t','non',"smooth"),
                   xlim,
                   ylim=NULL,
                   breaks='Sturges',
@@ -31,8 +31,8 @@ plotPerm=function(actual,
                   ) {
 
   if(!permutation_visual%in%c("mean","median","none")){stop("this type not supoorted")}
-  if(!missing(type)){if(type!="t"&type!="non"){stop("This type can not be implemented")}}
-  if(missing(type)) {type='t'}
+  if(!missing(type)){if(type!="t"&type!="non"&type!="smooth"){stop("This type can not be implemented")}}
+  if(missing(type)) {type=='t'}
 
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
 
@@ -71,7 +71,7 @@ plotPerm=function(actual,
 
   lines(rep(actual,2),     ###x1,x2 for the line
         c(0,h2))          ##y1 ,y2 forthe line
-  if(!is.nan(pP)){
+  if(!is.nan(pP)&is.numeric(pP)){
   text(actual,    ###x position of the text
        h2,        ##y position of the text
        pos=pos,
@@ -82,6 +82,19 @@ plotPerm=function(actual,
        ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
        ##Each element of the vector is rounded individually, unlike printing.
   }
+
+  if(!is.nan(pP)&!is.numeric(pP)){
+    text(actual,    ###x position of the text
+         h2,        ##y position of the text
+         pos=pos,
+         ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+         ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
+         labels=paste('significant'," p",sep='')) ####what is the text
+    ##For signif the recognized values of digits are 1...22, and non-missing values are rounded to the nearest integer in that range.
+    ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
+    ##Each element of the vector is rounded individually, unlike printing.
+  }
+
     text(actual,    ###x position of the text
        max(h$density)*0.003,        ##y position of the text
        pos=3,

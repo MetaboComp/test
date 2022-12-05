@@ -12,7 +12,7 @@
 pPerm=function(actual,                             ###a value
                permutation_distribution,            ###a distribution
                side=c('smaller','greater'),
-               type=c('t','non')) {
+               type=c('t','non',"smooth")) {
 ##########################################################################################################################
 #it needs to be take into consideration when the type of side is error
   if(is.numeric(actual)==F){
@@ -24,7 +24,7 @@ pPerm=function(actual,                             ###a value
   if(length(permutation_distribution)<5){
     stop("permutation_distribution has too few values to form a distribution")
   }
-  if(!missing(type)){if(type!="t"&type!="non"){
+  if(!missing(type)){if(type!="t"&type!="non"&type!="smooth"){
     stop("This type can not be implemented")
   }
     }
@@ -39,6 +39,50 @@ pPerm=function(actual,                             ###a value
 
 ######################################################################################################################################################################################################
 
+  if (type=='smooth') {
+    if(side=="smaller"){
+      sort_x<-sort(permutation_distribution)
+      fun_ecdf<-ecdf(sort_x)
+      ecdf_curve <- fun_ecdf(sort_x)
+
+      if(actual<min(sort_x)){
+        p_actual<-"<0.01"
+      }else{
+        for(i in 1:(length(permutation_distribution)-1)){
+          if(actual>sort_x[i]&actual<=sort_x[i+1]){
+            p_actual<-ecdf_curve[i]
+          }
+
+        }
+        if(p_actual==0){p_actual<-"<0.01"}
+      }
+      p<-p_actual
+
+   }else{
+
+     sort_x<-sort(permutation_distribution)
+     fun_ecdf<-ecdf(sort_x)
+     ecdf_curve <- fun_ecdf(sort_x)
+
+     if(actual>max(sort_x)){
+       p_actual<-"<0.01"
+     }else{
+       for(i in 1:(length(permutation_distribution)-1)){
+         if(actual>=sort_x[i]&actual<sort_x[i+1]){
+           p_actual<-1-ecdf_curve[i]
+         }
+       }
+       if(p_actual==0){p_actual<-"<0.01"}
+     }
+     p<-p_actual
+
+   }
+  }
+
+
+
+  ######################################################################################################################
+  ## redo p value from cumulative curve
   if (type=='non') {
     if(side=="smaller"){
      rank=rank(c(actual,permutation_distribution))     ###the sequence of each value
@@ -47,14 +91,26 @@ pPerm=function(actual,                             ###a value
     }else{rank=rank(c(actual,permutation_distribution))
           actual=rank[(length(permutation_distribution)+1)]
           permutation_distribution=rank[-(length(permutation_distribution)+1)]
-          }
+    }
+
+    p=pt((actual-mean(permutation_distribution))/sd(permutation_distribution),    ##### pt gives the probability before the input point
+
+         df=length(permutation_distribution)-1)
+
+    if (side=='greater') {p=1-p }
   }
+
+  ######################################################################################################################
+
+
 ###############################################################################################################################################################################################
+
+  if(type=="t"){
   p=pt((actual-mean(permutation_distribution))/sd(permutation_distribution),    ##### pt gives the probability before the input point
 
        df=length(permutation_distribution)-1)
 
   if (side=='greater') {p=1-p }    ####this is to solve which side p value is
-
+  }
   return(p)
 }

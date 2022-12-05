@@ -8,7 +8,7 @@ pPerm(
   actual,
   permutation_distribution,
   side = c("smaller", "greater"),
-  type = c("t", "non")
+  type = c("t", "non", "smooth")
 )
 }
 \arguments{
