@@ -9,13 +9,14 @@ plotPerm(
   distribution,
   xlab = NULL,
   side = c("greater", "smaller"),
-  type = c("t", "non", "smooth"),
+  type = c("t", "non", "smooth", "rank", "ecdf"),
   xlim,
   ylim = NULL,
   breaks = "Sturges",
   pos,
   main = NULL,
-  permutation_visual = "none"
+  permutation_visual = "none",
+  curve = F
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ plotPerm(
 \item{main}{Choice of user-specified plot title}
 
 \item{permutation_visual}{choice of showing median or mean or none}
+
+\item{curve}{if add curve or not base on the mid}
 }
 \value{
 Plot

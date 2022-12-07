@@ -12,7 +12,8 @@
 pPerm=function(actual,                             ###a value
                permutation_distribution,            ###a distribution
                side=c('smaller','greater'),
-               type=c('t','non',"smooth")) {
+               type=c('t','non',"smooth","ecdf","rank")) {
+  p_object<-list()
 ##########################################################################################################################
 #it needs to be take into consideration when the type of side is error
   if(is.numeric(actual)==F){
@@ -24,7 +25,7 @@ pPerm=function(actual,                             ###a value
   if(length(permutation_distribution)<5){
     stop("permutation_distribution has too few values to form a distribution")
   }
-  if(!missing(type)){if(type!="t"&type!="non"&type!="smooth"){
+  if(!missing(type)){if(!type%in%c('t','non',"smooth","ecdf","rank")){
     stop("This type can not be implemented")
   }
     }
@@ -39,7 +40,7 @@ pPerm=function(actual,                             ###a value
 
 ######################################################################################################################################################################################################
 
-  if (type=='smooth') {
+  if (type=='ecdf') {
     if(side=="smaller"){
       sort_x<-sort(permutation_distribution)
       fun_ecdf<-ecdf(sort_x)
@@ -77,6 +78,8 @@ pPerm=function(actual,                             ###a value
      p<-p_actual
 
    }
+    p_object$p<-p
+    p_object$points<-NULL
   }
 
 
@@ -98,10 +101,27 @@ pPerm=function(actual,                             ###a value
          df=length(permutation_distribution)-1)
 
     if (side=='greater') {p=1-p }
+    p_object$p<-p
+    p_object$points<-NULL
   }
 
   ######################################################################################################################
+  if (type=='rank') {
+    if(side=="smaller"){
+      rank=rank(c(actual,permutation_distribution))     ###the sequence of each value
+      actual=rank[1]/length(rank)              ###actual is not the smallest if side is greater this apply to Q2 and AUC
+      permutation_distribution=rank[-1]
+    }else{rank=rank(c(actual,permutation_distribution))
+    actual=1/length(rank)+1-(rank[1]/length(rank))
+    permutation_distribution=rank[-1]
+    }
 
+    p<-actual
+    cat("/n Resolution limited to ",1/length(rank))
+    p_object$p<-p
+    p_object$points<-NULL
+
+  }
 
 ###############################################################################################################################################################################################
 
@@ -111,6 +131,68 @@ pPerm=function(actual,                             ###a value
        df=length(permutation_distribution)-1)
 
   if (side=='greater') {p=1-p }    ####this is to solve which side p value is
+
+  p_object$p<-p
+  p_object$points<-NULL
   }
-  return(p)
+
+
+  if(type=="smooth"){
+    e = 0.01 * diff(range(permutation_distribution))
+    if(actual>=max(permutation_distribution)){
+
+    from=min(permutation_distribution)-(actual-max(permutation_distribution))-e
+    to=actual+e
+    }
+    if(actual<=min(permutation_distribution)){
+      to=min(permutation_distribution)-actual+max(permutation_distribution)+e
+      from=actual-e
+    }
+
+    dens = density(permutation_distribution,
+                   adjust=0.01,
+                   from=from,
+                   to=to,
+                   n = 10000)
+
+    if(side=="smaller"){
+      sort_x<-sort(dens$x)
+      fun_ecdf<-ecdf(sort_x)
+      ecdf_curve <- fun_ecdf(sort_x)
+
+
+        for(i in 1:(length(sort_x)-1)){
+          if(actual>sort_x[i]&actual<=sort_x[i+1]){
+
+            p_actual<-ecdf_curve[i]
+          }
+        }
+
+
+      p<-p_actual
+
+    }else{
+
+      sort_x<-sort(dens$x)
+      fun_ecdf<-ecdf(sort_x)
+      ecdf_curve <- fun_ecdf(sort_x)
+
+        for(i in 1:(length(sort_x)-1)){
+          if(actual>=sort_x[i]&actual<sort_x[i+1]){
+            p_actual<-1-ecdf_curve[i]
+          }
+        }
+
+
+      p<-p_actual
+
+    }
+
+  p_object$p<-p
+  p_object$points<-cbind.data.frame(sort_x,ecdf_curve)
+  p_object$dens<-dens
+  }
+
+
+  return(p_object)
 }

@@ -14,6 +14,7 @@
 #' @param main Choice of user-specified plot title
 #' @param permutation_visual choice of showing median or mean or none
 #' @param pos Choice of position of p-value label (if default is not adequate)
+#' @param curve if add curve or not base on the mid
 #'
 #' @return Plot
 #' @export
@@ -21,17 +22,18 @@ plotPerm=function(actual,
                   distribution,     ####a distribution
                   xlab=NULL,
                   side=c('greater','smaller'),
-                  type=c('t','non',"smooth"),
+                  type=c('t','non',"smooth","rank","ecdf"),
                   xlim,
                   ylim=NULL,
                   breaks='Sturges',
                   pos,  ####Choice of position of p-value label (if default is not adequate)
                   main=NULL,
-                  permutation_visual="none"
+                  permutation_visual="none",
+                  curve=F
                   ) {
 
   if(!permutation_visual%in%c("mean","median","none")){stop("this type not supoorted")}
-  if(!missing(type)){if(type!="t"&type!="non"&type!="smooth"){stop("This type can not be implemented")}}
+  if(!missing(type)){if(!type%in%c('t','non',"smooth","ecdf","rank")){stop("This type can not be implemented")}}
   if(missing(type)) {type=='t'}
 
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
@@ -51,9 +53,12 @@ plotPerm=function(actual,
            type)     ####calculate p value
 
 
+
   if(missing(xlim)) {
-    if(side=='smaller') xlim=c(0,max(distribution))
-    else xlim=c(min(distribution),1)
+    if(side=='smaller') {
+      xlim=c(0,max(distribution))}
+    else {
+      xlim=c(min(distribution),1)}
   }
   (h=hist(distribution,
           breaks,
@@ -65,35 +70,49 @@ plotPerm=function(actual,
           main=main))
 
   h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
+  if(curve==T){
+    dx=density(distribution)
+    lines(dx,lwd = 2, col = "red")
+  }
+
   axis(1,pos=0)   ###the coordinate at which the axis line is to be drawn: if not NA this overrides the value of line.
   if(side=='smaller') axis(2,pos=0,las=1)   #### the style of axis labels. (0=parallel, 1=all horizontal, 2=all perpendicular to axis, 3=all vertical)
   else axis(2,pos=h$breaks[1],las=1)
 
   lines(rep(actual,2),     ###x1,x2 for the line
         c(0,h2))          ##y1 ,y2 forthe line
-  if(!is.nan(pP)&is.numeric(pP)){
+
+
+  if(!is.nan(pP$p)&is.numeric(pP$p)){
   text(actual,    ###x position of the text
        h2,        ##y position of the text
        pos=pos,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
        ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
-       labels=paste('p=',signif(pP,4),sep='')) ####what is the text
+       labels=paste('p=',signif(pP$p,4),sep='')) ####what is the text
        ##For signif the recognized values of digits are 1...22, and non-missing values are rounded to the nearest integer in that range.
        ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
        ##Each element of the vector is rounded individually, unlike printing.
   }
 
-  if(!is.nan(pP)&!is.numeric(pP)){
+  if(!is.nan(pP$p)&!is.numeric(pP$p)){
     text(actual,    ###x position of the text
          h2,        ##y position of the text
          pos=pos,
          ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
          ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
-         labels=paste('significant'," p",sep='')) ####what is the text
+         labels=paste("p",pP$p,sep='')) ####what is the text
     ##For signif the recognized values of digits are 1...22, and non-missing values are rounded to the nearest integer in that range.
     ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
     ##Each element of the vector is rounded individually, unlike printing.
   }
+
+  if(!is.null(pP$points)){
+    ################################ add curves
+
+    #lines(dens)
+  }
+
 
     text(actual,    ###x position of the text
        max(h$density)*0.003,        ##y position of the text
