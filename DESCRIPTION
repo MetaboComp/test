@@ -19,7 +19,7 @@ Imports:
     kernlab,
     klaR,
     beepr,
-    rminer
+    rminer,
     microbenchmark,
     nnet,
     neuralnet,
