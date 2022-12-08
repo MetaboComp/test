@@ -27,6 +27,8 @@ svmpredict <- function(xTrain,
                    ){
 
   library(rminer)
+  library(kernlab)
+  library(e1071)
   # Allocate return object
   return <- list()
   if(missing(xTrain)|missing(yTrain)){stop("There must be x and y training data")}

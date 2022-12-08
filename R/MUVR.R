@@ -51,6 +51,8 @@ MUVR <- function(X,
                  weighing_matrix,
                  keep,
                  ...) {
+  library(kernlab)
+  library(e1071)
   # Start timer
   start.time <- proc.time()[3]
 

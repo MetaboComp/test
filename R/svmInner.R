@@ -38,6 +38,8 @@ svmInner<-function(xTrain,
 
                    method){
   library(rminer)
+  library(kernlab)
+  library(e1071)
   returnIn <- list()
   ###Put it in the main MUVR
   xTrain<-as.data.frame(xTrain)
