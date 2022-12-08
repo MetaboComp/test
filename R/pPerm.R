@@ -138,7 +138,7 @@ pPerm=function(actual,                             ###a value
 
 
   if(type=="smooth"){
-    e = 0.01 * diff(range(permutation_distribution))
+    e = 0.1 * diff(range(permutation_distribution))
     if(actual>=max(permutation_distribution)){
 
     from=min(permutation_distribution)-(actual-max(permutation_distribution))-e

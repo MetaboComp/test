@@ -71,8 +71,18 @@ plotPerm=function(actual,
 
   h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
   if(curve==T){
+    if(type=="smooth"){
     dx=density(distribution)
     lines(dx,lwd = 2, col = "red")
+    }
+    if(type=="t"){
+      e = 0.1 * diff(range(distribution))
+      x_values <- seq(min(distribution)-e, max(distribution)+e, length = 100)
+      y_values <- dt(x_values,df=length(distribution)-1)
+      #y_values <- y_values * diff(h$mids[1:2]) * length(distribution)
+      lines(x_values, y_values, lwd = 2,col = "red")
+
+    }
   }
 
   axis(1,pos=0)   ###the coordinate at which the axis line is to be drawn: if not NA this overrides the value of line.
