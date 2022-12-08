@@ -37,7 +37,7 @@ svmInner<-function(xTrain,
                    #degree,
 
                    method){
-
+  library(rminer)
   returnIn <- list()
   ###Put it in the main MUVR
   xTrain<-as.data.frame(xTrain)
@@ -69,7 +69,7 @@ svmInner<-function(xTrain,
 #####Test for stability
       ###doing nu regression
       ##
-      svmModIn<-fit(yTrain~.,
+      svmModIn<-rminer::fit(yTrain~.,
              data=data,
              model="ksvm",          ##ranking could different in different kernel
              task="reg",
@@ -134,7 +134,7 @@ svmInner<-function(xTrain,
     }
     if (method == "ksvm") {
       #####Test for stability
-      svmModIn<-fit(yTrain~.,
+      svmModIn<-rminer::fit(yTrain~.,
                     data=data,
                     model="ksvm",
                     task="class",

@@ -26,7 +26,7 @@ svmpredict <- function(xTrain,
                    DA
                    ){
 
-
+  library(rminer)
   # Allocate return object
   return <- list()
   if(missing(xTrain)|missing(yTrain)){stop("There must be x and y training data")}
@@ -137,7 +137,7 @@ if(method=="ksvm")
   xTest<-as.data.frame(xTest)
   data = cbind(xTrain,yTrain)
   if(DA==F){
-    M<-fit(yTrain~.,
+    M<-rminer::fit(yTrain~.,
                   data=data,
                   model="ksvm",          ##ranking could different in different kernel
                   task="reg",
@@ -154,7 +154,7 @@ if(method=="ksvm")
   }
 
   if(DA==T){
-    M<-fit(yTrain~.,
+    M<-rminer::fit(yTrain~.,
                       data=data,
                       model="ksvm",          ##ranking could different in different kernel
                       task="class",
