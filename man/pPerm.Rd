@@ -8,7 +8,8 @@ pPerm(
   actual,
   permutation_distribution,
   side = c("smaller", "greater"),
-  type = c("t", "non", "smooth", "ecdf", "rank")
+  type = c("t", "non", "smooth", "ecdf", "rank"),
+  extend = 0.1
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ pPerm(
 \item{side}{Smaller or greater than (automatically guessed if omitted) (Q2 and AUC is a "greater than" test, whereas misclassifications is "smaller than")}
 
 \item{type}{Standard Student's t distribution ('t') or Student's t on rank-transformed data for nonparametric test ('non')}
+
+\item{extend}{extend how much it extend}
 }
 \value{
 p-value

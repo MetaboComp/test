@@ -15,7 +15,7 @@
 #' @param permutation_visual choice of showing median or mean or none
 #' @param pos Choice of position of p-value label (if default is not adequate)
 #' @param curve if add curve or not base on the mid
-#'
+#' @param extend how many percenrtage of the orignical range do we start
 #' @return Plot
 #' @export
 plotPerm=function(actual,
@@ -29,7 +29,8 @@ plotPerm=function(actual,
                   pos,  ####Choice of position of p-value label (if default is not adequate)
                   main=NULL,
                   permutation_visual="none",
-                  curve=F
+                  curve=F,
+                  extend=0.1
                   ) {
 
   if(!permutation_visual%in%c("mean","median","none")){stop("this type not supoorted")}
@@ -50,7 +51,8 @@ plotPerm=function(actual,
   pP=pPerm(actual,
            distribution,
            side,
-           type)     ####calculate p value
+           type,
+           extend=extend)     ####calculate p value
 
 
 
@@ -72,11 +74,28 @@ plotPerm=function(actual,
   h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
   if(curve==T){
     if(type=="smooth"){
-    dx=density(distribution)
+      e = extend * diff(range(distribution))
+      if(actual>=max(distribution)){
+
+        from=min(distribution)-(actual-max(distribution))-e
+        to=actual+e
+      }else if(actual<=min(distribution)){
+        to=min(distribution)-actual+max(distribution)+e
+        from=actual-e
+      } else {
+        from=min(distribution)
+        to=max(distribution)
+      }
+
+    dx=density(distribution,
+               #adjust=0.0001,
+               from=from,
+               to=to,
+               n = 10000)
     lines(dx,lwd = 2, col = "red")
     }
     if(type=="t"){
-      e = 0.1 * diff(range(distribution))
+      e = 1 * diff(range(distribution))
       x_values <- seq(min(distribution)-e, max(distribution)+e, length = 100)
       y_values <- dt(x_values,df=length(distribution)-1)
       #y_values <- y_values * diff(h$mids[1:2]) * length(distribution)

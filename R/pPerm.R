@@ -7,12 +7,14 @@
 #' @param permutation_distribution Null hypothesis distribution from permutation test (same metric as `actual`)
 #' @param side Smaller or greater than (automatically guessed if omitted) (Q2 and AUC is a "greater than" test, whereas misclassifications is "smaller than")
 #' @param type Standard Student's t distribution ('t') or Student's t on rank-transformed data for nonparametric test ('non')
+#' @param extend extend how much it extend
 #' @return p-value
 #' @export
 pPerm=function(actual,                             ###a value
                permutation_distribution,            ###a distribution
                side=c('smaller','greater'),
-               type=c('t','non',"smooth","ecdf","rank")) {
+               type=c('t','non',"smooth","ecdf","rank"),
+               extend=0.1) {
   p_object<-list()
 ##########################################################################################################################
 #it needs to be take into consideration when the type of side is error
@@ -138,15 +140,17 @@ pPerm=function(actual,                             ###a value
 
 
   if(type=="smooth"){
-    e = 0.1 * diff(range(permutation_distribution))
+    e = extend * diff(range(permutation_distribution))
     if(actual>=max(permutation_distribution)){
 
     from=min(permutation_distribution)-(actual-max(permutation_distribution))-e
     to=actual+e
-    }
-    if(actual<=min(permutation_distribution)){
+    }else if(actual<=min(permutation_distribution)){
       to=min(permutation_distribution)-actual+max(permutation_distribution)+e
       from=actual-e
+    } else {
+      from=min(permutation_distribution)
+      to=max(permutation_distribution)
     }
 
     dens = density(permutation_distribution,

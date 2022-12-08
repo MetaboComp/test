@@ -16,7 +16,8 @@ plotPerm(
   pos,
   main = NULL,
   permutation_visual = "none",
-  curve = F
+  curve = F,
+  extend = 0.1
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ plotPerm(
 \item{permutation_visual}{choice of showing median or mean or none}
 
 \item{curve}{if add curve or not base on the mid}
+
+\item{extend}{how many percenrtage of the orignical range do we start}
 }
 \value{
 Plot
