@@ -227,7 +227,7 @@ pPerm=function(actual,                             ###a value
     }
 
   p_object$p<-p
-  p_object$points<-value
+  #p_object$points<-value
   p_object$dens<-dens
   }
 
