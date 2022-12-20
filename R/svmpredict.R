@@ -86,7 +86,23 @@ library(e1071)
     }
 
   if(DA==T){
+    if(is.factor(yTrain)){
+      if(length(levels(yTrain))!=length(levels(droplevels(yTrain)))){
 
+        #xTrain<-Xotu[1:15,]
+        #yTrain<-Yotu[1:15]
+        #xVal<-Xotu[16:29,]
+        #yVal<-Yotu[16:29]
+        #original_levels_yTrain<-levels(yTrain)
+        #original_levels_yVal<-levels(yVal)
+        #real_levels_yTrain<-levels(droplevels(yTrain))
+        #real_levels_yVal<-levels(droplevels(yVal))
+        yTrain=droplevels(yTrain)
+        xVal<-xVal[!is.na(factor(yVal, levels=levels(yTrain))),]
+        yVal<-factor(yVal[!is.na(factor(yVal, levels=levels(yTrain)))],levels=levels(yTrain))
+
+      }
+    }
 
     return$model<-train(x=xTrain,
                     y=yTrain,
@@ -95,9 +111,11 @@ library(e1071)
                     #trControl=trainControl(method = "repeatedcv"),  ### parameter tuning
                     #kernel="radial",
                     scale=F,
-                    nu=0.001,     ## without parameter tuning
+                    #cost=1,
+                    #type="C-classification"
                     #tuneGrid=expand.grid(cost=c(0.001,0.01,0.1,1,10,100,1000)),
-                    #cost=2,
+
+                    nu=0.5,     ## without parameter tuning
                     type="nu-classification"   ## this needs to be specificed with type at the same time
     )
 
@@ -161,13 +179,17 @@ if(method=="ksvm")
                       model="ksvm",          ##ranking could different in different kernel
                       task="class",
                       #search=list(search=list(nu=seq(0.001,0.9,0.001))),
-                      nu=0.001,
-                      type="nu-svc",
+                      #nu=0.5,
+                      #type="nu-svc",
+                      C=1,
+                      type="C-svc",
+
                       #kpar=list(sigma=gamma),
                       kernel=kernel
     )
     return$model<-M
-    a<-ksvm(yTrain~.,data=data,type="nu-svc",nu=M@mpar$nu)
+    # a<-ksvm(yTrain~.,data=data,type="nu-svc",nu=M@mpar$nu)
+    a<-ksvm(yTrain~.,data=data,type="C-svc",C=M@mpar$C)
     return$fit <-predict(a,xTrain)
     return$predicted<-predict(a ,xTest)
   }

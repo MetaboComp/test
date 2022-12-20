@@ -108,7 +108,26 @@ svmInner<-function(xTrain,
 
   if (DA == T) {
     if(method=="svm"){
+      library(caret)
+      ################################################################################################33
+      if(is.factor(yTrain)){
+        if(length(levels(yTrain))!=length(levels(droplevels(yTrain)))){
 
+          #xTrain<-Xotu[1:15,]
+          #yTrain<-Yotu[1:15]
+          #xVal<-Xotu[16:29,]
+          #yVal<-Yotu[16:29]
+          #original_levels_yTrain<-levels(yTrain)
+          #original_levels_yVal<-levels(yVal)
+          #real_levels_yTrain<-levels(droplevels(yTrain))
+          #real_levels_yVal<-levels(droplevels(yVal))
+          yTrain=droplevels(yTrain)
+          xVal<-xVal[!is.na(factor(yVal, levels=levels(yTrain))),]
+          yVal<-factor(yVal[!is.na(factor(yVal, levels=levels(yTrain)))],levels=levels(yTrain))
+
+        }
+      }
+      #############################################################################################################
       svmModIn<-train(x=xTrain,
                       y=yTrain,
                       method="svmLinear2",
@@ -116,9 +135,12 @@ svmInner<-function(xTrain,
                       #trControl=trainControl(method = "repeatedcv"),  ### parameter tuning
                       #kernel="radial",
                       scale=F,
-                      nu=0.001,     ## without parameter tuning
+
                       #tuneGrid=expand.grid(cost=c(0.001,0.01,0.1,1,10,100,1000)),
-                      #cost=2,
+                      #tuneGrid=expand.grid(cost=c(1,10)),
+                      # C=1,
+                      # type="C-svc"
+                      nu=0.5,     ## without parameter tuning
                       type="nu-classification"   ## this needs to be specificed with type at the same time
       )
       importance<-varImp(svmModIn,scale=F)
@@ -141,12 +163,15 @@ svmInner<-function(xTrain,
                     model="ksvm",
                     task="class",
                     #search=list(search=list(nu=seq(0.001,0.9,0.001))),  ### parameter tuning
-                    nu=0.001,                                ### without parameter tuning
-                    type="nu-svc",
+                    #nu=0.5,                                ### without parameter tuning
+                    #type="nu-svc",
+                    C=1,
+                    type="C-svc",
                     #kpar=list(sigma=gamma),
                     kernel=kernel
                     )
-      b<-ksvm(yTrain~.,data=data,type="nu-svc",nu=svmModIn@mpar$nu)
+      #b<-ksvm(yTrain~.,data=data,type="nu-svc",nu=svmModIn@mpar$nu)
+      b<-ksvm(yTrain~.,data=data,type="C-svc",C=svmModIn@mpar$C)
       yValInner<-predict(b,xVal)
       svm_imp<-Importance(svmModIn,   ### it takes sometime to calculate it
                           data=xTrain)

@@ -9,7 +9,7 @@ plotPerm(
   distribution,
   xlab = NULL,
   side = c("greater", "smaller"),
-  type = c("t", "non", "smooth", "rank", "ecdf"),
+  type = "t",
   xlim,
   ylim = NULL,
   breaks = "Sturges",
@@ -29,7 +29,7 @@ plotPerm(
 
 \item{side}{Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))}
 
-\item{type}{Choice of Student's t-distribution of original ('t', default) or smooth ranked ('non') data for non-parametric test}
+\item{type}{c('t','non',"smooth","rank","ecdf")}
 
 \item{xlim}{Choice of user-specified x-limits (if default is not adequate)}
 

@@ -7,7 +7,7 @@
 #' @param distribution Null hypothesis (permutation) distribution of similar metric as `actual`
 #' @param xlab Label for x-axis (e.g. 'Q2 using real value',"Q2 using distributions","BER" 'AUROC', or 'Misclassifications')
 #' @param side Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))
-#' @param type Choice of Student's t-distribution of original ('t', default) or smooth ranked ('non') data for non-parametric test
+#' @param type c('t','non',"smooth","rank","ecdf")
 #' @param xlim Choice of user-specified x-limits (if default is not adequate)
 #' @param ylim Choice of user-specified y-limits (if default is not adequate)
 #' @param breaks Choice of user-specified histogram breaks (if default is not adequate)
@@ -22,7 +22,8 @@ plotPerm=function(actual,
                   distribution,     ####a distribution
                   xlab=NULL,
                   side=c('greater','smaller'),
-                  type=c('t','non',"smooth","rank","ecdf"),
+                  type="t",
+                  #               type=c('t','non',"smooth","ecdf","rank"),
                   xlim,
                   ylim=NULL,
                   breaks='Sturges',
@@ -34,7 +35,7 @@ plotPerm=function(actual,
                   ) {
 
   if(!permutation_visual%in%c("mean","median","none")){stop("this type not supoorted")}
-  if(!missing(type)){if(!type%in%c('t','non',"smooth","ecdf","rank")){stop("This type can not be implemented")}}
+  if(!missing(type)){if(!any(type%in%c('t','non',"smooth","ecdf","rank"))){stop("This type can not be implemented")}}
   if(missing(type)) {type=='t'}
 
   if(!missing(side)){if(side!="smaller"&side!="greater")stop("This side can not be implemented")}
@@ -51,16 +52,17 @@ plotPerm=function(actual,
   pP=pPerm(actual,
            distribution,
            side,
-           type,
+           type=type,
            extend=extend)     ####calculate p value
+  #if(missing(ylim)) {
+  #  xlim =c(0,max(h$density))
+  #}
 
-
-
+  ran<-range(c(actual,permutation_distribution))
+  from=ran[1]-diff(ran)*extend
+  to=ran[2]+diff(ran)*extend
   if(missing(xlim)) {
-    if(side=='smaller') {
-      xlim=c(0,max(distribution))}
-    else {
-      xlim=c(min(distribution),1)}
+    xlim =c(from,to)
   }
   (h=hist(distribution,
           breaks,
@@ -74,29 +76,27 @@ plotPerm=function(actual,
   h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
   if(curve==T){
     if(type=="smooth"){
-      e = extend * diff(range(distribution))
-      if(actual>=max(distribution)){
+      ran<-range(c(actual,permutation_distribution))
+      from=ran[1]-diff(ran)*extend
+      to=ran[2]+diff(ran)*extend
 
-        from=min(distribution)-(actual-max(distribution))-e
-        to=actual+e
-      }else if(actual<=min(distribution)){
-        to=min(distribution)-actual+max(distribution)+e
-        from=actual-e
-      } else {
-        from=min(distribution)
-        to=max(distribution)
-      }
+    #dx=density(distribution,
+    #           #adjust=0.0001,
+    #           from=from,
+    #           to=to,
+    #           n = 100000)
+    #dx_line=density(distribution,
+    #           #adjust=0.0001,
+    #           from=xlim[1],
+    #           to=xlim[2],
+    #           n = 100000)
 
-    dx=density(distribution,
-               #adjust=0.0001,
-               from=from,
-               to=to,
-               n = 10000)
-    lines(dx,lwd = 2, col = "red")
+    lines(pP$dens,lwd = 2, col = "red")
     }
+
     if(type=="t"){
-      e = 1 * diff(range(distribution))
-      x_values <- seq(min(distribution)-e, max(distribution)+e, length = 100)
+      #e = 1 * diff(range(distribution))
+      x_values <- seq(from, to, length = 1000)
       y_values <- dt(x_values,df=length(distribution)-1)
       #y_values <- y_values * diff(h$mids[1:2]) * length(distribution)
       lines(x_values, y_values, lwd = 2,col = "red")
