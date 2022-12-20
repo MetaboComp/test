@@ -58,7 +58,7 @@ plotPerm=function(actual,
   #  xlim =c(0,max(h$density))
   #}
 
-  ran<-range(c(actual,permutation_distribution))
+  ran<-range(c(actual,distribution))
   from=ran[1]-diff(ran)*extend
   to=ran[2]+diff(ran)*extend
   if(missing(xlim)) {
@@ -76,7 +76,7 @@ plotPerm=function(actual,
   h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
   if(curve==T){
     if(type=="smooth"){
-      ran<-range(c(actual,permutation_distribution))
+      ran<-range(c(actual,distribution))
       from=ran[1]-diff(ran)*extend
       to=ran[2]+diff(ran)*extend
 
