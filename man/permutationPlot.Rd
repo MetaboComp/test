@@ -8,7 +8,7 @@ permutationPlot(
   MUVRclassObject,
   permutation_result,
   model = "Mid",
-  type = c("t", "non"),
+  type = "t",
   side = c("greater", "smaller"),
   pos,
   xlab = NULL,

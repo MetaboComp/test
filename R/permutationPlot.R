@@ -35,7 +35,7 @@
 permutationPlot=function(MUVRclassObject,
                          permutation_result,   ####For AUROC, the result is a permutation list. The length of the list is the group number
                          model='Mid',
-                         type=c('t','non'),  ##'t' (default; for Student's t) or 'non' for "non-parametric" (i.e. rank) studen'ts
+                         type="t", #c('t','non'),  ##'t' (default; for Student's t) or 'non' for "non-parametric" (i.e. rank) studen'ts
                          side=c('greater','smaller'),   ##'smaller' for actual lower than H0 or 'greater' for actual larger than H0 (automatically selected if not specified)
                          pos,                           ##which side of actual to put p-value on
                          xlab=NULL,
@@ -70,7 +70,7 @@ nModel=ifelse(model%in%c('Min', 'min'),
                        2,
                        ifelse(model%in%c('Max', 'max'),3,stop("This model is not an option"))))
 
-if(!missing(type)){if(type!="t"&type!="non")stop("This type can not be implemented")}
+# if(!missing(type)){if(type!="t"&type!="non")stop("This type can not be implemented")}
 if(missing(type)) {type='t'}
 
 
