@@ -650,7 +650,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   names(cum_varTable)<-names(rev(table(varTable)))
 
 
-  minmidmax<-quantile(nonZeroRep, c(0.125, 0.5, 0.875))
+  minmidmax<-quantile(nonZeroRep, c(0.25, 0.5, 0.75))
 
 
   minlimit=floor( minmidmax[1])  ### take the floor value in case no value is selected
