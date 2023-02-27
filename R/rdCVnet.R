@@ -43,8 +43,11 @@ rdCVnet <- function(X,   ## X should be a dataframe
                     parallel=TRUE,
                     keep=NULL,
                     ...){
+
   library(glmnet)
+
   X_original<-X
+
 
   # methParams
   if (missing(methParam)){
@@ -233,9 +236,14 @@ rdCVnet <- function(X,   ## X should be a dataframe
   ## Start repetitions
   # reps <- list() # 2+2 lines for pseudomanual troubleshooting
   # for (r in 1:nRep){
+
+
+  #z=0
+
   reps <- foreach(r=1:nRep,
                   .packages=packs,
                   .export=exports) %doVersion% {
+                    yPredSeg_list<-list()
     # r <- 1
     # r <- r + 1
     if (modReturn) {outMod <- list()}
@@ -277,6 +285,8 @@ rdCVnet <- function(X,   ## X should be a dataframe
     if(DA) {varSegClass <- list()}
 
     a<-1
+
+
     ## Perform outer loop segments -> one "majority vote" MV model per segment
     for (i in 1:nOuter) {
 
@@ -447,6 +457,25 @@ rdCVnet <- function(X,   ## X should be a dataframe
                                         newx = xTest,
                                         s = lambdaSeg[i],
                                         type = 'response')
+        ######################################################################################################
+      ### In classification,the name of each observation is recorded so I only do the onesthat is not NA
+
+        yPredSeg_matrix<-matrix(NA,
+                                nrow=nrow(yPredSeg),
+                                ncol=ncol(yPredSeg))
+        for(zz in 1:nrow(yPredSeg)){
+          if( testIndex[zz]){
+           for(zzz in 1:ncol(yPredSeg)){
+            yPredSeg_matrix[zz,zzz]<-yPredSeg[zz,zzz]
+           }
+          }
+        }
+        rownames(yPredSeg_matrix)<-rownames(X)
+        colnames(yPredSeg_matrix)<-colnames(yPredSeg)
+        yPredSeg_list<-c(yPredSeg_list,list(yPredSeg_matrix))
+
+        #################################################################################################
+
       } else {
         nonZeroSeg[i] <- inMod$nzero[whichMin]
         coefSeg[,i] <- as.matrix(coef(inMod,
@@ -457,8 +486,22 @@ rdCVnet <- function(X,   ## X should be a dataframe
         yPredSeg[testIndex] <- predict(inMod,
                                        newx = xTest,
                                        s = lambdaSeg[i])
+        ######################################################################################################
+       ### in regression, there is no name for each observation, So I will record the NA value
+
+        yPredSeg_vector<-rep(NA, length(yPredSeg))
+        for(zz in 1:length(yPredSeg)){
+          if(testIndex[zz]){
+            yPredSeg_vector[zz]<-yPredSeg[zz]
+          }
+        }
+        yPredSeg_list<-c(yPredSeg_list,list(yPredSeg_vector))
+        #################################################################################################
+
+
       }
       # plot(yTest, yPred)
+
     }  ## where the outer loop ends
 
     # matplot(avect, t(VALSeg), log = 'x', ylab='MSE', main=paste0('Rep ',r,' - All segments'), type='b')
@@ -471,13 +514,18 @@ rdCVnet <- function(X,   ## X should be a dataframe
       }
     }
     }
+
+
+
+
     parReturn <- list(yPred = yPredSeg,
                       alpha = alphaSeg,
                       lambda = lambdaSeg,
                       nonZero = nonZeroSeg,
                       coef = coefSeg,
                       VAL = VALSeg,
-                      vars = varSeg)
+                      vars = varSeg,
+                      yPredSeg_list=yPredSeg_list)
     if(DA) {
       parReturn$varsClass <- varSegClassReorder
       parReturn$nonZeroClass <- nonZeroSegClass
@@ -543,10 +591,14 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
   ####################################
   # Aggregate results over predictions
+  yPredSeg_listlist<-list()
   for (r in 1:nRep) {
     if (DA) {yPredRep[,,r] <- reps[[r]]$yPred
     }else {
       yPredRep[,r] <- reps[[r]]$yPred}
+
+    yPredSeg_listlist<-c(yPredSeg_listlist,reps[[r]]$yPredSeg_list)
+
     alphaRep[r,] <- reps[[r]]$alpha
     lambdaRep[r,] <- reps[[r]]$lambda
     nonZeroRep[r,] <- reps[[r]]$nonZero
@@ -799,7 +851,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
     modelReturn$fitMetric <- data.frame(R2,Q2)
   }
 
-
+  modelReturn$yPredSeg_list<-yPredSeg_listlist
   # Stop timer
   end.time=proc.time()[3]
   modelReturn$calcMins=(end.time-start.time)/60
