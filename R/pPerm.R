@@ -50,7 +50,7 @@ pPerm=function(actual,                             ###a value
       ecdf_curve <- fun_ecdf(sort_x)
 
       if(actual<min(sort_x)){
-        p_actual<-"<0.01"
+        p_actual<-1/length(permutation_distribution)
       }else{
         for(i in 1:(length(permutation_distribution)-1)){
           if(actual>sort_x[i]&actual<=sort_x[i+1]){
@@ -58,7 +58,7 @@ pPerm=function(actual,                             ###a value
           }
 
         }
-        if(p_actual==0){p_actual<-"<0.01"}
+        if(p_actual==0){p_actual<-1/length(permutation_distribution)}
       }
       p<-p_actual
 
@@ -69,14 +69,14 @@ pPerm=function(actual,                             ###a value
      ecdf_curve <- fun_ecdf(sort_x)
 
      if(actual>max(sort_x)){
-       p_actual<-"<0.01"
+       p_actual<-1/length(permutation_distribution)
      }else{
        for(i in 1:(length(permutation_distribution)-1)){
          if(actual>=sort_x[i]&actual<sort_x[i+1]){
            p_actual<- 1-ecdf_curve[i]
          }
        }
-       if(p_actual==0){p_actual<-"<0.01"}
+       if(p_actual==0){p_actual<-1/length(permutation_distribution)}
      }
      p<-p_actual
 
