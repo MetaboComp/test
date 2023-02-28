@@ -45,12 +45,16 @@ pPerm=function(actual,                             ###a value
 
   if (type=='ecdf') {
     if(side=="smaller"){
+      if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
+        p_actual=1
+        p<-p_actual
+      }else{
       sort_x<-sort(permutation_distribution)
       fun_ecdf<-ecdf(sort_x)
       ecdf_curve <- fun_ecdf(sort_x)
 
       if(actual<min(sort_x)){
-        p_actual<-1/length(permutation_distribution)
+        p_actual<-1/(length(permutation_distribution)+1)
       }else{
         for(i in 1:(length(permutation_distribution)-1)){
           if(actual>sort_x[i]&actual<=sort_x[i+1]){
@@ -58,28 +62,32 @@ pPerm=function(actual,                             ###a value
           }
 
         }
-        if(p_actual==0){p_actual<-1/length(permutation_distribution)}
+        if(p_actual==0){p_actual<-1/(length(permutation_distribution)+1)}
       }
       p<-p_actual
-
+     }
    }else{
-
+     if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
+       p_actual=1
+       p<-p_actual
+     }else{
      sort_x<-sort(permutation_distribution)
      fun_ecdf<-ecdf(sort_x)
      ecdf_curve <- fun_ecdf(sort_x)
 
+
      if(actual>max(sort_x)){
-       p_actual<-1/length(permutation_distribution)
+       p_actual<-1/(length(permutation_distribution)+1)
      }else{
        for(i in 1:(length(permutation_distribution)-1)){
          if(actual>=sort_x[i]&actual<sort_x[i+1]){
            p_actual<- 1-ecdf_curve[i]
          }
        }
-       if(p_actual==0){p_actual<-1/length(permutation_distribution)}
+       if(p_actual==0){p_actual<-1/(length(permutation_distribution)+1)}
      }
      p<-p_actual
-
+}
    }
     p_object$p<-p
     p_object$points<-NULL
@@ -112,14 +120,20 @@ pPerm=function(actual,                             ###a value
   if (type=='rank') {
     if(side=="smaller"){
       rank=rank(c(actual,permutation_distribution))     ###the sequence of each value
-      actual=rank[1]/length(rank)              ###actual is not the smallest if side is greater this apply to Q2 and AUC
-      permutation_distribution=rank[-1]
+      p_actual=rank[1]/length(rank)              ###actual is not the smallest if side is greater this apply to Q2 and AUC
+      p_permutation_distribution=rank[-1]
+      if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
+        p_actual=1
+      }
     }else{rank=rank(c(actual,permutation_distribution))
-    actual=1/length(rank)+1-(rank[1]/length(rank))
-    permutation_distribution=rank[-1]
+    p_actual=1/length(rank)+1-(rank[1]/length(rank))
+    p_permutation_distribution=rank[-1]
+    if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
+      p_actual=1
+    }
     }
 
-    p<-actual
+    p<-p_actual
     cat("/n Resolution limited to ",1/length(rank))
     p_object$p<-p
     p_object$points<-NULL
@@ -178,6 +192,10 @@ pPerm=function(actual,                             ###a value
   #  )
     #if(max(value)>=)
     if(side=="smaller"){
+      if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
+        p_actual=1
+        p<-p_actual
+      }else{
      sort_x<-sort(dens$x)
      bd<-(max(dens$x)-min(dens$x))/length(dens$x)
      # sort_x<-sort(value)   ### The thing is if I use "value", the extreme max and min value cannot be selected because the chanceis low
@@ -200,8 +218,13 @@ pPerm=function(actual,                             ###a value
 
 
       p<-p_actual
-
+      }
     }else{
+
+      if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
+        p_actual=1
+        p<-p_actual
+      }else{
       sort_x<-sort(dens$x)
       bd<-(max(dens$x)-min(dens$x))/length(dens$x)
       #sort_x<-sort(value)
@@ -223,7 +246,7 @@ pPerm=function(actual,                             ###a value
 
 
       p<-p_actual
-
+}
     }
 
   p_object$p<-p
