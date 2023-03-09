@@ -8,6 +8,10 @@
 plotVAL=function(MUVRclassObject) {
   if(class(MUVRclassObject)[1]!="MUVR"){stop("Wrong classobject")}
   if(!is.null(MUVRclassObject$varTable)){
+    if(names(MUVRclassObject$nVar)[1]=="Qmin"){
+
+
+    ###### for quantile
     dist<-as.matrix(MUVRclassObject$nonZeroRep)
     s<-hist(dist,
          xlab="Number of variables",
@@ -17,13 +21,64 @@ plotVAL=function(MUVRclassObject) {
                 max(MUVRclassObject$nonZeroRep)*1.1),
          breaks=nrow(dist)*ncol(dist)
          )
-    abline(v = MUVRclassObject$nVar[1])
-    text(MUVRclassObject$nVar[1],max(s$counts)*0.8, "min",  adj = c(0, -.1))
-    abline(v =  MUVRclassObject$nVar[2], lwd = 2)
-    text(MUVRclassObject$nVar[2],max(s$counts)*0.8, "mid",  adj = c(0, -.1))
-    abline(v =  MUVRclassObject$nVar[3])
-    text(MUVRclassObject$nVar[3],max(s$counts)*0.8, "max",  adj = c(0, -.1))
 
+
+    for (i in 1:3) {                                  ####add vertical line
+      abline(v=MUVRclassObject$nVar[i],
+             lty=i,
+             col=i+1,
+             lwd=1.5)                                 ####line wide
+    }
+
+    legend('topright',
+           legend=c("Min","Median","Max"),
+           lty=1:3,
+           cex = 0.5,
+           trace = F,####line type
+           col=2:4,
+           bty='n')                   ####no border of the legend
+   # abline(v = MUVRclassObject$nVar_quantile[1])
+  #  text(MUVRclassObject$nVar_quantile[1],max(s$counts)*0.8, "min",  adj = c(0, -.1))
+  #  abline(v =  MUVRclassObject$nVar_quantile[2], lwd = 2)
+  #  text(MUVRclassObject$nVar_quantile[2],max(s$counts)*0.8, "mid",  adj = c(0, -.1))
+  #  abline(v =  MUVRclassObject$nVar_quantile[3])
+  #  text(MUVRclassObject$nVar_quantile[3],max(s$counts)*0.8, "max",  adj = c(0, -.1))
+
+    }else if(names(MUVRclassObject$nVar)[1]=="min"){
+
+      span<-MUVRclassObject$span
+    ### for smoothcurve
+    nonZeroRep<-MUVRclassObject$nonZeroRep
+    fitnessRep<-MUVRclassObject$fitnessRep
+    plot(nonZeroRep,
+         fitnessRep,
+         xlab="Number of variables selected",
+         ylab="fitness")
+    nonZeroRep_vector<-c(nonZeroRep)
+    fitnessRep_vector<-c(fitnessRep)
+    nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)
+
+    fit_temp<-loess(fitnessRep_vector~nonZeroRep_vector, span = span,degree=2)
+    predict_temp<-predict(fit_temp,
+                          newdata = data.frame(nonZeroRep_vector=nonZeroRep_vector_grid)
+    )
+
+    lines(nonZeroRep_vector_grid,predict_temp)
+    for (i in 1:3) {                                  ####add vertical line
+      abline(v=MUVRclassObject$nVar[i],
+             lty=i,
+             col=i+1,
+             lwd=1.5)                                 ####line wide
+    }
+
+    legend('topright',
+           legend=c("'Min (Minimal-optimal)","'Mid'","'Max' (All-relevant)"),
+           lty=1:3,
+           cex = 0.5,
+           trace = F,####line type
+           col=2:4,
+           bty='n')
+    }
 
   }else{
   VAL=MUVRclassObject$VAL$VAL      ### a list of nRep array,  row is outer segment,column is 1147,917,713

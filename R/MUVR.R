@@ -140,8 +140,7 @@ MUVR <- function(X,
       if (keep[k] %in% colnames(X))   ###this X is the X after onehot encoding or not
       {len<-length(keeps)                            ##If there is a 3 level factor variable at 2nd place of the data then keeps[5] needs to be keep[3]
       keeps[len+1] <- keep[k]
-      }
-      else if (any(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X))))
+      }else if (any(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X))))
       {nlevel <- length(grep(pattern = paste(keep[k], "_level", sep=""), colnames(X)))
       len<-length(keeps)
       for (nl in 1:nlevel)

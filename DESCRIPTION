@@ -24,6 +24,7 @@ Imports:
     nnet,
     neuralnet,
     caret,
+    splines,
     beepr
 License: GPL-2
 LazyData: true

@@ -27,7 +27,7 @@ plotVIRank=function(MUVRclassObject,
                        ncol=ncol(MUVRclassObject$inData$X))
 
 
-  colnames(matrix_count)<-names(MUVRclassObject$varTable)
+  colnames(matrix_count)<-names(MUVRclassObject$varTable)   ### the variables that are selected more times are in the beginning of the plot
 
   for(i in 1:length(MUVRclassObject$varRep)){
     for(j in 1:ncol(MUVRclassObject$inData$X)){
@@ -50,7 +50,9 @@ plotVIRank=function(MUVRclassObject,
             col=c("grey","red"),
             scale="none",
             labCol=F,
-            revC=F)
+            revC=F,
+            xlab = "All variables",
+            ylab = "nRep*nOuter")
     legend(x="topright",
            inset=c(-0.5,0.1),
            legend=c("Yes","No"),

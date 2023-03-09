@@ -27,7 +27,7 @@ plotStability=function(MUVRrdCVclassObject,
                        2,
                        3))
   ######### if rdCV
-  if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+  if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
   nVar=round(MUVRrdCVclassObject$nVar[nModel])
   if(missing(VAll)) {VAll=names(sort(MUVRrdCVclassObject$VIRank[,nModel])[1:nVar])}
 
@@ -47,7 +47,8 @@ plotStability=function(MUVRrdCVclassObject,
 
   for (i in 1:nRep) {
 
-    if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+    if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
+      nModel=1
     nVRep[i]=MUVRrdCVclassObject$nVarPerRep[[nModel]][i]
     ##number of nVar for each repetition in min model.It is the same length as nRep
 
@@ -72,7 +73,7 @@ plotStability=function(MUVRrdCVclassObject,
 
 
     if(DA) {         ############discuss the scenario of DA
-      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
       predsRep=MUVRrdCVclassObject$yPredPerRep[[nModel]][,,i,drop=F]
       } else{
         predsRep=MUVRrdCVclassObject$yPredPerRep[,,i,drop=F]
@@ -86,7 +87,7 @@ plotStability=function(MUVRrdCVclassObject,
 
       missRep[i]=sum(levels(Y)[apply(predsRep,1,which.max)]!=Y)
       ##a number for each repetition, which is miss classification numbers
-      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
       preds=MUVRrdCVclassObject$yPredPerRep[[nModel]][,,1:i]
       } else{
         preds=MUVRrdCVclassObject$yPredPerRep[,,1:i]
@@ -102,7 +103,7 @@ plotStability=function(MUVRrdCVclassObject,
 
     } else {
 
-      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
       predsRep=MUVRrdCVclassObject$yPredPerRep[[nModel]][,i,drop=F]
       } else{
         predsRep=MUVRrdCVclassObject$yPredPerRep[,i,drop=F]
@@ -114,7 +115,7 @@ plotStability=function(MUVRrdCVclassObject,
       PRESS=sum((Y-predsRep)^2)
       TSS=sum((Y-mean(Y))^2)
       q2Rep[i]=1-(PRESS/TSS)  ###one q2 for each repetition
-      if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+      if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
       preds=MUVRrdCVclassObject$yPredPerRep[[nModel]][,1:i,drop=F]
       }else{
         preds=MUVRrdCVclassObject$yPredPerRep[,1:i,drop=F]
@@ -135,7 +136,7 @@ plotStability=function(MUVRrdCVclassObject,
   }
 
 
-  if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+  if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
   VARep=VARep/length(VAll)    ####Originally, Each VARep[i] is a vector of variable names that is in VALL. Each repetition has a vector
   ##output is a percentage
   VA=VA/length(VAll)
@@ -153,7 +154,7 @@ plotStability=function(MUVRrdCVclassObject,
 ######################################################################################################
 ##takes a single numeric argument x and returns a numeric vector containing the smallest integers
 ##not less than the corresponding elements of x.
-  if(any(class(MUVRrdCVclassObject)=='rdCVObject')){nPlot=ifelse(ML,3,ifelse(regr,1,2))
+  if(any(class(MUVRrdCVclassObject)=='rdCVnet')){nPlot=ifelse(ML,3,ifelse(regr,1,2))
   par(mfrow=c(nPlot,1))
   par(mar=c(3,4,0,0)+.5)
   }else{
@@ -163,7 +164,7 @@ plotStability=function(MUVRrdCVclassObject,
   }
 ######################
 #Plot 1 Number of selected variables vs number of repetions
-  if(!any(class(MUVRrdCVclassObject)=='rdCVObject')){
+  if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
   plot(nVRep,                  ###each repetition
        ylim=c(0,nVarLim),
        type='l',

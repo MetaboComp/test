@@ -20,6 +20,9 @@
 #' @param astep alpha tuning: number of alphas to try from low to high
 #' @param alog alpha tuning: Whether to space tuning of alpha in logarithmic scale (TRUE; default) or normal/arithmetic scale (FALSE)
 #' @param keep A group of confounders that you want to manually set as non-zero
+## @param percent_quantile range from 0 to 0.5. When select_variables_by quantile, this value represent the first quantile.
+## @param percent_smoothcurve If select_variables_by smoothcurve, then it is robust
+## @param Var_option quantile or smoothcurve
 #' @param ...
 #'
 #' @return A MUVR object
@@ -42,6 +45,9 @@ rdCVnet <- function(X,   ## X should be a dataframe
                     modReturn=FALSE,
                     parallel=TRUE,
                     keep=NULL,
+                 #   percent_quantile=0.25,
+                #    percent_smoothcurve=0.05,
+                #    Var_option=c("quantile","smoothcurve"),
                     ...){
 
   library(glmnet)
@@ -78,7 +84,8 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
   # Number of samples and variables
   nSamp <- nrow(X)
-  nVar <- nVar0 <- ncol(X)
+  nVar_smoothcurve <-nVar_quantile <- nVar0<- ncol(X)
+
   # Sample identifiers
   if (missing(ID)) {
     cat('\nMissing ID -> Assume all unique (i.e. sample independence)')
@@ -239,7 +246,12 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
 
   #z=0
-
+ # if(percent_quantile<=0|percent_quantile>=0.5){
+#    stop("\npercent_quantile must be between 0 and 0.5")
+#  }
+#  if(percent_smoothcurve<=0|percent_smoothcurve>=0.5){
+#    stop("\npercent_smoothcurve must be between 0 and 0.5")
+#  }
   reps <- foreach(r=1:nRep,
                   .packages=packs,
                   .export=exports) %doVersion% {
@@ -554,7 +566,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   }
 
   # Allocate validation and parameter variables
-  alphaRep <- lambdaRep <- nonZeroRep <-
+  alphaRep <- lambdaRep <- nonZeroRep <-fitnessRep<-
     matrix(nrow=nRep,
            ncol=nOuter,
            dimnames=list(paste('repetition', 1:nRep, sep=''),
@@ -578,7 +590,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   if(DA) {
     varsClassRep <- list()
     nonZeroClassRep <- array(dim=c(nOuter,
-                                   length(levels(Y)),
+                                       length(levels(Y)),
                                    nRep),
                              dimnames=list(paste('outSeg', 1:nOuter,paste=''),
                                            levels(Y),
@@ -592,6 +604,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   ####################################
   # Aggregate results over predictions
   yPredSeg_listlist<-list()
+
   for (r in 1:nRep) {
     if (DA) {yPredRep[,,r] <- reps[[r]]$yPred
     }else {
@@ -620,8 +633,70 @@ rdCVnet <- function(X,   ## X should be a dataframe
     if (modReturn){
       outMods <- c(outMods,reps[[r]]$outModel)}
   }
+  #############################################################
+  if(DA){
+    miss_vector<-vector()
+    BER_vector<-vector()
+  }else{
+    RMSEP_vector<-vector()
+  }
+  for(z in 1:length(yPredSeg_listlist)){
 
 
+    if (DA) {
+      noNA<-rep(TRUE,nrow(yPredSeg_listlist[[z]]))
+      for(zz in 1:nrow(yPredSeg_listlist[[z]])){
+        if(is.na(yPredSeg_listlist[[z]][zz,1])){
+          noNA[zz]<-FALSE
+        }
+
+      }
+
+      actual_noNA_temp<-vector()
+      predicted_noNA_temp<-vector()
+      for(zz in 1:length(noNA)){
+        if(noNA[zz]==TRUE){actual_noNA_temp<-c(actual_noNA_temp,
+                                         as.character(dataY)[zz])
+        predicted_noNA_temp<-c(predicted_noNA_temp,
+                          colnames(yPredSeg_listlist[[z]])[which.max(yPredSeg_listlist[[z]][zz,])])
+
+        }
+      }
+      BER_vector<-c(BER_vector,getBER(actual_noNA_temp,
+                                      predicted_noNA_temp))
+      miss_vector<-c(miss_vector,
+                     sum(actual_noNA_temp==predicted_noNA_temp))
+    }else {
+      actual_temp<-Y
+      predicted_temp<-yPredSeg_listlist[[z]]
+      RMSEP_vector<-c(RMSEP_vector,
+                      get_rmsep(actual_temp, predicted_temp))
+
+    }
+
+  }
+
+  if(DA){
+    if(fitness=="MISS"){
+    fitnessRep<-matrix(BER_vector,
+                       nrow=nRep,ncol=nOuter,
+                       byrow=T)
+    }else{   ### in the scenario of BER and AUROC
+      fitnessRep<-matrix(BER_vector,
+                         nrow=nRep,ncol=nOuter,
+                         byrow=T)
+    }
+    colnames(fitnessRep)<-colnames(nonZeroRep)
+    rownames(fitnessRep)<-rownames(nonZeroRep)
+  }else{
+
+    fitnessRep<-matrix(RMSEP_vector,
+                       nrow=nRep,ncol=nOuter,
+                       byrow=T)
+    colnames(fitnessRep)<-colnames(nonZeroRep)
+    rownames(fitnessRep)<-rownames(nonZeroRep)
+  }
+  #############################################################
   # Average predictions
   if (DA) {
     yPred <- apply(yPredRep,
@@ -675,6 +750,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   modelReturn$lambdaRep <- lambdaRep
   modelReturn$coefRep <- coefRep
   modelReturn$nonZeroRep <- nonZeroRep
+  modelReturn$fitnessRep <- fitnessRep
   modelReturn$varRep <- varRep
   modelReturn$VAL$metric <- fitness
   modelReturn$VAL$VALRep <- VALRep
@@ -701,13 +777,45 @@ rdCVnet <- function(X,   ## X should be a dataframe
   }
   names(cum_varTable)<-names(rev(table(varTable)))
 
+################################################################################
+##########################################################################################
+### non zero repetition
 
-  minmidmax<-quantile(nonZeroRep, c(0.25, 0.5, 0.75))
+  #cat("please use the getVIRank function to see which one to use ")
 
+  ##
+  ##################################################################################################
+  ###################################################################################
+  ### by smooth curve
+  library(splines)
+  nonZeroRep_vector<-c(nonZeroRep)
+  fitnessRep_vector<-c(fitnessRep)
+  nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)
 
-  minlimit=floor( minmidmax[1])  ### take the floor value in case no value is selected
-  midlimit=floor( minmidmax[2])  ###
-  maxlimit=floor( minmidmax[3])
+  fit_temp<-loess(fitnessRep_vector~nonZeroRep_vector, span = 1,degree=2)
+  predict_temp<-predict(fit_temp,
+          newdata = data.frame(nonZeroRep_vector=nonZeroRep_vector_grid)
+  )
+  #fit_temp<-lm(fitnessRep_vector ~ bs(nonZeroRep_vector,
+  #                          df=3,  ### when intercept is false degree of freedom = df-degree  df must >=3,  df = length(knots) + degree
+  #                          degree=3))
+  #predict_temp<-predict(fit_temp,
+  #        newdata = list(nonZeroRep_vector=seq(min(nonZeroRep_vector),
+  #                                           max(nonZeroRep_vector),
+  #                                           1)))
+
+  percent_smoothcurve<-0.05
+  scaled_predict_temp<-(predict_temp-min(predict_temp))/abs(diff(range(predict_temp)))
+  maxIndex_smoothcurve <-
+    max(which(scaled_predict_temp <= percent_smoothcurve))
+  minIndex_smoothcurve <-
+    min(which(scaled_predict_temp <= percent_smoothcurve))
+  varMin_smoothcurve <- nonZeroRep_vector_grid[minIndex_smoothcurve]
+  varMax_smoothcurve <- nonZeroRep_vector_grid[maxIndex_smoothcurve]
+  varMid_smoothcurve <-
+    round(exp(mean(log(c(
+      nonZeroRep_vector_grid[minIndex_smoothcurve], nonZeroRep_vector_grid[maxIndex_smoothcurve]
+    ))))) # Geometric mean of min and max. This one has decimals
 
 
 
@@ -715,72 +823,169 @@ rdCVnet <- function(X,   ## X should be a dataframe
   for(s in 1:length(cum_varTable)){
     ## set safeguard argument in case there are 0 values
     if(s!=1){
-    if(minlimit<cum_varTable[s]){
-      minlimit_num<-as.numeric(names(cum_varTable)[1:s-1])
-      minlimit_num<-minlimit_num[!is.na(minlimit_num)]
-      break}
+      if(varMin_smoothcurve<cum_varTable[s]){
+        varMin_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s-1])
+        varMin_num_smoothcurve<-varMin_num_smoothcurve[!is.na(varMin_num_smoothcurve)]
+        break}
     }else{
-      if(minlimit<cum_varTable[s]){
-        minlimit_num<-as.numeric(names(cum_varTable)[1])
-        minlimit_num<-minlimit_num[!is.na(minlimit_num)]
+      if(varMin_smoothcurve<cum_varTable[s]){
+        varMin_num_smoothcurve<-as.numeric(names(cum_varTable)[1])
+        varMin_num_smoothcurve<-varMin_num_smoothcurve[!is.na(varMin_num_smoothcurve)]
         break}
     }
   }
 
-  ##min limit: take less
+  ##mid limit: take less
   for(s in 1:length(cum_varTable)){
     ## set safeguard argument in case there are 0 values
     if(s!=1){
-      if(midlimit<cum_varTable[s]){
-        midlimit_num<-as.numeric(names(cum_varTable)[1:s-1])
-        midlimit_num<-midlimit_num[!is.na(midlimit_num)]
+      if(varMid_smoothcurve<cum_varTable[s]){
+        varMid_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s-1])
+        varMid_num_smoothcurve<-varMid_num_smoothcurve[!is.na(varMid_num_smoothcurve)]
         break}
     }else{
-      if(midlimit<cum_varTable[s]){
-        midlimit_num<-as.numeric(names(cum_varTable)[1])
-        midlimit_num<-midlimit_num[!is.na(midlimit_num)]
+      if(varMid_smoothcurve<cum_varTable[s]){
+        varMid_num_smoothcurve<-as.numeric(names(cum_varTable)[1])
+        varMid_num_smoothcurve<-varMid_num_smoothcurve[!is.na(varMid_num_smoothcurve)]
         break}
     }
   }
 
-  ##min limit: take less
+  ##max limit: take less
   for(s in 1:length(cum_varTable)){
     ## set safeguard argument in case there are 0 values
     if(s!=1){
-      if(maxlimit<cum_varTable[s]){
-        maxlimit_num<-as.numeric(names(cum_varTable)[1:s-1])
-        maxlimit_num<-maxlimit_num[!is.na(maxlimit_num)]
+      if(varMax_smoothcurve<cum_varTable[s]){
+        varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s-1])
+        varMax_num_smoothcurve<-varMax_num_smoothcurve[!is.na(varMax_num_smoothcurve)]
         break}
     }else{
-      if(maxlimit<cum_varTable[s]){
-        maxlimit_num<-as.numeric(names(cum_varTable)[1])
-        maxlimit_num<-maxlimit_num[!is.na(maxlimit_num)]
+      if(varMax_smoothcurve<cum_varTable[s]){
+        varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1])
+        varMax_num_smoothcurve<-varMax_num_smoothcurve[!is.na(varMax_num_smoothcurve)]
         break}
     }
   }
 
-  minnames<-vector()
-  midnames<-vector()
-  maxnames<-vector()
+  minnames_smoothcurve<-vector()
+  midnames_smoothcurve<-vector()
+  maxnames_smoothcurve<-vector()
 
   for(s in 1:length(varTable)){
-    if(varTable[s]%in%minlimit_num){minnames<-c(minnames,names(varTable)[s])}
-    if(varTable[s]%in%midlimit_num){midnames<-c(midnames,names(varTable)[s])}
-    if(varTable[s]%in%maxlimit_num){maxnames<-c(maxnames,names(varTable)[s])}
+    if(varTable[s]%in%varMin_num_smoothcurve){
+      minnames_smoothcurve<-c(minnames_smoothcurve,names(varTable)[s])}
+    if(varTable[s]%in%varMid_num_smoothcurve){
+      midnames_smoothcurve<-c(midnames_smoothcurve,names(varTable)[s])}
+    if(varTable[s]%in%varMax_num_smoothcurve){
+      maxnames_smoothcurve<-c(maxnames_smoothcurve,names(varTable)[s])}
   }
 
-  nVar <- c(minlimit,midlimit,maxlimit)
-  Var<-list(min=minnames,
-            mid=midnames,
-            max=maxnames
+  nVar_smoothcurve<- c(varMin_smoothcurve,
+                       varMid_smoothcurve,
+                       varMax_smoothcurve)
+  Var_smoothcurve<-list(min=minnames_smoothcurve,
+                     mid=midnames_smoothcurve,
+                     max=maxnames_smoothcurve
+  )
+
+  names(nVar_smoothcurve)<-c("min","mid","max")
+
+#  modelReturn$Var_smoothcurve<- Var_smoothcurve
+#  modelReturn$nVar_smoothcurve<- nVar_smoothcurve
+
+
+  #####################################################################
+#### by quantile
+  percent_quantile<-0.125
+  minmidmax_quantile<-quantile(nonZeroRep,
+                               c(percent_quantile, 0.5, 1-percent_quantile))
+  minlimit_quantile=floor( minmidmax_quantile[1])  ### take the floor value in case no value is selected
+  midlimit_quantile=floor( minmidmax_quantile[2])  ###
+  maxlimit_quantile=floor( minmidmax_quantile[3])
+  ##min limit: take less
+  for(s in 1:length(cum_varTable)){
+    ## set safeguard argument in case there are 0 values
+    if(s!=1){
+    if(minlimit_quantile<cum_varTable[s]){
+      minlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s-1])
+      minlimit_num_quantile<-minlimit_num_quantile[!is.na(minlimit_num_quantile)]
+      break}
+    }else{
+      if(minlimit_quantile<cum_varTable[s]){
+        minlimit_num_quantile<-as.numeric(names(cum_varTable)[1])
+        minlimit_num_quantile<-minlimit_num_quantile[!is.na(minlimit_num_quantile)]
+        break}
+    }
+  }
+
+  ##min limit: take less
+  for(s in 1:length(cum_varTable)){
+    ## set safeguard argument in case there are 0 values
+    if(s!=1){
+      if(midlimit_quantile<cum_varTable[s]){
+        midlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s-1])
+        midlimit_num_quantile<-midlimit_num_quantile[!is.na(midlimit_num_quantile)]
+        break}
+    }else{
+      if(midlimit_quantile<cum_varTable[s]){
+        midlimit_num_quantile<-as.numeric(names(cum_varTable)[1])
+        midlimit_num_quantile<-midlimit_num_quantile[!is.na(midlimit_num_quantile)]
+        break}
+    }
+  }
+
+  ##min limit: take less
+  for(s in 1:length(cum_varTable)){
+    ## set safeguard argument in case there are 0 values
+    if(s!=1){
+      if(maxlimit_quantile<cum_varTable[s]){
+        maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s-1])
+        maxlimit_num_quantile<-maxlimit_num_quantile[!is.na(maxlimit_num_quantile)]
+        break}
+    }else{
+      if(maxlimit_quantile<cum_varTable[s]){
+        maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1])
+        maxlimit_num_quantile<-maxlimit_num_quantile[!is.na(maxlimit_num_quantile)]
+        break}
+    }
+  }
+
+  minnames_quantile<-vector()
+  midnames_quantile<-vector()
+  maxnames_quantile<-vector()
+
+  for(s in 1:length(varTable)){
+    if(varTable[s]%in%minlimit_num_quantile){
+      minnames_quantile<-c(minnames_quantile,names(varTable)[s])}
+    if(varTable[s]%in%midlimit_num_quantile){
+      midnames_quantile<-c(midnames_quantile,names(varTable)[s])}
+    if(varTable[s]%in%maxlimit_num_quantile){
+      maxnames_quantile<-c(maxnames_quantile,names(varTable)[s])}
+  }
+
+  nVar_quantile <- c(minlimit_quantile,midlimit_quantile,maxlimit_quantile)
+  Var_quantile<-list(min=minnames_quantile,
+            mid=midnames_quantile,
+            max=maxnames_quantile
             )
 
-  names(nVar)<-c("min","mid","max")
+  names(nVar_quantile)<-c("min","mid","max")
 
-  modelReturn$Var<- Var
-  modelReturn$nVar<- nVar
+#  modelReturn$Var_quantile<- Var_quantile
+#  modelReturn$nVar_quantile<- nVar_quantile
+
+#  if(missing(Var_option)){
+#    Var_option="quantile"
+#  }
+ # if(Var_option=="quantile"){
+#    modelReturn$Var<- Var_quantile
+#    modelReturn$nVar<- nVar_quantile
+#  }else{
+#    modelReturn$Var<- Var_smoothcurve
+#    modelReturn$nVar<- nVar_smoothcurve
+#  }
   #############################################################################
-
+####################################################################################
 
   if (DA) {
     modelReturn$varClassRep <- sapply(varsClassRep,
@@ -792,6 +997,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   modelReturn$yPredPerRep <- yPredRep
   modelReturn$inData=InData
 
+  modelReturn$cum_varTable<-cum_varTable
 #########################################################
   # Fit-predict model
   penaltyfactor<-rep(1,ncol(X))
