@@ -31,7 +31,7 @@ biplotPLS<-function(fit,                   #####A PLS fit (e.g. from MUVRclassOb
   cex<-par()$cex  ###A numerical value giving the amount by which plotting text and symbols should be magnified relative
                 ##to the default. This starts as 1 when a device is opened, and is reset when the layout is changed, e.g. by setting mfrow.
 
-  par(mar>-c(4,4,4,4)+.5)
+  par(mar=c(4,4,4,4)+.5)
 
   scores<-fit$variates$X[,comps]   ##scores for component 1 and 2
   loads<-fit$loadings$X[,comps]    ##loadings for component 1 and 2

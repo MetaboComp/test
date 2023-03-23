@@ -12,14 +12,14 @@
 rdCVnet_getVar<-function(rdCVnetObject,
                option=c("quantile", "smoothcurve"),
                span=1,   # c(0.5, 0.75, 1,1.25),
-               outlier=F,
+               outlier=T,
                percent_smoothcurve=0.05,
-               percent_quantile=0.125){
+               percent_quantile=0.25){
    if(percent_quantile<=0|percent_quantile>=0.5|!is.numeric(percent_quantile)){
       stop("\npercent_quantile must be between 0 and 0.5")
     }
-    if(percent_smoothcurve<=0|percent_smoothcurve>=0.5|!is.numeric(percent_smoothcurve)){
-      stop("\npercent_smoothcurve must be between 0 and 0.5")
+    if(percent_smoothcurve<=0|percent_smoothcurve>1|!is.numeric(percent_smoothcurve)){
+      stop("\npercent_smoothcurve must be between 0 and 1")
     }
   if(missing(option)){
     option="smoothcurve"
@@ -134,7 +134,7 @@ rdCVnet_getVar<-function(rdCVnetObject,
     fitnessRep_vector<-c(fitness)
     nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)
 
-    fit_temp<-loess(fitnessRep_vector~nonZeroRep_vector, span = 1,degree=2)
+    fit_temp<-loess(fitnessRep_vector~nonZeroRep_vector, span = span,degree=2)
     predict_temp<-predict(fit_temp,
                           newdata = data.frame(nonZeroRep_vector=nonZeroRep_vector_grid)
     )

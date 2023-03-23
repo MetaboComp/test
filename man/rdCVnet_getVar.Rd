@@ -8,9 +8,9 @@ rdCVnet_getVar(
   rdCVnetObject,
   option = c("quantile", "smoothcurve"),
   span = 1,
-  outlier = F,
+  outlier = T,
   percent_smoothcurve = 0.05,
-  percent_quantile = 0.125
+  percent_quantile = 0.25
 )
 }
 \arguments{

@@ -7,21 +7,29 @@
 #' @param cut Optional value to cut length of variable names to `cut` number of characters
 #' @param model Which model to choose ('min', 'mid' {default} or 'max')
 #' @param maptype for rdCvnet dot plot or heat map
+#' @param long_row_name_blank put more blank when the rownames is too long
 #' @return Barplot of variable rankings (lower is better)
 #' @export
 plotVIRank=function(MUVRclassObject,
                     n,
                     model='min',
                     cut,
-                    maptype="heatmap") {
+                    maptype=c("heatmap","dotplot"),
+                    long_row_name_blank=4) {
+
+  par(mar=c(4,4,4,4)+.5)
   if (!(class(MUVRclassObject)[1]=='MUVR')) {
     cat('\nWrong object class: Return NULL')
 
   }
-  if(missing(n)){n=ncol(MUVRclassObject$inData$X)}
+ # if(missing(n)){n=ncol(MUVRclassObject$inData$X)}
 
   if ((class(MUVRclassObject)[3]=='rdCVnet')) {
-
+    nModel=ifelse(model=='min',
+                  1,
+                  ifelse(model=='mid',2,3))
+    nFeat=round(MUVRclassObject$nVar[nModel])
+    if(missing(n)) {n=nFeat}
   matrix_count<-matrix(0,
                        nrow=length(MUVRclassObject$nonZeroRep),
                        ncol=ncol(MUVRclassObject$inData$X))
@@ -49,7 +57,8 @@ plotVIRank=function(MUVRclassObject,
             Rowv=NA,
             col=c("grey","red"),
             scale="none",
-            labCol=F,
+            labRow=rownames(matrix_count[,1:n]),
+            labCol=colnames(matrix_count[,1:n]),
             revC=F,
             xlab = "All variables",
             ylab = "nRep*nOuter")
@@ -100,7 +109,8 @@ plotVIRank=function(MUVRclassObject,
 ##############################################################################################################
   ## PLS or RF
   }else{
-
+    par(mar=c(4,long_row_name_blank ,2, 2),
+        xpd=TRUE)
   nModel=ifelse(model=='min',
                 1,
                 ifelse(model=='mid',2,3))
@@ -117,19 +127,23 @@ plotVIRank=function(MUVRclassObject,
 ########################################################################################################
 
   if(n>nFeat) {
-    VIRankRep=rbind(VIRankRep[1:nFeat,],
+  VIRankRep=rbind(
+             VIRankRep[1:nFeat,],
                     rep(NA,ncol(VIRankRep)),
                     VIRankRep[(nFeat+1):n,])
     col=rep(c('yellow','grey'),
             c(nFeat,(n-nFeat+1)))    ###repeat yellow nFeat times, repear grey n-nFeat+1 times
-  } else {col=NULL}
+  } else {col=NULL
+
+  }
   ####
   VIRankRep=VIRankRep[nrow(VIRankRep):1,]             ###reverse
   col=rev(col)                                          ###reverse the sequence of col
   boxplot(t(VIRankRep),                            ### row is rep,column is variable
           horizontal=T,                            ###	logical indicating if the boxplots should be horizontal;
           axes=F,                                  ### Do not add any axes
-          col=col)                                 ###when outside n it is grey, if inside it is yellow
+          col=col,
+          xlab="Variable Importance")                                 ###when outside n it is grey, if inside it is yellow
   axis(1)                                         ###manually add x axis
   labels=rownames(VIRankRep)                    ##add labels
 
@@ -149,3 +163,4 @@ plotVIRank=function(MUVRclassObject,
   }
 
   }
+

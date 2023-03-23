@@ -19,6 +19,7 @@ getVIRank=function(MUVRclassObject,model='mid') {
                        name=names(MUVRclassObject$varTable)[1:length(MUVRclassObject$Var[[nMod]])],
                        rank=VIRanks_vector[1:length(MUVRclassObject$Var[[nMod]])])
     VIRanks$name<-as.character(VIRanks$name)
+    rownames(VIRanks)<-VIRanks$name
 
   }else{
 

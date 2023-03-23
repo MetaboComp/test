@@ -656,7 +656,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
       predicted_noNA_temp<-vector()
       for(zz in 1:length(noNA)){
         if(noNA[zz]==TRUE){actual_noNA_temp<-c(actual_noNA_temp,
-                                         as.character(dataY)[zz])
+                                         as.character(Y)[zz])
         predicted_noNA_temp<-c(predicted_noNA_temp,
                           colnames(yPredSeg_listlist[[z]])[which.max(yPredSeg_listlist[[z]][zz,])])
 
