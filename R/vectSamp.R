@@ -14,7 +14,6 @@ vectSamp=function(vect,
   # sampLen is a vector of number of observations within sample
   # If sampLen is not specified it is automatically calculated
 
-  library(caret)
   if(length(vect)<n){
     fold_pre<-caret::createFolds(y=vect, k = length(vect))
     fold<-list()

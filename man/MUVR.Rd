@@ -15,7 +15,7 @@ MUVR(
   varRatio = 0.75,
   DA = FALSE,
   fitness = c("AUROC", "MISS", "BER", "RMSEP"),
-  method = c("PLS", " RF", "ANN", "SVM"),
+  method = c("PLS", " RF"),
   methParam,
   ML = FALSE,
   modReturn = FALSE,
