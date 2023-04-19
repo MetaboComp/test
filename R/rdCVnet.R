@@ -858,7 +858,12 @@ rdCVnet <- function(X,   ## X should be a dataframe
       if(varMax_smoothcurve<cum_varTable[s]){
         varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s-1])
         varMax_num_smoothcurve<-varMax_num_smoothcurve[!is.na(varMax_num_smoothcurve)]
-        break}
+        break
+        }else if(varMax_smoothcurve==cum_varTable[s]&s==length(cum_varTable)){
+        varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s])
+        varMax_num_smoothcurve<-varMax_num_smoothcurve[!is.na(varMax_num_smoothcurve)]
+        break
+      }
     }else{
       if(varMax_smoothcurve<cum_varTable[s]){
         varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1])
@@ -938,16 +943,23 @@ rdCVnet <- function(X,   ## X should be a dataframe
   for(s in 1:length(cum_varTable)){
     ## set safeguard argument in case there are 0 values
     if(s!=1){
-      if(maxlimit_quantile<=cum_varTable[s]){
+      if(maxlimit_quantile<cum_varTable[s]){
         maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s-1])
         maxlimit_num_quantile<-maxlimit_num_quantile[!is.na(maxlimit_num_quantile)]
-        break}
-    }else{
+        break
+        }else if(maxlimit_quantile==cum_varTable[s]&s==length(cum_varTable)){
+
+        maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s])
+        maxlimit_num_quantile<-maxlimit_num_quantile[!is.na(maxlimit_num_quantile)]
+        break
+        }
+    }else {
       if(maxlimit_quantile<cum_varTable[s]){
         maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1])
         maxlimit_num_quantile<-maxlimit_num_quantile[!is.na(maxlimit_num_quantile)]
         break}
     }
+
   }
 
   minnames_quantile<-vector()
