@@ -185,7 +185,7 @@ MUVR <- function(X,
   var <- numeric()   ##var is the vector of variable number in keeps
   cnt <- 0
 
-  if(exists("nkeeps")){
+  if(exists("nkeep")){
     if (nkeep > 0) {
       while (nVar > nkeep & nVar > 1) {
         cnt <- cnt + 1
@@ -1742,8 +1742,8 @@ MUVR <- function(X,
             mid=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,2])][1:modelReturn$nVar[2]],
             max=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,3])][1:modelReturn$nVar[3]])
   modelReturn$Var<-Var
-  library(beepr)
-  beep(3)
+
+#  beep(3)
   # Return final object
   return(modelReturn)
 }

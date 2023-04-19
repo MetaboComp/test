@@ -8,6 +8,7 @@
 #' @param model Which model to choose ('min', 'mid' {default} or 'max')
 #' @param maptype for rdCvnet dot plot or heat map
 #' @param long_row_name_blank put more blank when the rownames is too long
+#'
 #' @return Barplot of variable rankings (lower is better)
 #' @export
 plotVIRank=function(MUVRclassObject,
@@ -16,7 +17,6 @@ plotVIRank=function(MUVRclassObject,
                     cut,
                     maptype=c("heatmap","dotplot"),
                     long_row_name_blank=4) {
-
   par(mar=c(4,4,4,4)+.5)
   if (!(class(MUVRclassObject)[1]=='MUVR')) {
     cat('\nWrong object class: Return NULL')
@@ -33,7 +33,7 @@ plotVIRank=function(MUVRclassObject,
   matrix_count<-matrix(0,
                        nrow=length(MUVRclassObject$nonZeroRep),
                        ncol=ncol(MUVRclassObject$inData$X))
-
+  rownames(matrix_count)<-1:nrow(matrix_count)
 
   colnames(matrix_count)<-names(MUVRclassObject$varTable)   ### the variables that are selected more times are in the beginning of the plot
 
@@ -44,21 +44,68 @@ plotVIRank=function(MUVRclassObject,
       }
     }
   }
+  if(missing(maptype)){
+    maptype="heatmap"
+  }
   if(!maptype%in%c("heatmap","dotplot")){
     stop("maptype can only be heatmap or dotplot")
   }
   if(maptype=="heatmap"){
     ################################################################
     ##### par(mar=c(5, 4, 4, 8),xpd=TRUE)  ### This is to give some place to legend
-    par(mar=c(5, 4, 4, 8),
+    par(mar=c(long_row_name_blank, 4, 4, 8),
         xpd=TRUE)
+    matrix_count_t<-t(matrix_count)
+    matrix_count_t_sdnot0<-matrix(NA,nrow=nrow(matrix_count_t),0)
+    rownames( matrix_count_t_sdnot0)<-rownames(matrix_count_t)
+    matrix_count_t_sd0<-matrix(NA,nrow=nrow(matrix_count_t),0)
+    rownames( matrix_count_t_sd0)<-rownames(matrix_count_t)
+    matrix_count_t_sdnot0_colnames<-c()
+    matrix_count_t_sd0_colnames<-c()
+
+    for(i in 1:ncol(matrix_count_t)){
+      if(!length(table(matrix_count_t[,i]))==1){
+        matrix_count_t_sdnot0<-cbind(matrix_count_t_sdnot0,
+                                     matrix_count_t[,i])
+        matrix_count_t_sdnot0_colnames<-c( matrix_count_t_sdnot0_colnames,
+                                           colnames(matrix_count_t)[i])
+      }else{
+        matrix_count_t_sd0<-cbind(matrix_count_t_sd0,
+                                  matrix_count_t[,i])
+        matrix_count_t_sd0_colnames<-c( matrix_count_t_sd0_colnames,
+                                           colnames(matrix_count_t)[i])
+      }
+    }
+   colnames(matrix_count_t_sd0)<-matrix_count_t_sd0_colnames
+   colnames(matrix_count_t_sdnot0)<-matrix_count_t_sdnot0_colnames
+    clust<-hclust(as.dist(1-cor(matrix_count_t_sdnot0)))
+
+    #####################################################################################
+    ###############################################################
+    ### This is to use the clust
+    matrix_count<-t(cbind(matrix_count_t_sd0,matrix_count_t_sdnot0[,clust$order]))
+
+    ######################################################################################
+    #####################################################################################
+    ## This is to use the number of variables selected to order
+    number_of1<-c()
+    for(i in 1:nrow(matrix_count))
+    {number_of1<-c(number_of1,
+                   table(matrix_count[i,])["1"])
+
+    }
+    matrix_count_temp<-matrix_count[order(number_of1),]
+    matrix_count<- matrix_count_temp
+    #### add hierarchial clustering
     heatmap(matrix_count[,1:n],
             Colv=NA,
             Rowv=NA,
             col=c("grey","red"),
             scale="none",
-            labRow=rownames(matrix_count[,1:n]),
-            labCol=colnames(matrix_count[,1:n]),
+            labCol = NA,
+            labRow = NA,
+            #labRow=rownames(matrix_count[,1:n]),
+            #labCol=colnames(matrix_count[,1:n]),
             revC=F,
             xlab = "All variables",
             ylab = "nRep*nOuter")

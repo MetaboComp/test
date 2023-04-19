@@ -17,7 +17,8 @@ plotPerm(
   main = NULL,
   permutation_visual = "none",
   curve = F,
-  extend = 0.1
+  extend = 0.1,
+  multiple_p_shown = NULL
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ plotPerm(
 \item{curve}{if add curve or not base on the mid}
 
 \item{extend}{how many percenrtage of the orignical range do we start}
+
+\item{multiple_p_shown}{show many p values}
 }
 \value{
 Plot

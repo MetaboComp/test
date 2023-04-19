@@ -18,14 +18,12 @@ Imports:
     foreach,
     kernlab,
     klaR,
-    beepr,
     rminer,
     microbenchmark,
     nnet,
     neuralnet,
     caret,
-    splines,
-    beepr
+    splines
 License: GPL-2
 LazyData: true
 RoxygenNote: 7.2.3

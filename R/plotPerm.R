@@ -16,6 +16,7 @@
 #' @param pos Choice of position of p-value label (if default is not adequate)
 #' @param curve if add curve or not base on the mid
 #' @param extend how many percenrtage of the orignical range do we start
+#' @param multiple_p_shown show many p values
 #' @return Plot
 #' @export
 plotPerm=function(actual,
@@ -31,9 +32,14 @@ plotPerm=function(actual,
                   main=NULL,
                   permutation_visual="none",
                   curve=F,
-                  extend=0.1
+                  extend=0.1,
+                  multiple_p_shown=NULL
                   ) {
 
+  if(!is.null(multiple_p_shown)){
+    if(!any(multiple_p_shown%in%c('t','non',"smooth","ecdf","rank"))){
+    stop("This type can not be implemented")
+    }}
   if(!permutation_visual%in%c("mean","median","none")){stop("this type not supoorted")}
   if(!missing(type)){if(!any(type%in%c('t','non',"smooth","ecdf","rank"))){stop("This type can not be implemented")}}
   if(missing(type)) {type=='t'}
@@ -48,7 +54,7 @@ plotPerm=function(actual,
                     pos_rev<-ifelse(side=='smaller',2,4)}
   ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
   ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
-
+if(!length(multiple_p_shown)>=2){
   pP=pPerm(actual,
            distribution,
            side,
@@ -174,6 +180,144 @@ if(permutation_visual=="mean"){
   if(permutation_visual=="none"|missing(permutation_visual)){
 
   }
+}else {
+  #############################################################################################
+  ran<-range(c(actual,distribution))
+  from=ran[1]-diff(ran)*extend
+  to=ran[2]+diff(ran)*extend
+  if(missing(xlim)) {
+    xlim =c(from,to)
+  }
+  h=hist(distribution,
+         breaks,
+         xlim=xlim,
+         ylim=ylim,
+         axes=F,     ###remove both axes
+         xlab=xlab,
+         freq=FALSE,   ##### if FALSE, probability densities, component density, are plotted (so that the histogram has a total area of one).
+         main=main)
+
+  ppp<-list()
+  pP<-c()
+  for(i in 1:length(multiple_p_shown)){
+  ppp[[i]]=pPerm(actual,
+           distribution,
+           side,
+           type=multiple_p_shown[i],
+           extend=extend)     ####calculate p value
+  pP[i]<-ppp[[i]]$p
+  }
+
+
+
+    if("t"%in%multiple_p_shown&!"smooth"%in%multiple_p_shown){
+      #e = 1 * diff(range(distribution))
+      x_values <- seq(from, to, length = 1000)
+      y_values <- dt(x_values,df=length(distribution)-1)
+      lines(x_values, y_values, lwd = 2,col = "green")
+      legend('topright',
+             legend=c("t"),
+             lty=1,
+             cex =0.5,
+             trace = F,####line type
+             col="green",
+             bty='n')
+
+    }
+
+  h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
+
+    if("smooth"%in%multiple_p_shown&!"t"%in%multiple_p_shown){
+      lines(ppp[[which(multiple_p_shown=="smooth")]]$dens,lwd = 2, col = "red")
+      legend('topright',
+             legend=c("smooth"),
+             lty=1,
+             cex =0.5,
+             trace = F,####line type
+             col="red",
+             bty='n')
+    }
+  if("smooth"%in%multiple_p_shown&"t"%in%multiple_p_shown){
+    x_values <- seq(from, to, length = 1000)
+    y_values <- dt(x_values,df=length(distribution)-1)
+    lines(x_values, y_values, lwd = 2,col = "green")
+    lines(ppp[[which(multiple_p_shown=="smooth")]]$dens,lwd = 2, col = "red")
+    legend('topright',
+           legend=c("t","smooth"),
+           lty=1,
+           cex =0.5,
+           trace = F,####line type
+           col=c("green","red"),
+           bty='n')
+
+
+  }
+  axis(1,pos=0)   ###the coordinate at which the axis line is to be drawn: if not NA this overrides the value of line.
+  if(side=='smaller') {axis(2,pos=0,las=1)}   #### the style of axis labels. (0=parallel, 1=all horizontal, 2=all perpendicular to axis, 3=all vertical)
+  else {axis(2,
+             pos=h$breaks[1],las=1)}
+
+  lines(rep(actual,2),     ###x1,x2 for the line
+        c(0,h2))          ##y1 ,y2 forthe line
+
+
+
+  for(i in 1:length(ppp)){
+  if(!is.nan(ppp[[i]]$p)&is.numeric(ppp[[i]]$p)){
+    text(actual,    ###x position of the text
+         h2-i*0.1*h2,        ##y position of the text
+         pos=pos,
+         ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+         ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
+         labels=paste(multiple_p_shown[i],' p=',signif(ppp[[i]]$p,4),sep=''))
+
+  }
+    if(!is.nan(ppp[[i]]$p)&!is.numeric(ppp[[i]]$p)){
+    text(actual,    ###x position of the text
+         h2-i*0.1*h2,        ##y position of the text
+         pos=pos,
+         ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+         ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
+         labels=paste(multiple_p_shown[i]," p",ppp[[i]]$p,sep='')) ####what is the text
+      }
+  }
+  text(actual,    ###x position of the text
+       max(h$density)*0.003,        ##y position of the text
+       pos=3,
+       ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+       labels=paste0(signif(actual,4))
+  )
+
+  if(permutation_visual=="mean"){
+    text(median(distribution),    ###x position of the text
+         max(h$density)*0.003,        ##y position of the text
+         pos=3,
+         ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+         labels=paste0("mean=",
+                       signif(mean(distribution),4)
+         )
+    )
+  }
+
+  if(permutation_visual=="median"){
+    text(median(distribution),    ###x position of the text
+         max(h$density)*0.003,        ##y position of the text
+         pos=3,
+         ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
+         labels=paste0("median=",
+                       signif(median(distribution),4)
+         )
+    )
+  }
+
+  if(permutation_visual=="none"|missing(permutation_visual)){
+
+  }
+  ###################################################################
+
+
+}
+
 
 }
 

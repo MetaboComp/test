@@ -10,19 +10,18 @@ plotVAL=function(MUVRclassObject) {
   if(!is.null(MUVRclassObject$varTable)){
     if(names(MUVRclassObject$nVar)[1]=="Qmin"){
 
-
+      metric=MUVRclassObject$VAL$metric
     ###### for quantile
     dist<-as.matrix(MUVRclassObject$nonZeroRep)
     s<-hist(dist,
-         xlab="Number of variables",
+         xlab="Number of variables selected across nOuter*nRep loops",
          main=NULL,
          #ylim=c(0,5),
+         #ylab=metric,
         xlim=range(0,
                 max(MUVRclassObject$nonZeroRep)*1.1),
          breaks=nrow(dist)*ncol(dist)
          )
-
-
     for (i in 1:3) {                                  ####add vertical line
       abline(v=MUVRclassObject$nVar[i],
              lty=i,
@@ -45,15 +44,15 @@ plotVAL=function(MUVRclassObject) {
   #  text(MUVRclassObject$nVar_quantile[3],max(s$counts)*0.8, "max",  adj = c(0, -.1))
 
     }else if(names(MUVRclassObject$nVar)[1]=="min"){
-
+      metric=MUVRclassObject$VAL$metric
       span<-MUVRclassObject$span
     ### for smoothcurve
     nonZeroRep<-MUVRclassObject$nonZeroRep
     fitnessRep<-MUVRclassObject$fitnessRep
     plot(nonZeroRep,
          fitnessRep,
-         xlab="Number of variables selected",
-         ylab="fitness")
+         xlab="Number of variables selected across nOuter*nRep loops",
+         ylab=metric)
     nonZeroRep_vector<-c(nonZeroRep)
     fitnessRep_vector<-c(fitnessRep)
     nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)
