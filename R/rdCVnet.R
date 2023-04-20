@@ -1139,9 +1139,9 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
       confusion_matrix_list<-list()
       scoring_matrix_list<-list()
-      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass["min"]))
-      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass["mid"]))
-      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass["max"]))
+      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass))
+      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass))
+      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass))
       scoring_matrix_list$min<-confusion_matrix_list$min*weighing_matrix
       scoring_matrix_list$mid<-confusion_matrix_list$mid*weighing_matrix
       scoring_matrix_list$max<-confusion_matrix_list$max*weighing_matrix
