@@ -1085,24 +1085,17 @@ rdCVnet <- function(X,   ## X should be a dataframe
   yFit <- predict(fitPredict,
                   newx = X,
                   type='response')
+  # Calculate fit statistics
 
   if (!DA) {
     if(!missing(weighing_matrix)){warning("This is not classification. Weighing matrix is ignored")}
-    TSS <- sum((Y - mean(Y)) ^ 2)
-    RSSMin <- sum((Y - yFit) ^ 2)
-    RSSMid <- sum((Y - yFit) ^ 2)
-    RSSMax <- sum((Y - yFit) ^ 2)
-    PRESSMin <- sum((Y - yPred[, 1]) ^ 2)
-    PRESSMid <- sum((Y - yPred[, 2]) ^ 2)
-    PRESSMax <- sum((Y - yPred[, 3]) ^ 2)
-    R2 <- c(1 - (RSSMin / TSS),
-            1 - (RSSMid / TSS),
-            1 - (RSSMax / TSS))
-    Q2 <- c(1 - (PRESSMin / TSS),
-            1 - (PRESSMid / TSS),
-            1 - (PRESSMax / TSS))
-    names(R2) <- names(Q2) <- c('min', 'mid', 'max')
-    # Report
+    TSS <- sum((Y-mean(Y))^2)
+    RSS <- sum((Y-yFit)^2)
+    PRESS=sum((Y-yPred)^2)
+    R2=1-(RSS/TSS)
+    Q2=1-(PRESS/TSS)
+    modelReturn$fitMetric <- data.frame(R2,Q2)
+
     modelReturn$fitMetric <- list(R2 = R2,
                                   Q2 = Q2)
   } else {##This is where the weighting matrix that comes in
@@ -1161,15 +1154,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
 
 
-  # Calculate fit statistics
-  if (!DA) {      ## which means for both regression and multilevel
-    TSS <- sum((Y-mean(Y))^2)
-    RSS <- sum((Y-yFit)^2)
-    PRESS=sum((Y-yPred)^2)
-    R2=1-(RSS/TSS)
-    Q2=1-(PRESS/TSS)
-    modelReturn$fitMetric <- data.frame(R2,Q2)
-  }
+
 
   modelReturn$yPredSeg_list<-yPredSeg_listlist
   # Stop timer
