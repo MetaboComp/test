@@ -23,6 +23,8 @@ rdCVnet(
   modReturn = FALSE,
   parallel = TRUE,
   keep = NULL,
+  weigh_added = F,
+  weighing_matrix,
   ...
 )
 }
@@ -62,6 +64,10 @@ rdCVnet(
 \item{parallel}{Boolean for whether to perform `foreach` parallel processing (Requires a registered parallel backend; Defaults to `TRUE`)}
 
 \item{keep}{A group of confounders that you want to manually set as non-zero}
+
+\item{weigh_added}{weigh_added}
+
+\item{weighing_matrix}{weighing_matrix}
 
 \item{...}{}
 }

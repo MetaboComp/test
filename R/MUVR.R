@@ -1682,9 +1682,10 @@ MUVR <- function(X,
                                   Q2 = Q2)
   } else {##This is where the weighting matrix that comes in
     ###########################################################################################################
-    if(!missing(weighing_matrix))
-    {warning("Weighing matrix is added (overwrite weigh_added command)")
-      weigh_added=T}
+  #  if(!missing(weighing_matrix))
+  #  {warning("Weighing matrix is added (overwrite weigh_added command)")
+  #    weigh_added=T
+  #    }
 
     if(weigh_added==F){
       modelReturn$fitMetric <- list(CR = 1 - (miss / length(Y)))
@@ -1694,9 +1695,23 @@ MUVR <- function(X,
         warning("Missing weighing_matrix,weighing_matrix will be diagnoal")
         weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
       }
-      if(dim(weighing_matrix)!=c(length(levels(Y)),length(levels(Y)))){
+      if(dim(weighing_matrix)[1]!=length(levels(Y))){
         stop("The dimension of weighing_matrix is not correct")
       }
+      if(dim(weighing_matrix)[2]!=length(levels(Y))){
+        stop("The dimension of weighing_matrix is not correct")
+      }
+      for(i in 1:nrow(weighing_matrix)){
+        if(weighing_matrix[i,i]!=1){
+          stop("diagonal values must be 1")
+        }
+        for(j in 1:ncol(weighing_matrix)){
+          if(weighing_matrix[i,j]<0|weighing_matrix[i,j]>1){
+            stop("Values in the weighing matrix must between 0 and 1")
+          }
+        }
+      }
+
       confusion_matrix_list<-list()
       scoring_matrix_list<-list()
       confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass["min"]))
@@ -1705,12 +1720,12 @@ MUVR <- function(X,
       scoring_matrix_list$min<-confusion_matrix_list$min*weighing_matrix
       scoring_matrix_list$mid<-confusion_matrix_list$mid*weighing_matrix
       scoring_matrix_list$max<-confusion_matrix_list$max*weighing_matrix
-      miss_min<-sum(scoring_matrix_list$min)/length(Y)
-      miss_mid<-sum(scoring_matrix_list$mid)/length(Y)
-      miss_max<-sum(scoring_matrix_list$max)/length(Y)
-      miss_score<-c(miss_min,miss_mid,miss_max)
-      names(miss_score)<- c('min', 'mid', 'max')
-      modelReturn$fitMetric <-list(CR = 1 - (miss_score / length(Y)))
+      correct_min<-(sum(scoring_matrix_list$min))
+      correct_mid<-(sum(scoring_matrix_list$mid))
+      correct_max<-(sum(scoring_matrix_list$max))
+      correct_score<-c(correct_min,correct_mid,correct_max)
+      names(correct_score)<- c('min', 'mid', 'max')
+      modelReturn$fitMetric <-list(CR =  (correct_score / length(Y)))
 
 
 

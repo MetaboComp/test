@@ -65,7 +65,12 @@ rdCVnet_getVar<-function(rdCVnetObject,
         if(minlimit_quantile<cum_varTable[s]){
           minlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s-1])
           minlimit_num_quantile<-minlimit_num_quantile[!is.na(minlimit_num_quantile)]
-          break}
+          break
+        }else if(minlimit_quantile==cum_varTable[s]&s==length(cum_varTable)){
+          minlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s])
+          minlimit_num_quantile<-minlimit_num_quantile[!is.na(minlimit_num_quantile)]
+          break
+        }
       }else{
         if(minlimit_quantile<cum_varTable[s]){
           minlimit_num_quantile<-as.numeric(names(cum_varTable)[1])
@@ -81,7 +86,12 @@ rdCVnet_getVar<-function(rdCVnetObject,
         if(midlimit_quantile<cum_varTable[s]){
           midlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s-1])
           midlimit_num_quantile<-midlimit_num_quantile[!is.na(midlimit_num_quantile)]
-          break}
+          break
+        }else if(midlimit_quantile==cum_varTable[s]&s==length(cum_varTable)){
+          midlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s])
+          midlimit_num_quantile<-midlimit_num_quantile[!is.na(midlimit_num_quantile)]
+          break
+        }
       }else{
         if(midlimit_quantile<cum_varTable[s]){
           midlimit_num_quantile<-as.numeric(names(cum_varTable)[1])
@@ -97,7 +107,12 @@ rdCVnet_getVar<-function(rdCVnetObject,
         if(maxlimit_quantile<cum_varTable[s]){
           maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s-1])
           maxlimit_num_quantile<-maxlimit_num_quantile[!is.na(maxlimit_num_quantile)]
-          break}
+          break
+        }else if(maxlimit_quantile==cum_varTable[s]&s==length(cum_varTable)){
+          maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1:s])
+          maxlimit_num_quantile<-maxlimit_num_quantile[!is.na(maxlimit_num_quantile)]
+          break
+        }
       }else{
         if(maxlimit_quantile<cum_varTable[s]){
           maxlimit_num_quantile<-as.numeric(names(cum_varTable)[1])
@@ -168,7 +183,12 @@ rdCVnet_getVar<-function(rdCVnetObject,
         if(varMin_smoothcurve<cum_varTable[s]){
           varMin_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s-1])
           varMin_num_smoothcurve<-varMin_num_smoothcurve[!is.na(varMin_num_smoothcurve)]
-          break}
+          break
+        }else if(varMin_smoothcurve==cum_varTable[s]&s==length(cum_varTable)){
+          varMin_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s])
+          varMin_num_smoothcurve<-varMin_num_smoothcurve[!is.na(varMin_num_smoothcurve)]
+          break
+        }
       }else{
         if(varMin_smoothcurve<cum_varTable[s]){
           varMin_num_smoothcurve<-as.numeric(names(cum_varTable)[1])
@@ -184,7 +204,12 @@ rdCVnet_getVar<-function(rdCVnetObject,
         if(varMid_smoothcurve<cum_varTable[s]){
           varMid_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s-1])
           varMid_num_smoothcurve<-varMid_num_smoothcurve[!is.na(varMid_num_smoothcurve)]
-          break}
+          break
+        }else if(varMid_smoothcurve==cum_varTable[s]&s==length(cum_varTable)){
+          varMid_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s])
+          varMid_num_smoothcurve<-varMid_num_smoothcurve[!is.na(varMid_num_smoothcurve)]
+          break
+        }
       }else{
         if(varMid_smoothcurve<cum_varTable[s]){
           varMid_num_smoothcurve<-as.numeric(names(cum_varTable)[1])
@@ -200,7 +225,12 @@ rdCVnet_getVar<-function(rdCVnetObject,
         if(varMax_smoothcurve<cum_varTable[s]){
           varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s-1])
           varMax_num_smoothcurve<-varMax_num_smoothcurve[!is.na(varMax_num_smoothcurve)]
-          break}
+          break
+        }else if(varMax_smoothcurve==cum_varTable[s]&s==length(cum_varTable)){
+          varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1:s])
+          varMax_num_smoothcurve<-varMax_num_smoothcurve[!is.na(varMax_num_smoothcurve)]
+          break
+        }
       }else{
         if(varMax_smoothcurve<cum_varTable[s]){
           varMax_num_smoothcurve<-as.numeric(names(cum_varTable)[1])

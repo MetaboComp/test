@@ -20,6 +20,8 @@
 #' @param astep alpha tuning: number of alphas to try from low to high
 #' @param alog alpha tuning: Whether to space tuning of alpha in logarithmic scale (TRUE; default) or normal/arithmetic scale (FALSE)
 #' @param keep A group of confounders that you want to manually set as non-zero
+#' @param weigh_added weigh_added
+#' @param weighing_matrix weighing_matrix
 ## @param percent_quantile range from 0 to 0.5. When select_variables_by quantile, this value represent the first quantile.
 ## @param percent_smoothcurve If select_variables_by smoothcurve, then it is robust
 ## @param Var_option quantile or smoothcurve
@@ -45,6 +47,8 @@ rdCVnet <- function(X,   ## X should be a dataframe
                     modReturn=FALSE,
                     parallel=TRUE,
                     keep=NULL,
+                    weigh_added=F,
+                    weighing_matrix,
                  #   percent_quantile=0.25,
                 #    percent_smoothcurve=0.05,
                 #    Var_option=c("quantile","smoothcurve"),
@@ -1081,6 +1085,82 @@ rdCVnet <- function(X,   ## X should be a dataframe
   yFit <- predict(fitPredict,
                   newx = X,
                   type='response')
+
+  if (!DA) {
+    if(!missing(weighing_matrix)){warning("This is not classification. Weighing matrix is ignored")}
+    TSS <- sum((Y - mean(Y)) ^ 2)
+    RSSMin <- sum((Y - yFit) ^ 2)
+    RSSMid <- sum((Y - yFit) ^ 2)
+    RSSMax <- sum((Y - yFit) ^ 2)
+    PRESSMin <- sum((Y - yPred[, 1]) ^ 2)
+    PRESSMid <- sum((Y - yPred[, 2]) ^ 2)
+    PRESSMax <- sum((Y - yPred[, 3]) ^ 2)
+    R2 <- c(1 - (RSSMin / TSS),
+            1 - (RSSMid / TSS),
+            1 - (RSSMax / TSS))
+    Q2 <- c(1 - (PRESSMin / TSS),
+            1 - (PRESSMid / TSS),
+            1 - (PRESSMax / TSS))
+    names(R2) <- names(Q2) <- c('min', 'mid', 'max')
+    # Report
+    modelReturn$fitMetric <- list(R2 = R2,
+                                  Q2 = Q2)
+  } else {##This is where the weighting matrix that comes in
+    ###########################################################################################################
+    #  if(!missing(weighing_matrix))
+    #  {warning("Weighing matrix is added (overwrite weigh_added command)")
+    #    weigh_added=T
+    #    }
+
+    if(weigh_added==F){
+      modelReturn$fitMetric <- list(CR = 1 - (miss / length(Y)))
+    } else{
+
+      if(missing(weighing_matrix)){
+        warning("Missing weighing_matrix,weighing_matrix will be diagnoal")
+        weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
+      }
+      if(dim(weighing_matrix)[1]!=length(levels(Y))){
+        stop("The dimension of weighing_matrix is not correct")
+      }
+      if(dim(weighing_matrix)[2]!=length(levels(Y))){
+        stop("The dimension of weighing_matrix is not correct")
+      }
+      for(i in 1:nrow(weighing_matrix)){
+        if(weighing_matrix[i,i]!=1){
+          stop("diagonal values must be 1")
+        }
+        for(j in 1:ncol(weighing_matrix)){
+          if(weighing_matrix[i,j]<0|weighing_matrix[i,j]>1){
+            stop("Values in the weighing matrix must between 0 and 1")
+          }
+        }
+      }
+
+      confusion_matrix_list<-list()
+      scoring_matrix_list<-list()
+      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass["min"]))
+      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass["mid"]))
+      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass["max"]))
+      scoring_matrix_list$min<-confusion_matrix_list$min*weighing_matrix
+      scoring_matrix_list$mid<-confusion_matrix_list$mid*weighing_matrix
+      scoring_matrix_list$max<-confusion_matrix_list$max*weighing_matrix
+      correct_min<-(sum(scoring_matrix_list$min))
+      correct_mid<-(sum(scoring_matrix_list$mid))
+      correct_max<-(sum(scoring_matrix_list$max))
+      correct_score<-c(correct_min,correct_mid,correct_max)
+      names(correct_score)<- c('min', 'mid', 'max')
+      modelReturn$fitMetric <-list(CR =  (correct_score / length(Y)))
+
+
+
+    }
+    #################################################################################################################
+
+  }
+
+
+
   # Calculate fit statistics
   if (!DA) {      ## which means for both regression and multilevel
     TSS <- sum((Y-mean(Y))^2)
