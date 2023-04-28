@@ -11,7 +11,8 @@
 #' @param ntree See original function (`randomForest`). Passed from wrapper.
 #' @param method Choice of Random Forest implementation (randomForest, ranger or Rborist). Passed from wrapper.
 #' @param mtry See original function (`randomForest`). Passed from wrapper.
-#'
+#' @param weigh_added To add a weighing matrix when it is classfication
+#' @param weighing_matrix The matrix used for get a miss classfication score
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `virank` variable importance rankings
@@ -25,7 +26,9 @@ rfInner <- function(xTrain,
                     fitness,
                     ntree,
                     mtry,
-                    method) {
+                    method,
+                    weigh_added,
+                    weighing_matrix) {
   # Allocate return object
   returnIn <- list()
   if(missing(method)){method="randomForest"}
@@ -113,18 +116,68 @@ rfInner <- function(xTrain,
 #######################################################################################################################################
 
 
-  if (fitness == 'MISS') {
+  if (fitness == 'MISS'|fitness == 'wMISS') {
     # cat(' miss',count)
-    if (DA) returnIn$miss <- sum(yValInner != yVal)
+    if (DA) {
+      returnIn$miss <- sum(yValInner != yVal)
+      if(fitness == 'wMISS'){
+        returnIn$wmiss <- getMISS(actual = yVal,
+                                  predicted = yValInner,
+                                  weigh_added = weigh_added,
+                                  weighing_matrix = weighing_matrix)
+
+      }
+    }
+
      else {                                         ###ML
       yClassInner <- ifelse(yValInner > 0, 1, -1)   #####classification binary??????Why?????
       returnIn$miss <- sum(yClassInner != yVal)
+      if(fitness == 'wMISS'){
+        returnIn$wmiss <- getMISS(actual = yVal,
+                                  predicted = yValInner,
+                                  weigh_added = weigh_added,
+                                  weighing_matrix = weighing_matrix)
+
+      }
     }
   }
 
-  if (fitness == 'BER') {
+  if (fitness == 'BER'|fitness == 'wBER') {
     returnIn$ber <- getBER(actual = yVal,
                            predicted = yValInner)  ###getBER from MUVR
+
+    if(weigh_added==F){
+      weighing_matrix<-diag(1,length(levels(yVal)),length(levels(yVal)))
+    } else{
+
+      if(is.null(weighing_matrix)){
+     #   warning("Missing weighing_matrix,weighing_matrix will be diagnoal")
+        weighing_matrix<-diag(1,length(levels(yVal)),length(levels(yVal)))
+      }
+      if(dim(weighing_matrix)[1]!=length(levels(yVal))){
+        stop("The dimension of weighing_matrix is not correct")
+      }
+      if(dim(weighing_matrix)[2]!=length(levels(yVal))){
+        stop("The dimension of weighing_matrix is not correct")
+      }
+      for(i in 1:nrow(weighing_matrix)){
+        if(weighing_matrix[i,i]!=1){
+          stop("diagonal values must be 1")
+        }
+        for(j in 1:ncol(weighing_matrix)){
+          if(weighing_matrix[i,j]<0|weighing_matrix[i,j]>1){
+            stop("Values in the weighing matrix must between 0 and 1")
+          }
+        }
+      }
+    }
+
+  }
+  if(fitness=='wBER'){
+    returnIn$wber <- getBER(actual = yVal,
+                           predicted = yValInner,
+                           weigh_added=weigh_added,
+                           weighing_matrix=weighing_matrix)  ###getBER from MUVR
   }
   ##Balance error rate
 

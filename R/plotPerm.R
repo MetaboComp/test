@@ -17,6 +17,7 @@
 #' @param curve if add curve or not base on the mid
 #' @param extend how many percenrtage of the orignical range do we start
 #' @param multiple_p_shown show many p values
+#' @param round_number How many digits does it keep
 #' @return Plot
 #' @export
 plotPerm=function(actual,
@@ -33,7 +34,8 @@ plotPerm=function(actual,
                   permutation_visual="none",
                   curve=F,
                   extend=0.1,
-                  multiple_p_shown=NULL
+                  multiple_p_shown=NULL,
+                  round_number=4
                   ) {
 
   if(!is.null(multiple_p_shown)){
@@ -70,14 +72,17 @@ if(!length(multiple_p_shown)>=2){
   if(missing(xlim)) {
     xlim =c(from,to)
   }
-  (h=hist(distribution,
+
+
+    h=hist(distribution,
           breaks,
           xlim=xlim,
-          ylim=ylim,
+          #ylim=ylim,
           axes=F,     ###remove both axes
           xlab=xlab,
+          yaxt='n',
           freq=FALSE,   ##### if FALSE, probability densities, component density, are plotted (so that the histogram has a total area of one).
-          main=main))
+          main=main)
 
   h2=max(h$density)*.75  ######as estimated density values, This is to decide how high the vertical line will be drawn
   if(curve==T){
@@ -111,8 +116,10 @@ if(!length(multiple_p_shown)>=2){
   }
 
   axis(1,pos=0)   ###the coordinate at which the axis line is to be drawn: if not NA this overrides the value of line.
-  if(side=='smaller') axis(2,pos=0,las=1)   #### the style of axis labels. (0=parallel, 1=all horizontal, 2=all perpendicular to axis, 3=all vertical)
-  else axis(2,pos=h$breaks[1],las=1)
+
+  ####comment out if you don't want y axis
+ # if(side=='smaller') {axis(2,pos=0,las=1)   #### the style of axis labels. (0=parallel, 1=all horizontal, 2=all perpendicular to axis, 3=all vertical)
+#  }else {axis(2,pos=h$breaks[1],las=1)}
 
   lines(rep(actual,2),     ###x1,x2 for the line
         c(0,h2))          ##y1 ,y2 forthe line
@@ -124,7 +131,9 @@ if(!length(multiple_p_shown)>=2){
        pos=pos,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
        ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
-       labels=paste('p=',signif(pP$p,4),sep='')) ####what is the text
+       labels=paste('p=',
+                    signif(pP$p,round_number),
+                    sep='')) ####what is the text
        ##For signif the recognized values of digits are 1...22, and non-missing values are rounded to the nearest integer in that range.
        ##Complex numbers are rounded to retain the specified number of digits in the larger of the components.
        ##Each element of the vector is rounded individually, unlike printing.
@@ -153,7 +162,7 @@ if(!length(multiple_p_shown)>=2){
        max(h$density)*0.003,        ##y position of the text
        pos=3,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
-       labels=paste0(signif(actual,4))
+       labels=paste0(signif(actual,round_number))
   )
 if(permutation_visual=="mean"){
   text(median(distribution),    ###x position of the text
@@ -161,7 +170,7 @@ if(permutation_visual=="mean"){
        pos=3,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
        labels=paste0("mean=",
-                    signif(mean(distribution),4)
+                    signif(mean(distribution),round_number)
                     )
   )
 }
@@ -172,7 +181,7 @@ if(permutation_visual=="mean"){
          pos=3,
          ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
          labels=paste0("median=",
-                       signif(median(distribution),4)
+                       signif(median(distribution),round_number)
          )
     )
   }
@@ -191,10 +200,11 @@ if(permutation_visual=="mean"){
   h=hist(distribution,
          breaks,
          xlim=xlim,
-         ylim=ylim,
+        # ylim=ylim,
          axes=F,     ###remove both axes
          xlab=xlab,
-         freq=FALSE,   ##### if FALSE, probability densities, component density, are plotted (so that the histogram has a total area of one).
+         yaxt='n',
+        freq=FALSE,   ##### if FALSE, probability densities, component density, are plotted (so that the histogram has a total area of one).
          main=main)
 
   ppp<-list()
@@ -253,9 +263,11 @@ if(permutation_visual=="mean"){
 
   }
   axis(1,pos=0)   ###the coordinate at which the axis line is to be drawn: if not NA this overrides the value of line.
-  if(side=='smaller') {axis(2,pos=0,las=1)}   #### the style of axis labels. (0=parallel, 1=all horizontal, 2=all perpendicular to axis, 3=all vertical)
-  else {axis(2,
-             pos=h$breaks[1],las=1)}
+
+  ####comment out if you do not eant axis
+  #  if(side=='smaller') {axis(2,pos=0,las=1)}   #### the style of axis labels. (0=parallel, 1=all horizontal, 2=all perpendicular to axis, 3=all vertical)
+#  else {axis(2,
+   #          pos=h$breaks[1],las=1)}
 
   lines(rep(actual,2),     ###x1,x2 for the line
         c(0,h2))          ##y1 ,y2 forthe line
@@ -269,7 +281,10 @@ if(permutation_visual=="mean"){
          pos=pos,
          ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
          ##respectively indicate positions below, to the left of, above and to the right of the specified (x,y) coordinates.
-         labels=paste(multiple_p_shown[i],' p=',signif(ppp[[i]]$p,4),sep=''))
+         labels=paste(multiple_p_shown[i],
+                      ' p=',
+                      signif(ppp[[i]]$p,round_number),
+                      sep=''))
 
   }
     if(!is.nan(ppp[[i]]$p)&!is.numeric(ppp[[i]]$p)){
@@ -285,7 +300,7 @@ if(permutation_visual=="mean"){
        max(h$density)*0.003,        ##y position of the text
        pos=3,
        ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
-       labels=paste0(signif(actual,4))
+       labels=paste0(signif(actual,round_number))
   )
 
   if(permutation_visual=="mean"){
@@ -294,7 +309,7 @@ if(permutation_visual=="mean"){
          pos=3,
          ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
          labels=paste0("mean=",
-                       signif(mean(distribution),4)
+                       signif(mean(distribution),round_number)
          )
     )
   }
@@ -305,7 +320,7 @@ if(permutation_visual=="mean"){
          pos=3,
          ##a position specifier for the text. If specified this overrides any adj value given. Values of 1, 2, 3 and 4,
          labels=paste0("median=",
-                       signif(median(distribution),4)
+                       signif(median(distribution),round_number)
          )
     )
   }

@@ -41,18 +41,22 @@ rdCVnet <- function(X,   ## X should be a dataframe
                     nInner,
                     NZV=TRUE,
                     DA=FALSE,
-                    fitness=c('AUROC', 'MISS', 'BER', 'RMSEP'),
+                    fitness=c('AUROC', 'MISS', 'BER', 'RMSEP','wBER','wMISS'),
                     methParam,
                     ML=FALSE,
                     modReturn=FALSE,
                     parallel=TRUE,
                     keep=NULL,
                     weigh_added=F,
-                    weighing_matrix,
+                    weighing_matrix=NULL,
                  #   percent_quantile=0.25,
                 #    percent_smoothcurve=0.05,
                 #    Var_option=c("quantile","smoothcurve"),
                     ...){
+  if(is.null(weighing_matrix)&DA==T){
+
+    weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
+  }
 
   library(glmnet)
 
@@ -640,7 +644,10 @@ rdCVnet <- function(X,   ## X should be a dataframe
   #############################################################
   if(DA){
     miss_vector<-vector()
+    wmiss_vector<-vector()
     BER_vector<-vector()
+    wBER_vector<-vector()
+
   }else{
     RMSEP_vector<-vector()
   }
@@ -661,15 +668,29 @@ rdCVnet <- function(X,   ## X should be a dataframe
       for(zz in 1:length(noNA)){
         if(noNA[zz]==TRUE){actual_noNA_temp<-c(actual_noNA_temp,
                                          as.character(Y)[zz])
+
         predicted_noNA_temp<-c(predicted_noNA_temp,
                           colnames(yPredSeg_listlist[[z]])[which.max(yPredSeg_listlist[[z]][zz,])])
 
         }
+
       }
+      actual_noNA_temp<-factor(actual_noNA_temp,levels=levels(Y))
       BER_vector<-c(BER_vector,getBER(actual_noNA_temp,
                                       predicted_noNA_temp))
       miss_vector<-c(miss_vector,
                      sum(actual_noNA_temp==predicted_noNA_temp))
+      if(fitness=='wBER'|fitness=='wMISS'){
+        wBER_vector<-c(wBER_vector,getBER(actual_noNA_temp,
+                                        predicted_noNA_temp,
+                                        weigh_added=weigh_added,
+                                        weighing_matrix = weighing_matrix))
+        wmiss_vector<-c(wmiss_vector,getBER(actual_noNA_temp,
+                                          predicted_noNA_temp,
+                                          weigh_added=weigh_added,
+                                          weighing_matrix = weighing_matrix))
+      }
+
     }else {
       actual_temp<-Y
       predicted_temp<-yPredSeg_listlist[[z]]
@@ -682,11 +703,19 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
   if(DA){
     if(fitness=="MISS"){
-    fitnessRep<-matrix(BER_vector,
+    fitnessRep<-matrix(miss_vector,
                        nrow=nRep,ncol=nOuter,
                        byrow=T)
-    }else{   ### in the scenario of BER and AUROC
+    }else if (fitness=="wMISS"){   ### in the scenario of BER and AUROC
+      fitnessRep<-matrix(wmiss_vector,
+                         nrow=nRep,ncol=nOuter,
+                         byrow=T)
+    }else if (fitness=="BER"){   ### in the scenario of BER and AUROC
       fitnessRep<-matrix(BER_vector,
+                         nrow=nRep,ncol=nOuter,
+                         byrow=T)
+    }else if (fitness=="wBER"){   ### in the scenario of BER and AUROC
+      fitnessRep<-matrix(wBER_vector,
                          nrow=nRep,ncol=nOuter,
                          byrow=T)
     }
@@ -720,10 +749,26 @@ rdCVnet <- function(X,   ## X should be a dataframe
     yClass <- apply(yPred,
                     1,
                     function(x) {levels(Y)[which.max(x)]})
+
     miss <- sum(yClass!=Y)
     auc <- numeric(length(levels(Y)))
+   # if(fitness=='BER'|fitness=='wBER'){
     ber<-getBER(actual=Y,
                   predicted=yClass)
+    modelReturn$ber<-ber
+  #  }
+    if(fitness=='wBER'|fitness=='wMISS'){
+      wber<-getBER(actual=Y,
+                   predicted=yClass,
+                   weigh_added=weigh_added,
+                   weighing_matrix=weighing_matrix)
+      modelReturn$wber<-wber
+      wmiss<-getMISS(actual=Y,
+                     predicted=yClass,
+                     weigh_added=weigh_added,
+                     weighing_matrix=weighing_matrix)
+      modelReturn$wmiss<-wmiss
+    }
     names(auc) <- levels(Y)
     for (cl in 1:length(levels(Y))) {auc[cl] <- roc(Y==(levels(Y)[cl]),
                                                     yPred[,cl],
@@ -731,15 +776,28 @@ rdCVnet <- function(X,   ## X should be a dataframe
     # # Report
     modelReturn$yClass <- yClass
     modelReturn$miss <- miss
-    modelReturn$ber<-ber
+
     modelReturn$auc <- auc
   } else if (ML) {
     yClass <- ifelse(yPred>0,1,-1)
     modelReturn$yClass <- yClass
     modelReturn$miss <- sum(yClass!=Y)
     modelReturn$auc <- roc(Y,yPred, quiet=TRUE)$auc
-    modelReturn$ber<-getBER(actual=Y,
-                            predicted= yClass )
+   # if(fitness=='BER'|fitness=='wBER'){
+      ber<-getBER(actual=Y,
+                  predicted=yClass)
+      modelReturn$ber<-ber
+    #}
+    if(fitness=='wBER'|fitness=='wMISS'){
+    modelReturn$wber<-getBER(actual=Y,
+                            predicted= yClass,
+                            weigh_added=weigh_added,
+                            weighing_matrix=weighing_matrix)
+    modelReturn$wmiss<-getMISS(actual=Y,
+                   predicted=yClass,
+                   weigh_added=weigh_added,
+                   weighing_matrix=weighing_matrix)
+    }
     names(modelReturn$yClass)=paste(1:nSamp,
                                     ID,
                                     sep='_ID')
@@ -1130,21 +1188,12 @@ rdCVnet <- function(X,   ## X should be a dataframe
         }
       }
 
-      confusion_matrix_list<-list()
-      scoring_matrix_list<-list()
-      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass))
-      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass))
-      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass))
-      scoring_matrix_list$min<-confusion_matrix_list$min*weighing_matrix
-      scoring_matrix_list$mid<-confusion_matrix_list$mid*weighing_matrix
-      scoring_matrix_list$max<-confusion_matrix_list$max*weighing_matrix
-      correct_min<-(sum(scoring_matrix_list$min))
-      correct_mid<-(sum(scoring_matrix_list$mid))
-      correct_max<-(sum(scoring_matrix_list$max))
-      correct_score<-c(correct_min,correct_mid,correct_max)
-      names(correct_score)<- c('min', 'mid', 'max')
-      modelReturn$fitMetric <-list(CR =  (correct_score / length(Y)))
 
+      confusion_matrix<-table(actual= Y, predicted=t(factor(modelReturn$yClass,levels=levels(Y))))
+     scoring_matrix<-confusion_matrix*weighing_matrix
+      correct_score<-sum(scoring_matrix)
+      modelReturn$fitMetric <-list(wCR =  (correct_score / length(Y)))
+    modelReturn$fitMetric$CR = 1 - (miss / length(Y))
 
 
     }

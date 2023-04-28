@@ -40,7 +40,7 @@ MUVR <- function(X,
                  nInner,
                  varRatio = 0.75,
                  DA = FALSE,
-                 fitness = c('AUROC', 'MISS', 'BER', 'RMSEP'),
+                 fitness = c('AUROC', 'MISS', 'BER', 'RMSEP','wBER','wMISS'),
                  method = c('PLS', ' RF',"ANN","SVM"),
                  methParam,
                  ML = FALSE,
@@ -48,9 +48,13 @@ MUVR <- function(X,
                  logg = FALSE,
                  parallel = TRUE,
                  weigh_added = FALSE,
-                 weighing_matrix,
+                 weighing_matrix=NULL,
                  keep,
                  ...) {
+  if(is.null(weighing_matrix)&DA==T){
+
+    weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
+  }
   library(kernlab)
   library(e1071)
   # Start timer
@@ -650,7 +654,9 @@ MUVR <- function(X,
                                                     DA,
                                                     fitness,
                                                     comp,
-                                                    scale = scale)
+                                                    scale = scale,
+                                                    weigh_added=weigh_added,
+                                                    weighing_matrix=weighing_matrix)
                             nCompIn[j, count] <- inMod$nComp
                           } else if (method == 'RF') {
                             inMod <- rfInner(
@@ -662,7 +668,9 @@ MUVR <- function(X,
                               fitness,
                               mtry = mtryIn,
                               ntree = methParam$ntreeIn,
-                              method = methParam$rfMethod
+                              method = methParam$rfMethod,
+                              weigh_added=weigh_added,
+                              weighing_matrix=weighing_matrix
                             )
                           } else if(method=="ANN"){
                             inMod<-annInner(xTrain,
@@ -695,8 +703,12 @@ MUVR <- function(X,
                           # Store fitness metric
                           if (fitness == 'MISS') {
                             missIn[j, count] <- inMod$miss
+                          } else if (fitness == 'wMISS') {
+                            missIn[j, count] <- inMod$wmiss
                           } else if (fitness == 'BER') {
                             berIn[j, count] <- inMod$ber
+                          } else if (fitness == 'wBER') {
+                            berIn[j, count] <- inMod$wber
                           } else if (fitness == 'AUROC') {
                             aucIn[j, count] <- inMod$auc
                           } else {
@@ -738,9 +750,9 @@ MUVR <- function(X,
                       if (fitness == 'AUROC') {
                         fitRank <- colMeans(-aucIn)
                         VALRep[i,] <- colMeans(aucIn)
-                      } else if (fitness == 'MISS') {
+                      } else if (fitness == 'MISS'|fitness == 'wMISS') {
                         fitRank <- VALRep[i,] <- colSums(missIn)
-                      } else if (fitness == 'BER') {
+                      } else if (fitness == 'BER'|fitness == 'wBER') {
                         fitRank <- VALRep[i,] <- colMeans(berIn)
                       } else {
                         fitRank <- colMeans(rmsepIn)
@@ -1298,7 +1310,8 @@ MUVR <- function(X,
       berPred <-
         factor(apply(yPred[[mo]], 1, function(x)
           levels(Y)[which.max(x)]), levels = levels(Y))
-      ber[mo] <- getBER(actual = Y, predicted = berPred)
+      ber[mo] <- getBER(actual = Y,
+                        predicted = berPred)
       yClass[, mo] <- berPred
     }
     names(ber) <- colnames(yClass) <- c('min', 'mid', 'max')
@@ -1310,6 +1323,45 @@ MUVR <- function(X,
     modelReturn$miss <- miss
     modelReturn$auc <- auc
     modelReturn$ber <- ber
+
+
+    if(weigh_added==T){
+
+      wmiss <- numeric(3)
+      yClass <- data.frame(Y)
+      for (mo in 1:3) {
+        # mo for model
+        classPred <-
+          factor(apply(yPred[[mo]], 1, function(x)
+            levels(Y)[which.max(x)]), levels = levels(Y))
+        wmiss[mo] <-getMISS(actual=Y,
+                            predicted = classPred,
+                            weigh_added = weigh_added,
+                            weighing_matrix = weighing_matrix)
+        yClass[, mo] <- classPred
+      }
+      names(wmiss) <- colnames(yClass) <- c('min', 'mid', 'max')
+      rownames(yClass) <- paste(1:nSamp, ID, sep = '_ID')
+
+      modelReturn$wmiss <- wmiss
+
+      wber <- numeric(3)
+      yClass <- data.frame(Y)
+      for (mo in 1:3) {
+        # mo for model
+        wberPred <-
+          factor(apply(yPred[[mo]], 1, function(x)
+            levels(Y)[which.max(x)]), levels = levels(Y))
+        wber[mo] <- getBER(actual = Y,
+                          predicted = wberPred,
+                          weigh_added=weigh_added,
+                          weighing_matrix=weighing_matrix)
+        yClass[, mo] <- wberPred
+      }
+      names(wber) <- colnames(yClass) <- c('min', 'mid', 'max')
+      rownames(yClass) <- paste(1:nSamp, ID, sep = '_ID')
+    modelReturn$wber <- wber
+    }
   }
 
 
@@ -1328,11 +1380,31 @@ MUVR <- function(X,
       apply(modelReturn$yClass, 2, function(x) {
         getBER(actual = Y, predicted = x)
       })                           ####newly added
+    if(weigh_added==T){
+      modelReturn$wmiss <-
+        apply(modelReturn$yClass, 2, function(x) {
+          getMISS(actual = Y, predicted = x,
+                 weigh_added=weigh_added,
+                 weighing_matrix=weighing_matrix)
+        })
+
+      modelReturn$wber <-
+        apply(modelReturn$yClass, 2, function(x) {
+          getBER(actual = Y, predicted = x,
+                 weigh_added=weigh_added,
+                 weighing_matrix=weighing_matrix)
+        })
+
+    }
     #####################################################################################################################
     colnames(modelReturn$yClass) <-
       names(modelReturn$miss) <-
       names(modelReturn$auc) <-
       names(modelReturn$ber) <- c('min', 'mid', 'max')
+    if(weigh_added==T){
+      names(modelReturn$wber) <- c('min', 'mid', 'max')
+      names(modelReturn$wmiss) <- c('min', 'mid', 'max')
+    }
     rownames(modelReturn$yClass) <- paste(1:nSamp, ID, sep = '_ID')
   }
 
@@ -1662,7 +1734,7 @@ MUVR <- function(X,
 
   # Calculate fit statistics
   if (!DA) {
-    if(!missing(weighing_matrix)){warning("This is not classification. Weighing matrix is ignored")}
+    if(!is.null(weighing_matrix)){warning("This is not classification. Weighing matrix is ignored")}
     TSS <- sum((Y - mean(Y)) ^ 2)
     RSSMin <- sum((Y - yFitMin) ^ 2)
     RSSMid <- sum((Y - yFitMid) ^ 2)
@@ -1691,7 +1763,7 @@ MUVR <- function(X,
       modelReturn$fitMetric <- list(CR = 1 - (miss / length(Y)))
     } else{
 
-      if(missing(weighing_matrix)){
+      if(is.null(weighing_matrix)){
         warning("Missing weighing_matrix,weighing_matrix will be diagnoal")
         weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
       }
@@ -1714,9 +1786,9 @@ MUVR <- function(X,
 
       confusion_matrix_list<-list()
       scoring_matrix_list<-list()
-      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass["min"]))
-      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass["mid"]))
-      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass["max"]))
+      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass[,"min"]))
+      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass[,"mid"]))
+      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass[,"max"]))
       scoring_matrix_list$min<-confusion_matrix_list$min*weighing_matrix
       scoring_matrix_list$mid<-confusion_matrix_list$mid*weighing_matrix
       scoring_matrix_list$max<-confusion_matrix_list$max*weighing_matrix
@@ -1725,10 +1797,8 @@ MUVR <- function(X,
       correct_max<-(sum(scoring_matrix_list$max))
       correct_score<-c(correct_min,correct_mid,correct_max)
       names(correct_score)<- c('min', 'mid', 'max')
-      modelReturn$fitMetric <-list(CR =  (correct_score / length(Y)))
-
-
-
+      modelReturn$fitMetric <-list(wCR =  (correct_score / length(Y)))
+      modelReturn$fitMetric$CR <-  1 - (miss / length(Y))
     }
     #################################################################################################################
 

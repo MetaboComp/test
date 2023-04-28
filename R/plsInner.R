@@ -10,7 +10,8 @@
 #' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
 #' @param comp Max number of components to try
 #' @param scale Whether or not to scale inData (X)
-#'
+#' @param weigh_added To add a weighing matrix when it is classfication
+#' @param weighing_matrix The matrix used for get a miss classfication score
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `nComp` Optimised number of components within range (1:comp)
@@ -24,21 +25,23 @@ plsInner=function(xTrain,
                   DA,
                   fitness,
                   comp=5,
-                  scale=TRUE) {
+                  scale=TRUE,
+                  weigh_added,
+                  weighing_matrix) {
   cond=TRUE
   while(cond) {
     yValInner=tryCatch(
       {  ###These functions provide a mechanism for handling unusual conditions, including errors and warnings.
-      if (DA) plsModIn=MUVR::plsda(xTrain,
+      if (DA) {plsModIn=MUVR::plsda(xTrain,
                                    yTrain,
                                    ncomp=comp,
                                    near.zero.var=TRUE,
-                                   scale=scale)
-      else plsModIn=MUVR::pls(xTrain,
+                                   scale=scale)}
+      else {plsModIn=MUVR::pls(xTrain,
                               yTrain,
                               ncomp=comp,
                               near.zero.var=TRUE,
-                              scale=scale)
+                              scale=scale)}
 ####
       yValInner=predict(plsModIn,
                         newdata=xVal,
@@ -62,7 +65,7 @@ plsInner=function(xTrain,
     if(!DA & !is.matrix(yValInner)) yValInner=as.matrix(yValInner)
     ###(observations,y variables, component) each is changed to a matrix
     if (DA) {
-      if (fitness=='MISS') {
+      if (fitness=='MISS'|fitness=='wMISS') {
         if(comp>1) classes=apply(yValInner,
                                  c(1,3),       ## the max in each row, the output is row observation, col component
                                  which.max)    ###the position of the max one
@@ -70,22 +73,68 @@ plsInner=function(xTrain,
         misClass=apply(classes,
                        2,
                        function(x) sum(x!=as.numeric(yVal)))   ###miss classification number , this is a vector , the miss number under each component
-      ##after as.numeric() y class become1,2,3, the same as the position number
+
+        ##after as.numeric() y class become1,2,3, the same as the position number
         returnIn$miss=min(misClass,na.rm=T)  ##which component has the smallest number of miss classfication
 
         nComp=which.min(misClass)   ###position, which component has the min (miss Classification)
 
-      } else if (fitness=='BER') {
+        if(fitness=='wMISS'){
+          wmisClass=apply(classes,
+                         2,
+                         function(x) getMISS(actual=as.numeric(yVal),
+                                             predicted=x,
+                                             weigh_added = weigh_added,
+                                             weighing_matrix = weighing_matrix))   ###miss classification number , this is a vector , the miss number under each component
+
+          ##after as.numeric() y class become1,2,3, the same as the position number
+          returnIn$wmiss=min(wmisClass,na.rm=T)  ##which component has the smallest number of miss classfication
+
+          nComp=which.min(wmisClass)   ###position, which component has the min (miss Classification)
+
+        }
+      } else if (fitness=='BER'|fitness=='wBER') {
         if(comp>1) classes=apply(yValInner,
                                  c(1,3),
                                  which.max)
-        else classes=matrix(apply(yValInner,1,which.max),ncol=1)
+        else {classes=matrix(apply(yValInner,1,which.max),ncol=1)}
+        if(weigh_added==F){
+          weighing_matrix<-diag(1,length(levels(yVal)),length(levels(yVal)))
+        } else{
 
+          if(missing(weighing_matrix)){
+          #  warning("Missing weighing_matrix,weighing_matrix will be diagnoal")
+            weighing_matrix<-diag(1,length(levels(yVal)),length(levels(yVal)))
+          }
+          if(dim(weighing_matrix)[1]!=length(levels(yVal))){
+            stop("The dimension of weighing_matrix is not correct")
+          }
+          if(dim(weighing_matrix)[2]!=length(levels(yVal))){
+            stop("The dimension of weighing_matrix is not correct")
+          }
+          for(i in 1:nrow(weighing_matrix)){
+            if(weighing_matrix[i,i]!=1){
+              stop("diagonal values must be 1")
+            }
+            for(j in 1:ncol(weighing_matrix)){
+              if(weighing_matrix[i,j]<0|weighing_matrix[i,j]>1){
+                stop("Values in the weighing matrix must between 0 and 1")
+              }
+            }
+          }
+        }
         BER=apply(classes,2,function(x) getBER(actual=as.numeric(yVal),predicted=x))
-
-        returnIn$ber=min(BER,na.rm=T)
-
         nComp=which.min(BER)
+        returnIn$ber=min(BER,na.rm=T)
+        if(fitness=='wBER'){
+        wBER=apply(classes,2,function(x) getBER(actual=as.numeric(yVal),predicted=x,
+                                               weigh_added=weigh_added,
+                                               weighing_matrix=weighing_matrix))
+
+        returnIn$wber=min(wBER,na.rm=T)
+        nComp=which.min(wBER)
+        }
+
 
       }    else {
         auc=apply(yValInner[,1,],
@@ -99,7 +148,7 @@ plsInner=function(xTrain,
     } else {               ####when it is not DA and comp>0
 #####################################################################################################################
 ##Here  I don't understand, why assume the validation set only have -1 and 1
-      if (fitness=='MISS') {
+      if (fitness=='MISS'|fitness=='wMISS') {
         # cat(' miss',count)
         yClassInner=ifelse(yValInner>0,
                            1,
@@ -109,6 +158,16 @@ plsInner=function(xTrain,
                        function(x) sum(x!=yVal))
         returnIn$miss=min(misClass,na.rm=T)
         nComp=which.min(misClass)
+        if(fitness=="wMISS"){
+          wmisClass=apply(yClassInner,
+                         2,
+                         function(x)getMISS(actual=yVal,
+                                            predicted=x,
+                                            weigh_added = weigh_added,
+                                            weighing_matrix = weighing_matrix))
+          returnIn$wmiss=min(wmisClass,na.rm=T)
+          nComp=which.min(wmisClass)
+          }
       }
 
       if (fitness=='AUROC') {
@@ -139,8 +198,10 @@ plsInner=function(xTrain,
   } else {
     nComp=0
     if (fitness=='MISS') returnIn$miss=length(yVal)
+    if (fitness=='wMISS') returnIn$wmiss=length(yVal)
     if (fitness=='AUROC') returnIn$auc=0
-    if (fitness=='BER') returnIn$ber=1
+    if (fitness=='BER'|fitness=='wBER') returnIn$ber=1
+    if (fitness=='wBER') returnIn$wber=1
     if (fitness=='RMSEP') returnIn$rmsep=1E10
     returnIn$virank=rep(1,ncol(xTrain))
   }

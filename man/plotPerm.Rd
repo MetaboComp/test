@@ -18,7 +18,8 @@ plotPerm(
   permutation_visual = "none",
   curve = F,
   extend = 0.1,
-  multiple_p_shown = NULL
+  multiple_p_shown = NULL,
+  round_number = 4
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ plotPerm(
 \item{extend}{how many percenrtage of the orignical range do we start}
 
 \item{multiple_p_shown}{show many p values}
+
+\item{round_number}{How many digits does it keep}
 }
 \value{
 Plot

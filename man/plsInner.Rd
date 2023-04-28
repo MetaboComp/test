@@ -4,7 +4,18 @@
 \alias{plsInner}
 \title{PLS model in inner CV loop}
 \usage{
-plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp = 5, scale = TRUE)
+plsInner(
+  xTrain,
+  yTrain,
+  xVal,
+  yVal,
+  DA,
+  fitness,
+  comp = 5,
+  scale = TRUE,
+  weigh_added,
+  weighing_matrix
+)
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}
@@ -22,6 +33,10 @@ plsInner(xTrain, yTrain, xVal, yVal, DA, fitness, comp = 5, scale = TRUE)
 \item{comp}{Max number of components to try}
 
 \item{scale}{Whether or not to scale inData (X)}
+
+\item{weigh_added}{To add a weighing matrix when it is classfication}
+
+\item{weighing_matrix}{The matrix used for get a miss classfication score}
 }
 \value{
 An object containing:

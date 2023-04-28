@@ -14,7 +14,7 @@ MUVR(
   nInner,
   varRatio = 0.75,
   DA = FALSE,
-  fitness = c("AUROC", "MISS", "BER", "RMSEP"),
+  fitness = c("AUROC", "MISS", "BER", "RMSEP", "wBER", "wMISS"),
   method = c("PLS", " RF", "ANN", "SVM"),
   methParam,
   ML = FALSE,
@@ -22,7 +22,7 @@ MUVR(
   logg = FALSE,
   parallel = TRUE,
   weigh_added = FALSE,
-  weighing_matrix,
+  weighing_matrix = NULL,
   keep,
   ...
 )

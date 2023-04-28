@@ -4,7 +4,19 @@
 \alias{rfInner}
 \title{RF model in inner CV loop}
 \usage{
-rfInner(xTrain, yTrain, xVal, yVal, DA, fitness, ntree, mtry, method)
+rfInner(
+  xTrain,
+  yTrain,
+  xVal,
+  yVal,
+  DA,
+  fitness,
+  ntree,
+  mtry,
+  method,
+  weigh_added,
+  weighing_matrix
+)
 }
 \arguments{
 \item{xTrain}{Training data (samples as rows; variables as columns)}
@@ -24,6 +36,10 @@ rfInner(xTrain, yTrain, xVal, yVal, DA, fitness, ntree, mtry, method)
 \item{mtry}{See original function (`randomForest`). Passed from wrapper.}
 
 \item{method}{Choice of Random Forest implementation (randomForest, ranger or Rborist). Passed from wrapper.}
+
+\item{weigh_added}{To add a weighing matrix when it is classfication}
+
+\item{weighing_matrix}{The matrix used for get a miss classfication score}
 }
 \value{
 An object containing:

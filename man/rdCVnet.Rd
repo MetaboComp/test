@@ -17,14 +17,14 @@ rdCVnet(
   nInner,
   NZV = TRUE,
   DA = FALSE,
-  fitness = c("AUROC", "MISS", "BER", "RMSEP"),
+  fitness = c("AUROC", "MISS", "BER", "RMSEP", "wBER", "wMISS"),
   methParam,
   ML = FALSE,
   modReturn = FALSE,
   parallel = TRUE,
   keep = NULL,
   weigh_added = F,
-  weighing_matrix,
+  weighing_matrix = NULL,
   ...
 )
 }
