@@ -23,7 +23,8 @@ Imports:
     nnet,
     neuralnet,
     caret,
-    splines
+    splines,
+    glmnet
 License: GPL-2
 LazyData: true
 RoxygenNote: 7.2.3
