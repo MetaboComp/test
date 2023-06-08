@@ -1412,6 +1412,19 @@ MUVR <- function(X,
   VIRank <- cbind(rowMeans(VIRankRepMin),
                   rowMeans(VIRankRepMid),
                   rowMeans(VIRankRepMax))
+  ####################################################################
+  ### adjust the sequence of rank
+  if(exists("nkeep")){
+ if(nkeep>0){
+
+   VIRank=VIRank-length(keep)
+   for(i in 1:length(keep)){
+     VIRank[keep[i],]=0
+   }
+ }
+    modelReturn$keep<-keep
+  }
+  ##################################################################3
   colnames(VIRank) <- c('min', 'mid', 'max')
   modelReturn$VIRank <- VIRank
   modelReturn$VIRankPerRep <- list(minModel = VIRankRepMin,

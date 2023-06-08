@@ -108,7 +108,7 @@ pPerm=function(actual,                             ###a value
     }
 
     p=pt((actual-mean(permutation_distribution))/sd(permutation_distribution),    ##### pt gives the probability before the input point
-
+   # p=(actual-mean(permutation_distribution))/sd(permutation_distribution)
          df=length(permutation_distribution)-1)
 
     if (side=='greater') {p=1-p }

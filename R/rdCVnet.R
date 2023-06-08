@@ -389,6 +389,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
               stop("Some variables you want to keep are of near zero varance")}
             filter<-which(colnames(xIn)%in% keep)
             penaltyfactor[filter]<-0
+
           }
 
 
@@ -1215,5 +1216,8 @@ rdCVnet <- function(X,   ## X should be a dataframe
                                  'Classification',
                                  ifelse(ML,'Multilevel','Regression')),
                           "rdCVnet")
+  if(!is.null(keep)){
+    modelReturn$keep<-keep
+  }
   return(modelReturn)
 }

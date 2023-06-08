@@ -6,6 +6,7 @@
 #' @param actual Actual model fitness (e.g. Q2, AUROC or number of misclassifications)
 #' @param distribution Null hypothesis (permutation) distribution of similar metric as `actual`
 #' @param xlab Label for x-axis (e.g. 'Q2 using real value',"Q2 using distributions","BER" 'AUROC', or 'Misclassifications')
+#' @param ylab label for y-axis
 #' @param side Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))
 #' @param type c('t','non',"smooth","rank","ecdf")
 #' @param xlim Choice of user-specified x-limits (if default is not adequate)
@@ -16,6 +17,7 @@
 #' @param pos Choice of position of p-value label (if default is not adequate)
 #' @param curve if add curve or not base on the mid
 #' @param extend how many percenrtage of the orignical range do we start
+#' @param show_p if p value is added to the figure
 #' @param multiple_p_shown show many p values
 #' @param round_number How many digits does it keep
 #' @return Plot
@@ -25,6 +27,7 @@ plotPerm=function(actual,
                   xlab=NULL,
                   side=c('greater','smaller'),
                   type="t",
+                  ylab=NULL,
                   #               type=c('t','non',"smooth","ecdf","rank"),
                   xlim,
                   ylim=NULL,
@@ -35,6 +38,7 @@ plotPerm=function(actual,
                   curve=F,
                   extend=0.1,
                   multiple_p_shown=NULL,
+                  show_p=T,
                   round_number=4
                   ) {
 
@@ -80,6 +84,7 @@ if(!length(multiple_p_shown)>=2){
           #ylim=ylim,
           axes=F,     ###remove both axes
           xlab=xlab,
+          ylab=ylab,
           yaxt='n',
           freq=FALSE,   ##### if FALSE, probability densities, component density, are plotted (so that the histogram has a total area of one).
           main=main)
@@ -124,7 +129,7 @@ if(!length(multiple_p_shown)>=2){
   lines(rep(actual,2),     ###x1,x2 for the line
         c(0,h2))          ##y1 ,y2 forthe line
 
-
+if(show_p==T){
   if(!is.nan(pP$p)&is.numeric(pP$p)){
   text(actual,    ###x position of the text
        h2,        ##y position of the text
@@ -157,7 +162,7 @@ if(!length(multiple_p_shown)>=2){
     #lines(dens)
   }
 
-
+}
     text(actual,    ###x position of the text
        max(h$density)*0.003,        ##y position of the text
        pos=3,
@@ -203,6 +208,7 @@ if(permutation_visual=="mean"){
         # ylim=ylim,
          axes=F,     ###remove both axes
          xlab=xlab,
+        ylab=ylab,
          yaxt='n',
         freq=FALSE,   ##### if FALSE, probability densities, component density, are plotted (so that the histogram has a total area of one).
          main=main)
@@ -273,7 +279,7 @@ if(permutation_visual=="mean"){
         c(0,h2))          ##y1 ,y2 forthe line
 
 
-
+if(show_p==T){
   for(i in 1:length(ppp)){
   if(!is.nan(ppp[[i]]$p)&is.numeric(ppp[[i]]$p)){
     text(actual,    ###x position of the text
@@ -296,6 +302,7 @@ if(permutation_visual=="mean"){
          labels=paste(multiple_p_shown[i]," p",ppp[[i]]$p,sep='')) ####what is the text
       }
   }
+}
   text(actual,    ###x position of the text
        max(h$density)*0.003,        ##y position of the text
        pos=3,

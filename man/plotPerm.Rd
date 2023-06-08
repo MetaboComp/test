@@ -10,6 +10,7 @@ plotPerm(
   xlab = NULL,
   side = c("greater", "smaller"),
   type = "t",
+  ylab = NULL,
   xlim,
   ylim = NULL,
   breaks = "Sturges",
@@ -19,6 +20,7 @@ plotPerm(
   curve = F,
   extend = 0.1,
   multiple_p_shown = NULL,
+  show_p = T,
   round_number = 4
 )
 }
@@ -32,6 +34,8 @@ plotPerm(
 \item{side}{Cumulative p either "greater" or "smaller" than H0 distribution (defaults to side of median(H0))}
 
 \item{type}{c('t','non',"smooth","rank","ecdf")}
+
+\item{ylab}{label for y-axis}
 
 \item{xlim}{Choice of user-specified x-limits (if default is not adequate)}
 
@@ -50,6 +54,8 @@ plotPerm(
 \item{extend}{how many percenrtage of the orignical range do we start}
 
 \item{multiple_p_shown}{show many p values}
+
+\item{show_p}{if p value is added to the figure}
 
 \item{round_number}{How many digits does it keep}
 }

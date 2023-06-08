@@ -15,7 +15,11 @@ getVIRank=function(MUVRclassObject,
 
   if(class(MUVRclassObject)[3]=="rdCVnet"){
     VIRanks_vector<-rank(-as.vector(MUVRclassObject$varTable))
-
+    names(VIRanks_vector)<-names(MUVRclassObject$varTable)
+if(!is.null(MUVRclassObject$keep)){
+  VIRanks_vector<-VIRanks_vector-4
+  VIRanks_vector[MUVRclassObject$keep]<-0
+}
     if(!missing(n)){
       if(n > ncol(MUVRclassObject$inData$X)){
         stop("n bigger than total number of variables")}
