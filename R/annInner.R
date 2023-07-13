@@ -8,13 +8,15 @@
 #' @param yVal Validation response (for tuning)
 #' @param DA Logical for discriminant analysis (classification)
 #' @param fitness Fitness function ('MISS', 'AUROC' or 'RMSEP')
-#' @param layers Number of layers and how many node in each layed. If multiple layers, it writes as c(n,n,n)
+## @param layers Number of layers and how many node in each layed. If multiple layers, it writes as c(n,n,n)
 #' @param threshold the Threshold of step size
 #' @param stepmax Maximum step in each annInner loop
-#'
+#' @param nodes  node
+#' @param method method for ann
 #' @return An object containing:
 #' @return (`miss`, `auc` or `rmsep`) A fitness metric
 #' @return `virank` variable importance rankings
+#' @import NeuralNetTools nnet neuralnet
 #' @export
 annInner <- function(xTrain,
                     yTrain,

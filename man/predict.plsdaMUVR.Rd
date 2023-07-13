@@ -4,7 +4,7 @@
 \alias{predict.plsdaMUVR}
 \title{Predict plsda}
 \usage{
-\method{predict}{plsdaMUVR}(object, newdata, scale = TRUE, onlyPred = FALSE, ...)
+predict.plsdaMUVR(object, newdata, scale = TRUE, onlyPred = FALSE, ...)
 }
 \arguments{
 \item{object}{a plsdaMUVR object}

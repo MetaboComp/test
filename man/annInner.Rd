@@ -26,6 +26,8 @@ annInner(
 
 \item{yVal}{Validation response (for tuning)}
 
+\item{nodes}{node}
+
 \item{threshold}{the Threshold of step size}
 
 \item{stepmax}{Maximum step in each annInner loop}
@@ -34,7 +36,7 @@ annInner(
 
 \item{fitness}{Fitness function ('MISS', 'AUROC' or 'RMSEP')}
 
-\item{layers}{Number of layers and how many node in each layed. If multiple layers, it writes as c(n,n,n)}
+\item{method}{method for ann}
 }
 \value{
 An object containing:

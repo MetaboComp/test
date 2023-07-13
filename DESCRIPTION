@@ -16,16 +16,21 @@ Imports:
     pROC,
     doParallel,
     foreach,
-    kernlab,
-    klaR,
     rminer,
-    microbenchmark,
     nnet,
     neuralnet,
     caret,
+    glmnet,
+    NeuralNetTools,
+    e1071,
+    kernlab,
+    klaR,
     splines,
-    glmnet
+    magrittr
 License: GPL-3
 LazyData: true
 RoxygenNote: 7.2.3
 Encoding: UTF-8
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

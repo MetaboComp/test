@@ -22,7 +22,7 @@
 #' @param weigh_added To add a weighing matrix when it is classfication
 #' @param weighing_matrix The matrix used for get a miss classfication score
 #' @param ... additional argument
-#'
+#' @import NeuralNetTools nnet neuralnet kernlab klaR doParallel e1071 pROC foreach rminer randomForest ranger
 #' @return
 #' A 'MUVR' object
 #' Further description necessary!!!
@@ -55,8 +55,8 @@ MUVR <- function(X,
 
     weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
   }
-  library(kernlab)
-  library(e1071)
+  ##library(kernlab)
+  ##library(e1071)
   # Start timer
   start.time <- proc.time()[3]
 
@@ -72,8 +72,8 @@ MUVR <- function(X,
   }
 
   # Call in relevant package(s)
-  library(pROC)
-  library(foreach)
+  ##library(pROC)
+  ##library(foreach)
 
   # Parallel processing
   if (parallel) {
@@ -229,11 +229,11 @@ MUVR <- function(X,
             scale=max_x-min_x)
 
     if (methParam$annMethod == 'neuralnet') {
-      library("neuralnet")
-      library("NeuralNetTools")
+      ##library("neuralnet")
+      ##library("NeuralNetTools")
     } else if (methParam$annMethod == 'nnet') {
-      library("NeuralNetTools")
-      library("nnet")
+      ##library("NeuralNetTools")
+      ##library("nnet")
     } else{
       stop('Aritificial network method incorrectly specified in methParam')
     }
@@ -245,13 +245,13 @@ MUVR <- function(X,
              center=T,
              scale=T)
     if (methParam$svmMethod == 'svm') {
-      library(e1071)
-      library(rminer)
+      ##library(e1071)
+      ##library(rminer)
     } else if (methParam$svmMethod == 'ksvm') {
-      library(kernlab)
-      library(rminer)
+      ##library(kernlab)
+      ##library(rminer)
     } else if(methParam$svmMethod == 'svmlight'){
-      ##library()
+      ####library()
     }
     else {
       stop('Support vector machine method incorrectly specified in methParam')
@@ -261,11 +261,11 @@ MUVR <- function(X,
   # Set up randomForest package
   if (method == 'RF') {
     if (methParam$rfMethod == 'randomForest') {
-      library (randomForest)
+      ##library (randomForest)
     } else if (methParam$rfMethod == 'ranger') {
-      library (ranger)
+      ##library (ranger)
       # } else if (methParam$rfMethod == 'Rborist') {
-      # library(Rborist)
+      # ##library(Rborist)
     } else{
       stop('Random Forest method incorrectly specified in methParam')
     }

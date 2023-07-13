@@ -100,22 +100,24 @@ plotVIRank=function(MUVRclassObject,
     heatmap(matrix_count[,1:n],
             Colv=NA,
             Rowv=NA,
-            col=c("grey","red"),
+            col=c("white","red"),
             scale="none",
             labCol = NA,
             labRow = NA,
             #labRow=rownames(matrix_count[,1:n]),
             #labCol=colnames(matrix_count[,1:n]),
             revC=F,
-            xlab = "All variables",
-            ylab = "nRep*nOuter")
+            xlab = paste(ncol(MUVRclassObject$inData$X),"variables ordered by selection ratio"),
+            ylab = paste(MUVRclassObject$inData$nRep*MUVRclassObject$inData$nOuter,"calibration set models")
+    )
+   # box(col="black")
     legend(x="topright",
            inset=c(-0.5,0.1),
-           legend=c("Yes","No"),
-           fill=c("red","gray"),
+           legend=c("Selected","Not selected"),
+           fill=c("red","white"),
            cex=0.5,
            trace = F,
-           title="variable"
+           title="Variable"
            )
 
   }else{
@@ -127,12 +129,13 @@ plotVIRank=function(MUVRclassObject,
        ylim = c(0, length(MUVRclassObject$varRep)),
        xlim = c(0, n)
        )
+  box(col="black")
 
   for(i in 1:length(MUVRclassObject$varRep)){
     for(j in 1:n){
       col<-ifelse(matrix_count[i,j]==1,
                   "red",
-                  "grey")
+                  "white")
       points(x=j,
              y=i,
              col=col)
@@ -141,13 +144,13 @@ plotVIRank=function(MUVRclassObject,
   }
 
   legend("topright",
-         legend=c("Yes","No"),
+         legend=c("Selected","Not selected"),
          pch=1,
          inset=c(-0.2,0.1),
-         col = c("red", "grey"),
+         col = c("red", "white"),
          cex = 0.5,
          trace = F,
-         title="variable")
+         title="Variable")
   }
 
 

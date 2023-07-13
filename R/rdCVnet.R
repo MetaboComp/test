@@ -25,8 +25,8 @@
 ## @param percent_quantile range from 0 to 0.5. When select_variables_by quantile, this value represent the first quantile.
 ## @param percent_smoothcurve If select_variables_by smoothcurve, then it is robust
 ## @param Var_option quantile or smoothcurve
-#' @param ...
-#'
+#' @param ... This is to pass in other argument
+#' @import splines glmnet pROC magrittr foreach
 #' @return A MUVR object
 #' @export
 rdCVnet <- function(X,   ## X should be a dataframe
@@ -58,7 +58,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
     weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
   }
 
-  library(glmnet)
+  #library(glmnet)
 
   X_original<-X
 
@@ -112,9 +112,9 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
 
   # Call in packages
-  library(pROC) # for roc and auroc
-  library(magrittr) # for pipe operator
-  library(foreach) # Parallel processing
+  #library(pROC) # for roc and auroc
+  #library(magrittr) # for pipe operator
+  #library(foreach) # Parallel processing
 
   # Set up for parallel/serial
   if (parallel) {"%doVersion%" <- get("%dopar%")
@@ -850,7 +850,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
   ##################################################################################################
   ###################################################################################
   ### by smooth curve
-  library(splines)
+  #library(splines)
   nonZeroRep_vector<-c(nonZeroRep)
   fitnessRep_vector<-c(fitnessRep)
   nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)

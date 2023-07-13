@@ -50,6 +50,12 @@ customParams(
 
 \item{kernel}{svm parameter: kernal function to use, which includes sigmoid, radical, polynomial}
 
+\item{nu}{svm parameter: ratios of errors allowed in the training set range from 0-1}
+
+\item{gamma}{svm parameters: needed for "vanilladot","polydot","rbfdot" kernel in svm}
+
+\item{degree}{svm parameter: needed for polynomial kernel in svm}
+
 \item{scoring_matrix}{A matrix that its score can be adjusted}
 
 \item{oneHot}{T or F using onehot endcoding or not}

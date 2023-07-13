@@ -54,7 +54,7 @@ pPerm=function(actual,                             ###a value
       ecdf_curve <- fun_ecdf(sort_x)
 
       if(actual<min(sort_x)){
-        p_actual<-1/(length(permutation_distribution)+1)
+        p_actual<-1/(length(permutation_distribution))
       }else{
         for(i in 1:(length(permutation_distribution)-1)){
           if(actual>sort_x[i]&actual<=sort_x[i+1]){
@@ -62,7 +62,7 @@ pPerm=function(actual,                             ###a value
           }
 
         }
-        if(p_actual==0){p_actual<-1/(length(permutation_distribution)+1)}
+        if(p_actual==0){p_actual<-1/(length(permutation_distribution))}
       }
       p<-p_actual
      }
@@ -77,14 +77,14 @@ pPerm=function(actual,                             ###a value
 
 
      if(actual>max(sort_x)){
-       p_actual<-1/(length(permutation_distribution)+1)
+       p_actual<-1/(length(permutation_distribution))
      }else{
        for(i in 1:(length(permutation_distribution)-1)){
          if(actual>=sort_x[i]&actual<sort_x[i+1]){
            p_actual<- 1-ecdf_curve[i]
          }
        }
-       if(p_actual==0){p_actual<-1/(length(permutation_distribution)+1)}
+       if(p_actual==0){p_actual<-1/(length(permutation_distribution))}
      }
      p<-p_actual
 }
@@ -103,8 +103,8 @@ pPerm=function(actual,                             ###a value
      actual=rank[1]              ###actual is not the smallest if side is greater this apply to Q2 and AUC
      permutation_distribution=rank[-1]
     }else{rank=rank(c(actual,permutation_distribution))
-          actual=rank[(length(permutation_distribution)+1)]
-          permutation_distribution=rank[-(length(permutation_distribution)+1)]
+          actual=rank[(length(permutation_distribution))]
+          permutation_distribution=rank[-(length(permutation_distribution))]
     }
 
     p=pt((actual-mean(permutation_distribution))/sd(permutation_distribution),    ##### pt gives the probability before the input point

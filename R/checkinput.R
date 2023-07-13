@@ -52,10 +52,10 @@ checkinput<-function(X,
   character_number<-0
   logical_number<-0
   for (i in 1:ncol(X))
-  {if (class(X[,i])=="logical"){logical_number=logical_number+1}
-    if (class(X[,i])=="numeric"|class(X[,i])=="integer"){numeric_integer_number=numeric_integer_number+1}
-    if (class(X[,i])=="character"){character_number=character_number+1}
-    if (class(X[,i])=="factor"){factor_number=factor_number+1}
+  {if (is.logical(X[,i])==T){logical_number=logical_number+1}
+    if (is.numeric(X[,i])==T|is.integer(X[,i])==T){numeric_integer_number=numeric_integer_number+1}
+    if (is.character(X[,i])==T){character_number=character_number+1}
+    if (is.factor(X[,i])==T){factor_number=factor_number+1}
   }
   cat("\n","In X","\n","There are","\n",numeric_integer_number, "numeric variables,","\n",
       factor_number,"factor variables","\n",
@@ -72,24 +72,24 @@ checkinput<-function(X,
 ##Parameters Group 1: These parameters are correlated with each other and with Y.
 # when missing() and when the input of the is correct are discusse later
 
-if(!missing(ML)){if(class(ML)!="logical"){stop("\n","ML must be T or F.")}}
-if(!missing(DA)){if(class(DA)!="logical"){stop("\n","DA must be T or F.")}}
+if(!missing(ML)){if(is.logical(ML)==F){stop("\n","ML must be T or F.")}}
+if(!missing(DA)){if(is.logical(DA)==F){stop("\n","DA must be T or F.")}}
 if(!missing(method)){{if(!method%in%c("PLS","RF")){stop("\n","method type is not correct.")}}}
 if(!missing(fitness)){if(!fitness%in%c("MISS","RMSEP","AUROC","BER")){stop("\n","fitness type is not correct.")}}
 
 ##Parameters Group 2: nInner and nOuter can be correlated with each other and liminted by lengh(Y)
-if(!missing(nInner)){if(class(nInner)!="numeric"&class(nInner)!="integer"){stop("\n","nInner is a number.")}
+if(!missing(nInner)){if(is.numeric(nInner)==F&is.integer(nInner)==F){stop("\n","nInner is a number.")}
   if(nInner<2){stop("\n","nInner is too small.")}}
-if(!missing(nOuter)){if(class(nOuter)!="numeric"&class(nOuter)!="integer"){stop("\n","nOuter is a number.")}
+if(!missing(nOuter)){if(is.numeric(nOuter)==F&is.integer(nOuter)==F){stop("\n","nOuter is a number.")}
   if(nOuter<3){stop("\n","nOuter is too small.")}}
 
 
 # Parameters Group 3: These parameters are not correlated with each other
-if(!missing(scale)){if(class(scale)!="logical"){stop("\n","scale must be T or F.")}}
-if(!missing(modReturn)){if(class(modReturn)!="logical"){stop("\n","modReturn must be T or F.")}}
-if(!missing(logg)){if(class(logg)!="logical"){stop("\n","logg must be T or F.")}}
-if(!missing(parallel)){if(class(parallel)!="logical"){stop("\n","parallel must be T or F.")}}
-if(!missing(varRatio)){if(class(varRatio)!="numeric"&class(varRatio)!="integer"){stop("\n","varRatio is a number.")}
+if(!missing(scale)){if(is.logical(scale)==F){stop("\n","scale must be T or F.")}}
+if(!missing(modReturn)){if(is.logical(modReturn)==F){stop("\n","modReturn must be T or F.")}}
+if(!missing(logg)){if(is.logical(logg)==F){stop("\n","logg must be T or F.")}}
+if(!missing(parallel)){if(is.logical(parallel)==F){stop("\n","parallel must be T or F.")}}
+if(!missing(varRatio)){if(is.numeric(varRatio)==F&is.integer(varRatio)==F){stop("\n","varRatio is a number.")}
                       if(varRatio<=0|varRatio>1){stop("\n","varRation should be in (0,1].")}
                       if(varRatio<0.5|varRatio>0.95){warning("varRatio is recommened to be within [0.5,0.95]")}}
 
@@ -117,12 +117,12 @@ if(missing(varRatio))varRatio=0.75
     } else{if(nrow(X)!=length(Y)){stop("The number of observations are not the same.")}
 
   ##analyze Y data type
-  if(class(Y)=="logical"){stop("\n","Y must be a numeric or factor variable.")
-  }else if(class(Y)=="character"){Y=factor(Y)
+  if(is.logical(Y)==T){stop("\n","Y must be a numeric or factor variable.")
+  }else if(is.character(Y)==T){Y=factor(Y)
                                warning("\n","Original Y is a character variable and transformed to a factor variable now.")
                                   if(length(levels(Y))>10){warning("\n","There are more than 10 levels in Y.")}
                             cat("Y is transformed to a factor variable with",length(levels(Y)),"levels and",length(Y),"observations.")
-  }else if(class(Y)=="factor"){if(length(levels(Y))>10){warning("\n","There are more than 10 levels in Y.")}
+  }else if(is.factor(Y)==T){if(length(levels(Y))>10){warning("\n","There are more than 10 levels in Y.")}
                                cat("\n","Y is a factor variable with",length(levels(Y)),"levels and",length(Y),"observations.")
   }else{cat("\n","Y is a numeric variable with",length(Y),"obsevations","\n")}
     }
@@ -148,7 +148,7 @@ if(missing(varRatio))varRatio=0.75
 
 if(ML==F)
 {
-  if(class(Y)=="factor"){if(missing(DA))DA=T
+  if(is.factor(Y)==T){if(missing(DA))DA=T
                         if(DA==F){warning("\n","When Y is a factor, must use DA.")
                                   DA=T}
                         if(missing(fitness)){fitness="MISS"}
@@ -156,7 +156,7 @@ if(ML==F)
 
                         if(missing(method)){method="RF"}}
 
- if(class(Y)=="numeric"|class(Y)=="integer")
+ if(is.numeric(Y)==T|is.integer(Y)==T)
  {if(missing(DA))DA=F
    if(DA==T){if(length(levels(factor(Y)))<=10){Y=factor(Y)
                                              warning("\n","Y is a numeric variable. It will be transformed to a factor variable when DA==T.")

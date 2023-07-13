@@ -22,9 +22,9 @@
 #'
 #' @param svmMethod support vector machine method, which includes svm, ksvm, s
 #' @param kernel svm parameter: kernal function to use, which includes sigmoid, radical, polynomial
-## @param nu svm parameter: ratios of errors allowed in the training set range from 0-1
-## @param degree svm parameter: needed for polynomial kernel in svm
-## @param gamma svm parameters: needed for "vanilladot","polydot","rbfdot" kernel in svm
+#' @param nu svm parameter: ratios of errors allowed in the training set range from 0-1
+#' @param degree svm parameter: needed for polynomial kernel in svm
+#' @param gamma svm parameters: needed for "vanilladot","polydot","rbfdot" kernel in svm
 #'
 #' @param annMethod artificail neural network method which include 2 different ann methods
 #' @return a `methParam` object

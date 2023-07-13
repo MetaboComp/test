@@ -69,7 +69,7 @@ rdCVnet(
 
 \item{weighing_matrix}{weighing_matrix}
 
-\item{...}{}
+\item{...}{This is to pass in other argument}
 }
 \value{
 A MUVR object

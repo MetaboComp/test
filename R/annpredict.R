@@ -10,6 +10,7 @@
 #' @param stepmax stepmax
 #' @param threshold threshold
 #' @return  The predicted value of yTest
+#' @import NeuralNetTools nnet neuralnet
 #' @export
 annpredict <- function(xTrain,
                    yTrain,
