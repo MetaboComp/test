@@ -1207,6 +1207,10 @@ rdCVnet <- function(X,   ## X should be a dataframe
 
 
   modelReturn$yPredSeg_list<-yPredSeg_listlist
+
+  ### nVar per repetition is the median of number of variables that have non-zero coefficient in each repetition
+  modelReturn$nVarPerRep<-apply(modelReturn$nonZeroRep,1,median)
+
   # Stop timer
   end.time=proc.time()[3]
   modelReturn$calcMins=(end.time-start.time)/60

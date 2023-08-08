@@ -7,8 +7,10 @@
 rdCVnet_getVar(
   rdCVnetObject,
   option = c("quantile", "smoothcurve"),
+  fit_curve = "loess",
   span = 1,
-  outlier = T,
+  k = 5,
+  outlier = "IQR",
   percent_smoothcurve = 0.05,
   percent_quantile = 0.25
 )
@@ -18,9 +20,13 @@ rdCVnet_getVar(
 
 \item{option}{quantile or smoothcurve}
 
+\item{fit_curve}{gam or loess}
+
 \item{span}{for smooth curve:  how smooth the curve need to be}
 
-\item{outlier}{if remove ourlier variables or not}
+\item{k}{for smooth curve:using the gam method}
+
+\item{outlier}{if remove ourlier variables or not "none","IRQ", "residual"}
 
 \item{percent_smoothcurve}{If select_variables_by smoothcurve, then it is robust}
 

@@ -1,20 +1,27 @@
 #' the function to get the variables selected
 #' @param rdCVnetObject a object from rdCVnet
 #' @param span for smooth curve:  how smooth the curve need to be
-#' @param outlier if remove ourlier variables or not
+#' @param k for smooth curve:using the gam method
+#' @param fit_curve gam or loess
+#' @param outlier if remove ourlier variables or not "none","IRQ", "residual"
 #' @param percent_quantile range from 0 to 0.5. When select_variables_by quantile, this value represent the first quantile.
 #' @param percent_smoothcurve If select_variables_by smoothcurve, then it is robust
 #' @param option quantile or smoothcurve
 #'
 #' @return a rdCVnet object
 #' @export
-#'
+## outlier
 rdCVnet_getVar<-function(rdCVnetObject,
                option=c("quantile", "smoothcurve"),
+               fit_curve="loess",
                span=1,   # c(0.5, 0.75, 1,1.25),
-               outlier=T,
+               k=5,
+               outlier="IQR",
                percent_smoothcurve=0.05,
                percent_quantile=0.25){
+  if(!fit_curve%in%c("loess","gam")){
+    stop("\nThis curve fitting method is not supported.")
+  }
    if(percent_quantile<=0|percent_quantile>=0.5|!is.numeric(percent_quantile)){
       stop("\npercent_quantile must be between 0 and 0.5")
     }
@@ -24,7 +31,11 @@ rdCVnet_getVar<-function(rdCVnetObject,
   if(missing(option)){
     option="smoothcurve"
   }
-  if(outlier==T){
+  if(!outlier%in%c("none","IQR","residual")){
+    stop("\nThis option is not supported")
+  }
+  if(missing(outlier)){outlier="IQR"}
+  if(outlier=="IQR"){
     quartile_075<-quantile(rdCVnetObject$nonZeroRep)[4]
     quartile_025<-quantile(rdCVnetObject$nonZeroRep)[2]
     IQR<-quartile_075-quartile_025
@@ -32,23 +43,52 @@ rdCVnet_getVar<-function(rdCVnetObject,
     high_boundary<-quartile_075+1.5*IQR
     num_of_variables<-vector()
     fitness<-vector()
+    color_dot<-vector()
     for(i in 1:length(rdCVnetObject$nonZeroRep)){
-    if(rdCVnetObject$nonZeroRep[i]<= high_boundary&rdCVnetObject$nonZeroRep[i]>=low_boundary){
-      num_of_variables<-c(num_of_variables,rdCVnetObject$nonZeroRep[i])
-      fitness<-c(fitness,rdCVnetObject$fitnessRep[i])
+    if(t(rdCVnetObject$nonZeroRep)[i]<= high_boundary&t(rdCVnetObject$nonZeroRep)[i]>=low_boundary){
+      num_of_variables<-c(num_of_variables,t(rdCVnetObject$nonZeroRep)[i])
+      fitness<-c(fitness,t(rdCVnetObject$fitnessRep)[i])
+      color_dot<-c(color_dot,"black")
     }else{
-      cat("\n",rdCVnetObject$nonZeroRep[i],
+      cat("\n",t(rdCVnetObject$nonZeroRep)[i],
           "is an outlier for the number of variables selected. Therefore the combination of",
-          "number of variables =",rdCVnetObject$nonZeroRep[i],
-          ",fitness =",rdCVnetObject$fitnessRep[i],",is removed")
+          "number of variables =",t(rdCVnetObject$nonZeroRep)[i],
+          ",fitness =",t(rdCVnetObject$fitnessRep)[i],",is removed from fitting curves.")
+      color_dot<-c(color_dot,"grey")
     }
     }
 
-  }else if (outlier==F){
+  }else if (outlier=="none"){
     num_of_variables<-rdCVnetObject$nonZeroRep
     fitness<-rdCVnetObject$fitnessRep
+    color_dot<-rep("black",length(rdCVnetObject$nonZeroRep))
+  } else if (outlier=="residual"){
+    nonZeroRep_vector<-as.vector(t(rdCVnetObject$nonZeroRep))
+    fitnessRep_vector<-as.vector(t(rdCVnetObject$fitnessRep))
+    dataframe=as.data.frame(cbind(nonZeroRep_vector,fitnessRep_vector))
+    ssqRatio = 1.5
+    gam_model <- mgcv::gam(fitnessRep_vector ~ s(nonZeroRep_vector, bs = 'ps'),
+                           # knots=5,
+                           data =    dataframe)
+    pred <- predict(gam_model)
+    SSq <- resid(gam_model)^2
+    meanSSq <- mean(SSq)
+    keep <- ifelse((SSq / meanSSq) > ssqRatio, FALSE, TRUE)
+    color_dot<-c()
+    for(z in 1:length(keep)){
+      if(keep[z]==T){color_dot<-c(color_dot,"black")
+      }else{
+        color_dot<-c(color_dot,"grey")
+        cat("\n",t(rdCVnetObject$nonZeroRep)[z],
+            "is an outlier for the number of variables selected. Therefore the combination of",
+            "number of variables =",t(rdCVnetObject$nonZeroRep)[z],
+            ",fitness =",t(rdCVnetObject$fitnessRep)[z],",is removed from fitting curves.")
+      }
+    }
 
-  } else {stop("Outlier needs to be logical")}
+    num_of_variables<-t(rdCVnetObject$nonZeroRep)[color_dot=="black"]
+    fitness<-t(rdCVnetObject$fitnessRep)[color_dot=="black"]
+  }
 ##############################################################
   if(option=="quantile"){
     cum_varTable<-rdCVnetObject$cum_varTable
@@ -134,7 +174,10 @@ rdCVnet_getVar<-function(rdCVnetObject,
         maxnames_quantile<-c(maxnames_quantile,names(varTable)[s])}
     }
 
-    nVar<- c(minlimit_quantile,midlimit_quantile,maxlimit_quantile)
+  #  nVar<- c(minlimit_quantile,midlimit_quantile,maxlimit_quantile)
+    nVar<-c(length(minnames_quantile),
+            length(midnames_quantile),
+            length(maxnames_quantile))
     Var<-list(min=minnames_quantile,
                        mid=midnames_quantile,
                        max=maxnames_quantile
@@ -149,10 +192,26 @@ rdCVnet_getVar<-function(rdCVnetObject,
     fitnessRep_vector<-c(fitness)
     nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)
 
+    if(fit_curve=="loess"){
+
     fit_temp<-loess(fitnessRep_vector~nonZeroRep_vector, span = span,degree=2)
     predict_temp<-predict(fit_temp,
                           newdata = data.frame(nonZeroRep_vector=nonZeroRep_vector_grid)
     )
+    rdCVnetObject$span<-span
+
+    }else if(fit_curve=="gam"){
+      dataframe=as.data.frame(cbind(nonZeroRep_vector,fitnessRep_vector))
+      dataframe_forpredict<-data.frame(nonZeroRep_vector=nonZeroRep_vector_grid,
+                                       fitnessRep_vector=rep(0,length(nonZeroRep_vector_grid)))
+      fit_temp <- mgcv::gam(fitnessRep_vector ~
+                               s(nonZeroRep_vector, bs = 'ps'),
+                             # knots=5,
+                             data =    dataframe)
+      predict_temp<-predict.gam(fit_temp,dataframe_forpredict)
+      rdCVnetObject$k<-k
+    }
+    rdCVnetObject$fit_curve<-fit_curve
     #fit_temp<-lm(fitnessRep_vector ~ bs(nonZeroRep_vector,
     #                          df=3,  ### when intercept is false degree of freedom = df-degree  df must >=3,  df = length(knots) + degree
     #                          degree=3))
@@ -252,14 +311,15 @@ rdCVnet_getVar<-function(rdCVnetObject,
         maxnames_smoothcurve<-c(maxnames_smoothcurve,names(varTable)[s])}
     }
 
-    nVar<- c(varMin_smoothcurve,
-                         varMid_smoothcurve,
-                         varMax_smoothcurve)
+    #nVar<- c(varMin_smoothcurve,varMid_smoothcurve,varMax_smoothcurve)
+    nVar<-c(length(minnames_smoothcurve),
+            length(midnames_smoothcurve),
+            length(maxnames_smoothcurve))
     Var<-list(min=minnames_smoothcurve,
                           mid=midnames_smoothcurve,
                           max=maxnames_smoothcurve
     )
-    rdCVnetObject$span<-span
+
     names(nVar)<-c("min","min","max")
 
   }else{
@@ -268,5 +328,6 @@ rdCVnet_getVar<-function(rdCVnetObject,
 
   rdCVnetObject$Var<-Var
     rdCVnetObject$nVar<-nVar
+    rdCVnetObject$outlier_info<-color_dot
 return(rdCVnetObject)
 }

@@ -29,11 +29,15 @@ plotStability=function(MUVRrdCVclassObject,
   ######### if rdCV
   if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
   nVar=round(MUVRrdCVclassObject$nVar[nModel])
-  if(missing(VAll)) {VAll=names(sort(MUVRrdCVclassObject$VIRank[,nModel])[1:nVar])}
+  if(missing(VAll)) {
+    VAll=names(sort(MUVRrdCVclassObject$VIRank[,nModel])[1:nVar])}
 
-  } else {nVar=ncol(MUVRrdCVclassObject$indata$X)
-
-
+  } else {
+    nVar=round(MUVRrdCVclassObject$nVar[nModel])
+      ################?????????????????
+    if(missing(VAll)) {
+      VAll=MUVRrdCVclassObject$Var[[nModel]]
+      }
   }
 
 
@@ -48,14 +52,13 @@ plotStability=function(MUVRrdCVclassObject,
   for (i in 1:nRep) {
 
     if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
-      nModel=1
+      #nModel=1
     nVRep[i]=MUVRrdCVclassObject$nVarPerRep[[nModel]][i]
     ##number of nVar for each repetition in min model.It is the same length as nRep
 
     ######### if rdCV
     nV[i]=round(mean(MUVRrdCVclassObject$nVarPerRep[[nModel]][1:i]))
     ## the mean of nVarPerRep of first i repetitions in min model. It is the same length as nRep
-
 
     VARep[i]=sum(names(sort(MUVRrdCVclassObject$VIRankPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
     ###in repetition i,if the variables selected as included in that repetition is in the VAll, save there names
@@ -69,6 +72,21 @@ plotStability=function(MUVRrdCVclassObject,
     ##choose the first nV[i] and keep the ones that are in VALL
     ###sum() add 1 if name is in it
     ##output is a number of variables in VALL for first i repetition
+    }else{
+      nVRep[i]=MUVRrdCVclassObject$nVarPerRep[i]  ### median of each nOuter's number's of variables
+      nV[i]=round(mean(MUVRrdCVclassObject$nVarPerRep[1:i]))   ## cumulative average
+      VARep_temp<-c()
+      for(z in 1:MUVRrdCVclassObject$inData$nOuter){
+        VARep_temp<-c(VARep_temp,MUVRrdCVclassObject$varRep[[(i-1)*MUVRrdCVclassObject$inData$nOuter+z]])
+      }
+      VARep_temp<-unique(VARep_temp)
+
+      VARep[i]<-sum(VARep_temp%in%VAll)
+      # VARep[i]<-sum(rownames(MUVRrdCVclassObject$coefRep)[apply(abs(MUVRrdCVclassObject$coefRep[,,i]),1,sum)!=0]%in%VAll)
+      #VARep[i]=sum(names(sort(MUVRrdCVclassObject$VIRankPerRep[[nModel]][,i])[1:nVRep[i]])%in%VAll)
+      VA[i]=mean(VARep[1:i])
+      #    VA[i]=sum(names(sort(
+      #      rowMeans(MUVRrdCVclassObject$VIRankPerRep[[nModel]][,1:i,drop=F]))[1:nV[i]])%in%VAll)
     }
 
 
@@ -115,11 +133,13 @@ plotStability=function(MUVRrdCVclassObject,
       PRESS=sum((Y-predsRep)^2)
       TSS=sum((Y-mean(Y))^2)
       q2Rep[i]=1-(PRESS/TSS)  ###one q2 for each repetition
+
       if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
       preds=MUVRrdCVclassObject$yPredPerRep[[nModel]][,1:i,drop=F]
       }else{
         preds=MUVRrdCVclassObject$yPredPerRep[,1:i,drop=F]
       }
+
       ####row is all observations, column is first i repetitions
       preds=rowMeans(preds)   ###row means,  row is all observations, column is one column,
       PRESS=sum((Y-preds)^2)
@@ -148,13 +168,23 @@ plotStability=function(MUVRrdCVclassObject,
     ###number becomes bigger
     }
 
+  }else{
+    VARep=VARep/length(VAll)    ####Originally, Each VARep[i] is a vector of variable names that is in VALL. Each repetition has a vector
+    ##output is a percentage
+    VA=VA/length(VAll)
+    if(missing(nVarLim)) {
+      pot=10^floor(log10(max(nV))) ###number become smaller
+      nVarLim=ceiling(max(c(nV,nVRep))/pot)*pot ###nV and nVRep both has the same length as nREP
+      ###number becomes bigger
+    }
   }
 
 
 ######################################################################################################
 ##takes a single numeric argument x and returns a numeric vector containing the smallest integers
 ##not less than the corresponding elements of x.
-  if(any(class(MUVRrdCVclassObject)=='rdCVnet')){nPlot=ifelse(ML,3,ifelse(regr,1,2))
+  if(any(class(MUVRrdCVclassObject)=='rdCVnet')){
+    nPlot=ifelse(ML,5,ifelse(regr,3,4))
   par(mfrow=c(nPlot,1))
   par(mar=c(3,4,0,0)+.5)
   }else{
@@ -162,9 +192,10 @@ plotStability=function(MUVRrdCVclassObject,
   par(mfrow=c(nPlot,1))
   par(mar=c(3,4,0,0)+.5)
   }
+
 ######################
 #Plot 1 Number of selected variables vs number of repetions
-  if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
+  #if(!any(class(MUVRrdCVclassObject)=='rdCVnet')){
   plot(nVRep,                  ###each repetition
        ylim=c(0,nVarLim),
        type='l',
@@ -194,7 +225,7 @@ plotStability=function(MUVRrdCVclassObject,
          col=c('pink','red'),
          lty=1,                   ###linetype
          bty='n')
-  }
+#  }
 #######################
 ####Plot 3 Number of Missclassification vs number of repetitions
 
@@ -239,7 +270,7 @@ plotStability=function(MUVRrdCVclassObject,
 ##Plot 4 Q2 vs number of repetitions
   if(regr | ML) {  ###ML is a regression
     plot(q2Rep,                  ######each repetition
-         ylim=c(0,1),
+         ylim=c(min(q2Rep,q2),1),
          type='l',
          col='lightgreen',
          xlab='',
@@ -253,6 +284,7 @@ plotStability=function(MUVRrdCVclassObject,
            lty=1,
            bty='n')
   }
+
 #########################
 ####For all 4 plots
 mtext(text = 'Number of repetitions',
@@ -264,4 +296,7 @@ mtext(text = 'Number of repetitions',
   ###This is an absolute measure, not scaled by par("cex") or by setting par("mfrow") or par("mfcol").
   ###Can be a vector
   par(mfrow=c(1,1))
+
+
+
 }

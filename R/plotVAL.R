@@ -5,7 +5,9 @@
 #'
 #' @return A plot
 #' @export
+## my data assumed as exp(x) and x
 plotVAL=function(MUVRclassObject) {
+
   if(class(MUVRclassObject)[1]!="MUVR"){stop("Wrong classobject")}
   if(!is.null(MUVRclassObject$varTable)){
     if(names(MUVRclassObject$nVar)[1]=="Qmin"){
@@ -16,6 +18,7 @@ plotVAL=function(MUVRclassObject) {
     s<-hist(dist,
          xlab="Number of variables selected across nOuter*nRep loops",
          main=NULL,
+         #log="x",
          #ylim=c(0,5),
          #ylab=metric,
         xlim=range(0,
@@ -44,27 +47,91 @@ plotVAL=function(MUVRclassObject) {
   #  text(MUVRclassObject$nVar_quantile[3],max(s$counts)*0.8, "max",  adj = c(0, -.1))
 
     }else if(names(MUVRclassObject$nVar)[1]=="min"){
-      metric=MUVRclassObject$VAL$metric
-      span<-MUVRclassObject$span
-    ### for smoothcurve
-    nonZeroRep<-MUVRclassObject$nonZeroRep
-    fitnessRep<-MUVRclassObject$fitnessRep
-    plot(nonZeroRep,
-         fitnessRep,
-         xlab="Number of variables selected across nOuter*nRep loops",
-         ylab=metric)
-    nonZeroRep_vector<-c(nonZeroRep)
-    fitnessRep_vector<-c(fitnessRep)
-    nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)
+      nonZeroRep<-MUVRclassObject$nonZeroRep
+      fitnessRep<-MUVRclassObject$fitnessRep
 
-    fit_temp<-loess(fitnessRep_vector~nonZeroRep_vector, span = span,degree=2)
+      nonZeroRep_vector<-c(t(nonZeroRep))
+      #nonZeroRep_vector<-log(nonZeroRep_vector)
+      fitnessRep_vector<-c(t(fitnessRep))
+      nonZeroRep_vector_grid<-seq(min(nonZeroRep_vector),max(nonZeroRep_vector),1)
+
+      metric=MUVRclassObject$VAL$metric
+
+      fit_curve<-MUVRclassObject$fit_curve
+    if(fit_curve=="gam"){
+    ### for smoothcurve
+#######################################################
+###################################33
+### The limitation of using orginal variable
+    k<-MUVRclassObject$k
+    dataframe=as.data.frame(cbind(nonZeroRep_vector,fitnessRep_vector))
+    ssqRatio = 1.5
+    fitnessRep_vector_origin<-fitnessRep_vector
+    nonZeroRep_vector_origin<-nonZeroRep_vector
+    fitnessRep_vector<-fitnessRep_vector[MUVRclassObject$outlier_info=="black"]
+    nonZeroRep_vector<-nonZeroRep_vector[MUVRclassObject$outlier_info=="black"]
+      gam_model <- mgcv::gam(fitnessRep_vector ~
+                               s(nonZeroRep_vector, bs = 'ps',k=k),
+                            # knots=5,
+                             data =    dataframe)
+dataframe_forpredict<-data.frame(nonZeroRep_vector=nonZeroRep_vector_grid,
+           fitnessRep_vector=rep(0,length(nonZeroRep_vector_grid)))
+
+predict_result_gam<-predict.gam(gam_model,dataframe_forpredict)
+fitnessRep_vector<-fitnessRep_vector_origin
+nonZeroRep_vector<-nonZeroRep_vector_origin
+    plot(#exp(nonZeroRep_vector),
+         #fitnessRep_vector,
+         #log='x',
+         #xlim = c(0, max(nonZeroRep_vector_grid)),
+         nonZeroRep_vector,   ##
+         fitnessRep_vector,
+         # data = dataframe,
+         col = MUVRclassObject$outlier_info,
+
+         ylab = 'RMSEP')
+    #lines(exp(nonZeroRep_vector_grid),
+    #      predict_result_gam)
+    lines(nonZeroRep_vector_grid,
+          predict_result_gam)
+    for (i in 1:3) {                                  ####add vertical line
+      abline(#v=exp(MUVRclassObject$nVar[i]),
+             v=MUVRclassObject$nVar[i],
+             lty=i,
+             col=i+1,
+             lwd=1.5)                                 ####line wide
+    }
+    }
+#######################################################
+###################################################
+      if(fit_curve=="loess"){
+        span<-MUVRclassObject$span
+    fitnessRep_vector_origin<-fitnessRep_vector
+    nonZeroRep_vector_origin<-nonZeroRep_vector
+    fitnessRep_vector<-fitnessRep_vector[MUVRclassObject$outlier_info=="black"]
+    nonZeroRep_vector<-nonZeroRep_vector[MUVRclassObject$outlier_info=="black"]
+    fit_temp<-loess(fitnessRep_vector~
+                      nonZeroRep_vector,
+                    span = span,degree=2)
     predict_temp<-predict(fit_temp,
                           newdata = data.frame(nonZeroRep_vector=nonZeroRep_vector_grid)
     )
-
+    fitnessRep_vector<-fitnessRep_vector_origin
+    nonZeroRep_vector<-nonZeroRep_vector_origin
+    plot(#exp(nonZeroRep_vector),
+         #fitnessRep_vector,
+         #log='x',
+         nonZeroRep_vector,
+         fitnessRep_vector,
+         col = MUVRclassObject$outlier_info,
+         xlab="Number of variables selected across nOuter*nRep loops",
+         ylab=metric)
+    #lines(exp(nonZeroRep_vector_grid),
+    #      predict_temp)
     lines(nonZeroRep_vector_grid,predict_temp)
     for (i in 1:3) {                                  ####add vertical line
-      abline(v=MUVRclassObject$nVar[i],
+      abline(#v=exp(MUVRclassObject$nVar[i]),
+             v=MUVRclassObject$nVar[i],
              lty=i,
              col=i+1,
              lwd=1.5)                                 ####line wide
@@ -78,7 +145,10 @@ plotVAL=function(MUVRclassObject) {
            col=2:4,
            bty='n')
     }
-
+    }
+    ##############################################################################################
+    ##############################################################################################
+    #################################################################################################
   }else{
   VAL=MUVRclassObject$VAL$VAL      ### a list of nRep array,  row is outer segment,column is 1147,917,713
   metric=MUVRclassObject$VAL$metric
