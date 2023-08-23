@@ -3,12 +3,14 @@
 #' @param MUVRclassObject An object of MUVR class
 #' @param model Which model to use ("min", "mid" (default), or "max")
 #' @param n customize values
+#' @param all_variable logical, to get the ranks of all variable or not
 #'
 #' @return Data frame with order, name and average rank of variables (`order`, `name` & `rank`)
 #' @export
 getVIRank=function(MUVRclassObject,
                    model='mid',
-                   n) {
+                   n,
+                   all_variable=F) {
   nMod=ifelse(model=='min',
               1,
               ifelse(model=='mid',2,3))

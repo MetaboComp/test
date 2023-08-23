@@ -16,7 +16,7 @@ rdCVnet_getVar<-function(rdCVnetObject,
                fit_curve="loess",
                span=1,   # c(0.5, 0.75, 1,1.25),
                k=5,
-               outlier="IQR",
+               outlier="none",
                percent_smoothcurve=0.05,
                percent_quantile=0.25){
   if(!fit_curve%in%c("loess","gam")){

@@ -13,8 +13,7 @@ sampling_from_distribution(X, upperlimit, lowerlimit, extend, n)
 
 \item{lowerlimit}{if X is numeric, set lower limit}
 
-\item{extend}{If X is numeric, how much you want to extend from the lower and upper existing X.
-If not specified, it is 5% of the range}
+\item{extend}{If X is numeric, how much you want to extend from the lower and upper existing X.}
 
 \item{n}{How many you want to sample}
 }

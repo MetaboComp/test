@@ -10,7 +10,7 @@ rdCVnet_getVar(
   fit_curve = "loess",
   span = 1,
   k = 5,
-  outlier = "IQR",
+  outlier = "none",
   percent_smoothcurve = 0.05,
   percent_quantile = 0.25
 )

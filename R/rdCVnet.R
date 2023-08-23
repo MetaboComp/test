@@ -243,6 +243,7 @@ rdCVnet <- function(X,   ## X should be a dataframe
                       length.out=astep) }# Arithmetic
 
 
+
   ## Choose package/core algorithm according to chosen method
   packs <- c('pROC', 'glmnet', 'magrittr')
   exports <- c('vectSamp', 'uniqDASamp', 'foldVector')
@@ -377,10 +378,6 @@ rdCVnet <- function(X,   ## X should be a dataframe
           # count <- 1 # for testing
           # count <- count + 1
           alpha <- avect[count]  ## avect is the alpha vector
-
-
-
-
           penaltyfactor<-rep(1,ncol(xIn))
           if(!is.null(keep)){
             if(any(!keep%in%colnames(X_original))){
@@ -391,8 +388,6 @@ rdCVnet <- function(X,   ## X should be a dataframe
             penaltyfactor[filter]<-0
 
           }
-
-
           suppressWarnings(inMod <- cv.glmnet(x = xIn,
                                               y = yIn,
                                               alpha=alpha,

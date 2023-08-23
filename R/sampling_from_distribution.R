@@ -1,9 +1,9 @@
-#'Sampling from distribution
+#' Sampling from distribution
 #'@param X a vector (numeric or factor) where the distribution/probabalitywill be generated
 #'@param upperlimit if X is numeric, set upper limit
 #'@param lowerlimit if X is numeric, set lower limit
 #'@param extend If X is numeric, how much you want to extend from the lower and upper existing X.
-#'If not specified, it is 5% of the range
+##If not specified, it is 5% of the range
 #'@param n How many you want to sample
 #'@export
 #'@return a resampled thing

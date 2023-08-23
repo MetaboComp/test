@@ -107,7 +107,7 @@ plotVIRank=function(MUVRclassObject,
             #labRow=rownames(matrix_count[,1:n]),
             #labCol=colnames(matrix_count[,1:n]),
             revC=F,
-            xlab = paste(ncol(MUVRclassObject$inData$X),"variables ordered by selection ratio"),
+            xlab = paste(n,"variables ordered by selection ratio"),
             ylab = paste(MUVRclassObject$inData$nRep*MUVRclassObject$inData$nOuter,"calibration set models")
     )
    # box(col="black")
@@ -124,8 +124,8 @@ plotVIRank=function(MUVRclassObject,
     par(mar=c(5, 4, 4, 8),
         xpd=TRUE)
   plot(1, type = "n",                         # Remove all elements of plot
-       xlab = "All variables",
-       ylab = "nRep*nOuter",
+       xlab = paste(n,"variables ordered by selection ratio"),
+       ylab = paste(MUVRclassObject$inData$nRep*MUVRclassObject$inData$nOuter,"calibration set models"),
        ylim = c(0, length(MUVRclassObject$varRep)),
        xlim = c(0, n)
        )

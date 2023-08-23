@@ -58,7 +58,7 @@ pPerm=function(actual,                             ###a value
       }else{
         for(i in 1:(length(permutation_distribution)-1)){
           if(actual>sort_x[i]&actual<=sort_x[i+1]){
-            p_actual<-ecdf_curve[i]
+            p_actual<-ecdf_curve[i]+1/(length(permutation_distribution))
           }
 
         }
@@ -81,7 +81,7 @@ pPerm=function(actual,                             ###a value
      }else{
        for(i in 1:(length(permutation_distribution)-1)){
          if(actual>=sort_x[i]&actual<sort_x[i+1]){
-           p_actual<- 1-ecdf_curve[i]
+           p_actual<- 1-ecdf_curve[i]+1/(length(permutation_distribution))
          }
        }
        if(p_actual==0){p_actual<-1/(length(permutation_distribution))}
@@ -120,13 +120,14 @@ pPerm=function(actual,                             ###a value
   if (type=='rank') {
     if(side=="smaller"){
       rank=rank(c(actual,permutation_distribution))     ###the sequence of each value
-      p_actual=rank[1]/length(rank)              ###actual is not the smallest if side is greater this apply to Q2 and AUC
+      p_actual=rank[1]/(length(rank)-1)              ###actual is not the smallest if side is greater this apply to Q2 and AUC
       p_permutation_distribution=rank[-1]
       if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
         p_actual=1
       }
-    }else{rank=rank(c(actual,permutation_distribution))
-    p_actual=1/length(rank)+1-(rank[1]/length(rank))
+    }else{rank=rank(-c(actual,permutation_distribution))
+    #p_actual=1/(length(rank)-1)+1-(rank[1]/(length(rank)-1))
+    p_actual=rank[1]/(length(rank)-1)
     p_permutation_distribution=rank[-1]
     if(length(table(permutation_distribution))==1&as.numeric(names(table(permutation_distribution))[1])==actual){
       p_actual=1
@@ -134,7 +135,7 @@ pPerm=function(actual,                             ###a value
     }
 
     p<-p_actual
-    cat("/n Resolution limited to ",1/length(rank))
+    cat("/n Resolution limited to ",1/(length(rank)-1))
     p_object$p<-p
     p_object$points<-NULL
 

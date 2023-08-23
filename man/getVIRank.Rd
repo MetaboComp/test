@@ -4,7 +4,7 @@
 \alias{getVIRank}
 \title{Extract autoselected variables from MUVR model object}
 \usage{
-getVIRank(MUVRclassObject, model = "mid", n)
+getVIRank(MUVRclassObject, model = "mid", n, all_variable = F)
 }
 \arguments{
 \item{MUVRclassObject}{An object of MUVR class}
@@ -12,6 +12,8 @@ getVIRank(MUVRclassObject, model = "mid", n)
 \item{model}{Which model to use ("min", "mid" (default), or "max")}
 
 \item{n}{customize values}
+
+\item{all_variable}{logical, to get the ranks of all variable or not}
 }
 \value{
 Data frame with order, name and average rank of variables (`order`, `name` & `rank`)
