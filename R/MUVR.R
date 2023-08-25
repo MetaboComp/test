@@ -1097,62 +1097,90 @@ MUVR <- function(X,
   
   # Calculate fit statistics
   if (!DA) {
-    if(!missing(weighing_matrix)){warning("This is not classification. Weighing matrix is ignored")}
-    TSS <- sum((Y - mean(Y)) ^ 2)
-    RSSMin <- sum((Y - yFitMin) ^ 2)
-    RSSMid <- sum((Y - yFitMid) ^ 2)
-    RSSMax <- sum((Y - yFitMax) ^ 2)
-    PRESSMin <- sum((Y - yPred[, 1]) ^ 2)
-    PRESSMid <- sum((Y - yPred[, 2]) ^ 2)
-    PRESSMax <- sum((Y - yPred[, 3]) ^ 2)
+    
+    if(!missing(weighing_matrix)) warning("This is not classification. Weighing matrix is ignored")
+    
+    # Sums-of-squares calculations for R2 and Q2 calculations
+    TSS <- sum((Y - mean(Y)) ^ 2) # Total sums-of-squares
+    
+    RSSMin <- sum((Y - yFitMin) ^ 2) # Residual sums-of-squares min model for R2
+    RSSMid <- sum((Y - yFitMid) ^ 2) # Residual sums-of-squares mid model for R2
+    RSSMax <- sum((Y - yFitMax) ^ 2) # Residual sums-of-squares max model for R2
+    
+    PRESSMin <- sum((Y - yPred[, 1]) ^ 2) # Prediction error sums-of-squares min model for Q2
+    PRESSMid <- sum((Y - yPred[, 2]) ^ 2) # Prediction error sums-of-squares mid model for Q2
+    PRESSMax <- sum((Y - yPred[, 3]) ^ 2) # Prediction error sums-of-squares max model for Q2
+    
     R2 <- c(1 - (RSSMin / TSS),
             1 - (RSSMid / TSS),
             1 - (RSSMax / TSS))
+    
     Q2 <- c(1 - (PRESSMin / TSS),
             1 - (PRESSMid / TSS),
             1 - (PRESSMax / TSS))
+    
     names(R2) <- names(Q2) <- c('min', 'mid', 'max')
+    
     # Report
     modelReturn$fitMetric <- list(R2 = R2,
                                   Q2 = Q2)
-  } else {##This is where the weighting matrix that comes in
-    ###########################################################################################################
-    if(!missing(weighing_matrix))
-    {warning("Weighing matrix is added (overwrite weigh_added command)")
-      weigh_added=T}
     
-    if(weigh_added==F){
+  } else {
+    
+    # For DA, there is the option of custom score by weighting the confusion matrix  
+    
+    if(!missing(weighing_matrix)) {
+      warning("Weighing matrix is added (overwrite weigh_added command)")
+      weigh_added <- TRUE
+    }
+    
+    if(!weigh_added){
       modelReturn$fitMetric <- list(CR = 1 - (miss / length(Y)))
-    } else{
+      
+    } else {
       
       if(missing(weighing_matrix)){
-        warning("Missing weighing_matrix,weighing_matrix will be diagnoal")
-        weighing_matrix<-diag(1,length(levels(Y)),length(levels(Y)))
+        warning("Missing weighing_matrix -> Diagonal weighing_matrix")
+        weighing_matrix <- diag(1, length(levels(Y)), length(levels(Y)))
       }
-      if(dim(weighing_matrix)!=c(length(levels(Y)),length(levels(Y)))){
-        stop("The dimension of weighing_matrix is not correct")
+      
+      # Sanity check
+      if(dim(weighing_matrix) != c(length(levels(Y)), length(levels(Y)))){
+        stop("The dimensions of the weighing_matrix are not correct")
       }
+      
+      # Allocate result outputs
       confusion_matrix_list<-list()
       scoring_matrix_list<-list()
-      confusion_matrix_list$min<-table(actual= Y, predicted=t(modelReturn$yClass["min"]))
-      confusion_matrix_list$mid<-table(actual= Y, predicted=t(modelReturn$yClass["mid"]))
-      confusion_matrix_list$max<-table(actual= Y, predicted=t(modelReturn$yClass["max"]))
-      scoring_matrix_list$min<-confusion_matrix_list$min*weighing_matrix
-      scoring_matrix_list$mid<-confusion_matrix_list$mid*weighing_matrix
-      scoring_matrix_list$max<-confusion_matrix_list$max*weighing_matrix
-      miss_min<-sum(scoring_matrix_list$min)/length(Y)
-      miss_mid<-sum(scoring_matrix_list$mid)/length(Y)
-      miss_max<-sum(scoring_matrix_list$max)/length(Y)
-      miss_score<-c(miss_min,miss_mid,miss_max)
+      
+      # Calculate confusion matrices
+      confusion_matrix_list$min <- table(actual = Y, predicted = t(modelReturn$yClass["min"]))
+      confusion_matrix_list$mid <- table(actual = Y, predicted = t(modelReturn$yClass["mid"]))
+      confusion_matrix_list$max <- table(actual = Y, predicted = t(modelReturn$yClass["max"]))
+      
+      # Calculate score matrices from confusion matrix and weighting matriix
+      scoring_matrix_list$min <- confusion_matrix_list$min * weighing_matrix
+      scoring_matrix_list$mid <- confusion_matrix_list$mid * weighing_matrix
+      scoring_matrix_list$max <- confusion_matrix_list$max * weighing_matrix
+      
+      # Simplify to overall score
+      miss_min <- sum(scoring_matrix_list$min) / length(Y)
+      miss_mid <- sum(scoring_matrix_list$mid) / length(Y)
+      miss_max <- sum(scoring_matrix_list$max) / length(Y)
+      miss_score <- c(miss_min,miss_mid,miss_max)
       names(miss_score)<- c('min', 'mid', 'max')
+      
+      # Report
       modelReturn$fitMetric <-list(CR = 1 - (miss_score / length(Y)))
       
-      
-      
     }
-    #################################################################################################################
-    
   }
+
+  # Add selected variables to return object
+  Var<-list(min = rownames(modelReturn$VIRank)[order(modelReturn$VIRank[, 1])][1:modelReturn$nVar[1]],
+            mid = rownames(modelReturn$VIRank)[order(modelReturn$VIRank[, 2])][1:modelReturn$nVar[2]],
+            max = rownames(modelReturn$VIRank)[order(modelReturn$VIRank[, 3])][1:modelReturn$nVar[3]])
+  modelReturn$Var<-Var
   
   # Set class
   class(modelReturn) <-
@@ -1171,12 +1199,6 @@ MUVR <- function(X,
   # Output
   cat('\n Elapsed time', modelReturn$calcMins, 'mins \n')
   
-  
-  ################################# add Var
-  Var<-list(min=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,1])][1:modelReturn$nVar[1]],
-            mid=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,2])][1:modelReturn$nVar[2]],
-            max=rownames(modelReturn$VIRank)[order(modelReturn$VIRank[,3])][1:modelReturn$nVar[3]])
-  modelReturn$Var<-Var
   # Return final object
   return(modelReturn)
 }
