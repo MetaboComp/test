@@ -309,8 +309,8 @@ MUVR <- function(X,
   # Check fitness criterion
   if (missing(fitness)) {
     if (DA) {
-      fitness = 'MISS'
-      cat('\nMissing fitness -> MISS')
+      fitness = 'BER'
+      cat('\nMissing fitness -> BER')
     } else {
       # I.e. for regression
       fitness = 'RMSEP'

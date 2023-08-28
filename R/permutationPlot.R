@@ -3,7 +3,7 @@
 #' This is asically a wrapper for the MUVR::plotPerm() function using model objects to make coding nicer and cleaner
 #'
 #' @param MUVRclassObject A 'MUVR' class object
-#' @param permutation_result  A permutation result. It is a list of 2 items: permutation_type and permutation_output
+#' @param permutation_result  A permutation result. It is a list of 1 items:  permutation_output
 #' @param model 'Min', 'Mid', or 'Max'
 #' @param type 't' (default; for Student's t) or 'non' for "non-parametric" (i.e. rank) studen'ts
 #' @param side 'smaller' for actual lower than H0 or 'greater' for actual larger than H0 (automatically selected if not specified)
@@ -47,8 +47,8 @@ permutationPlot=function(MUVRclassObject,
 ###################################################################################################################
   if(!any(class(MUVRclassObject)=='MUVR')){stop("The input is not a MUVR class Object")}
 
-permutation_type<-permutation_result$permutation_type
-permutation_output<-permutation_result$permutation_output
+permutation_type<-MUVRclassObject$inData$fitness
+permutation_output<-permutation_result
 
 if(!missing(permutation_type)){
     if(permutation_type!="AUROC"&permutation_type!="MISS"&permutation_type!="Q2"&permutation_type!="BER")

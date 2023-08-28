@@ -43,10 +43,8 @@ getMISS<-function (actual,
       }
     }
     confMat<-confMat*weighing_matrix
-
-
   }
- MISS<-length(actual)-sum(confMat)
+ MISS<-length(actual)-(sum(confMat)-sum(diag(confMat)))
   ##balance error rate
   return(MISS)
 }

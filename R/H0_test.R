@@ -6,14 +6,14 @@
 #' or if a variable pre-selection is performed for decreased computational burden, then permutaion loops should be constructed manually.
 #' In those cases, View(permutations) can be a first start from which to build custom solutions for permutation analysis.
 #' @param MUVRclassObject A 'MUVR' class object
-#' @param nPerm number of permutations to run
+#' @param n number of permutations to run
 #' @param nRep number of repetitions for each permutation (defaults to value of actual model)
 #' @param nOuter number of outer validation segments for each permutation (defaults to value of actual model)
 #' @param varRatio varRatio for each permutation (defaults to value of actual model)
 #' @param parallel whether to run calculations using parallel processing - which requires registered backend (defaults to value of actual model)
-#' @param realorsimulation Either real or simulation, To decide the permutation sampling is performed on original Y values or the probability(If Y categorical)/distributions(If Y continuous) of Y values
-#' @param permutation_type Either AUROC,Q2, or MISS or BER
-#' @return  permutation_output: A permutation matrix with permuted fitness statistics (nrow=nPerm and ncol=3 for min/mid/max)
+#' @param type Either permutations or resamplings, To decide the permutation sampling is performed on original Y values or the probability(If Y categorical)/distributions(If Y continuous) of Y values
+
+#' @return  permutation_output: A permutation matrix with permuted fitness statistics (nrow=n and ncol=3 for min/mid/max)
 #'
 #' @export
 
@@ -25,7 +25,7 @@
 ##  nRep=2*nCore
 ##  varRatio=.75
 ##  nOuter=6
-##  nPerm=50
+##  n=50
 ## R12ML=MUVR(X=mlr12,ML=T,nRep=nRep,nOuter=nOuter,varRatio=varRatio,method='RF')
 ##  permR12=permutations(R12ML)
 ## stopCluster(cl)
@@ -33,14 +33,14 @@
 
 
 
-permutations = function(MUVRclassObject,
-                        nPerm = 50,
+H0_test = function(MUVRclassObject,
+                        n = 50,
                         nRep,
                         nOuter,
                         varRatio,
                         parallel,
-                        realorsimulation =  "simulation",
-                        permutation_type ) {
+                        type =  "resamplings"  ## type =c("permutation","resampling")
+                        ) {
   if (!any(class(MUVRclassObject) == 'MUVR')){stop('Wrong object class')}
   ##substitute() is often paired with deparse(). That function takes the result of substitute(), an expression,
   ##and turns it into a character vector.
@@ -58,6 +58,8 @@ permutations = function(MUVRclassObject,
   method = MUVRclassObject$inData$method
   methParam = MUVRclassObject$inData$methParam
 
+
+  permutation_type<-fitness
   if (missing(nRep))
     nRep = MUVRclassObject$inData$nRep
 
@@ -82,39 +84,39 @@ permutations = function(MUVRclassObject,
 
   ###########################################################################################################################3
   #I added a new variabler permutation type to include AUROC
-  if (!missing(permutation_type)) {
-    if (permutation_type != "AUROC" &
-        permutation_type != "MISS" &
-        permutation_type != "Q2" & permutation_type != "BER")
-    {
-      stop("permutation_type is not correct")
-    }
-    if (permutation_type == "Q2" &
-        !any(class(MUVRclassObject) %in% c('Regression', "Multilevel")))
-    {
-      stop("Classification and Multilevel must use AUROC or MISS for permutation")
-    }
+ # if (!missing(permutation_type)) {
+#    if (permutation_type != "AUROC" &
+ #       permutation_type != "MISS" &
+  #      permutation_type != "Q2" & permutation_type != "BER")
+  #  {
+  #    stop("permutation_type is not correct")
+  #  }
+  #  if (permutation_type == "Q2" &
+  #      !any(class(MUVRclassObject) %in% c('Regression', "Multilevel")))
+  #  {
+  #    stop("Classification and Multilevel must use AUROC or MISS for permutation")
+  #  }
 
-    if (!(permutation_type %in% c("Q2")) &
-        any(class(MUVRclassObject) == 'Regression'))
-    {
-      stop("Regression must use Q2 for permutation")
-    }
-  }
-  if (missing(permutation_type)) {
-    if (any(class(MUVRclassObject) %in% c('Regression', "Multilevel"))) {
-      permutation_type = "Q2"
-    } else {
-      permutation_type = "MISS"
-    }
-  }
+  #  if (!(permutation_type %in% c("Q2")) &
+  #      any(class(MUVRclassObject) == 'Regression'))
+  #  {
+  #    stop("Regression must use Q2 for permutation")
+  #  }
+  #}
+  #if (missing(permutation_type)) {
+  #  if (any(class(MUVRclassObject) %in% c('Regression', "Multilevel"))) {
+  #    permutation_type = "Q2"
+  #  } else {
+  #    permutation_type = "MISS"
+  #  }
+  #}
 
-  if (missing(realorsimulation)) {
-    realorsimulation == "simulation"
+  if (missing(type)) {
+    type == "resamplings"
   }
-  if (!missing(realorsimulation)) {
-    if (!realorsimulation %in% c("real", "simulation")) {
-      stop("There are only real and simulation options.
+  if (!missing(type)) {
+    if (!type %in% c("permutations", "resamplings")) {
+      stop("There are only real and resamplings options.
                                                           You are a genius if you come up a third one")
     }
   }
@@ -129,19 +131,19 @@ permutations = function(MUVRclassObject,
       permutation_type == "MISS" | permutation_type == "BER") {
     startTime = proc.time()[3]
     permutation_output = matrix(ncol = 3,
-                                nrow = nPerm)   ##row is permutation number col is 3 (min,mid,max)
+                                nrow = n)   ##row is permutation number col is 3 (min,mid,max)
     colnames(permutation_output) = c('Min', 'Mid', 'Max')
     rownames(permutation_output) = paste("permutation",
-                                         1:nPerm)
+                                         1:n)
     ###############################################################
     ## scenario 1.1
-    if (realorsimulation == "real") {
+    if (type == "permutations") {
       ##################################################################################################################################
       ###I also added permutation test for auc when it is classfication
       ###hBER could be added too when we want to integrate it into the permutationtest
-      for (p in 1:nPerm) {
-        ####these is to repeat random selection for nPerm times
-        cat('\n"', name, '" permutation ', p, ' of ', nPerm, '\n', sep = '')
+      for (p in 1:n) {
+        ####these is to repeat random selection for n times
+        cat('\n"', name, '" permutation ', p, ' of ', n, '\n', sep = '')
 
         #if (ML==T) {YPerm=sample(c(-1,1),   ##when ML is T, DA =F
         #                       size=nSamp,
@@ -208,7 +210,7 @@ permutations = function(MUVRclassObject,
 
         timePerRep = (nowTime - startTime) / p
 
-        timeLeft = (timePerRep * (nPerm - p)) / 60
+        timeLeft = (timePerRep * (n - p)) / 60
 
         cat('\nEstimated time left:', timeLeft, 'mins\n\n')
       }
@@ -217,23 +219,23 @@ permutations = function(MUVRclassObject,
         colnames(permutation_output)="overall"
       }
 
-      lst <- list(permutation_type,
-                  permutation_output)
-      names(lst) <- c("permutation_type",
-                      "permutation_output")
-      return(lst)
-    }   #### where the if realorsimulation==real ends
+    #  lst <- list(permutation_type,
+    #              permutation_output)
+    #  names(lst) <- c("permutation_type",
+    #                  "permutation_output")
+      return(permutation_output)
+    }   #### where the if type==real ends
 
     ########################################################################################
     ## scenario 1.2
-    if (realorsimulation == "simulation") {
+    if (type == "resamplings") {
       ## scenario 1.2.1
       if (permutation_type == "Q2") {
         # if(DA==T){stop("Y is supposed to be continuous")}
 
-        for (p in 1:nPerm) {
-          ####these is to repeat random selection for nPerm times
-          cat('\n"', name, '" permutation ', p, ' of ', nPerm, '\n', sep = '')
+        for (p in 1:n) {
+          ####these is to repeat random selection for n times
+          cat('\n"', name, '" permutation ', p, ' of ', n, '\n', sep = '')
           denss = density(
             x = Y,
             from = min(Y),
@@ -298,7 +300,7 @@ permutations = function(MUVRclassObject,
 
           timePerRep = (nowTime - startTime) / p
 
-          timeLeft = (timePerRep * (nPerm - p)) / 60
+          timeLeft = (timePerRep * (n - p)) / 60
 
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
@@ -307,18 +309,18 @@ permutations = function(MUVRclassObject,
           colnames(permutation_output)="overall"
         }
 
-        lst <- list(permutation_type,
-                    permutation_output)
-        names(lst) <- c("permutation_type",
-                        "permutation_output")
-        return(lst)
+     #   lst <- list(permutation_type,
+    #                permutation_output)
+    #    names(lst) <- c("permutation_type",
+    #                    "permutation_output")
+        return(permutation_output)
       }   ### where if permutation type is Q2
 
       ## scenario 1.2.2
       if (permutation_type == "MISS" | permutation_type == "BER") {
-        for (p in 1:nPerm) {
-          ####these is to repeat random selection for nPerm times
-          cat('\n"', name, '" permutation ', p, ' of ', nPerm, '\n', sep = '')
+        for (p in 1:n) {
+          ####these is to repeat random selection for n times
+          cat('\n"', name, '" permutation ', p, ' of ', n, '\n', sep = '')
 
           if (ML == T) {
             YPerm = as.numeric(sample(
@@ -394,7 +396,7 @@ permutations = function(MUVRclassObject,
 
           timePerRep = (nowTime - startTime) / p
 
-          timeLeft = (timePerRep * (nPerm - p)) / 60
+          timeLeft = (timePerRep * (n - p)) / 60
 
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
@@ -404,11 +406,11 @@ permutations = function(MUVRclassObject,
           colnames(permutation_output)="overall"
         }
 
-        lst <- list(permutation_type,
-                    permutation_output)
-        names(lst) <- c("permutation_type",
-                        "permutation_output")
-        return(lst)
+      #  lst <- list(permutation_type,
+      #              permutation_output)
+      #  names(lst) <- c("permutation_type",
+      #                  "permutation_output")
+        return(permutation_output)
 
 
       }### where the permutation_tupe is MISS and BER ends
@@ -416,7 +418,7 @@ permutations = function(MUVRclassObject,
 
 
 
-    }   ### where the if realorsimulation==simulation ends
+    }   ### where the if type==resamplings ends
 
 
 
@@ -431,43 +433,43 @@ permutations = function(MUVRclassObject,
     startTime = proc.time()[3]
     if(ML){
     permutation_output = array(NA,
-                               dim = c(nPerm,
+                               dim = c(n,
                                        3,
                                        1),
                                dimnames = list(
-                                 c(paste("permutation", 1:nPerm)),
+                                 c(paste("permutation", 1:n)),
                                  c('Min', 'Mid', 'Max'),
                                  "ML"
                                ))
     } else{
       if(class(MUVRclassObject)[3]=="rdCVnet"){
         permutation_output = array(NA,
-                                   dim = c(nPerm,
+                                   dim = c(n,
                                            3,
                                            length(MUVRclassObject$auc)),
                                    dimnames = list(
-                                     c(paste("permutation", 1:nPerm)),
+                                     c(paste("permutation", 1:n)),
                                      c('Min', 'Mid', 'Max'),
                                      c(names(MUVRclassObject$auc))
                                    )) ###if use auc this is a list
 
       }else{
         permutation_output = array(NA,
-                               dim = c(nPerm,
+                               dim = c(n,
                                        3,
                                        ncol(MUVRclassObject$auc)),
                                dimnames = list(
-                                 c(paste("permutation", 1:nPerm)),
+                                 c(paste("permutation", 1:n)),
                                  c('Min', 'Mid', 'Max'),
                                  c(colnames(MUVRclassObject$auc))
                                )) ###if use auc this is a list
       }
       }
-    if (realorsimulation == "real") {
+    if (type == "permutations") {
       if(ML){num=1}else{num=ncol(MUVRclassObject$auc)}
       for (s in 1:num) {
-        for (p in 1:nPerm) {
-          ####these is to repeat random selection for nPerm times
+        for (p in 1:n) {
+          ####these is to repeat random selection for n times
           cat('\n"',
               "group",
               s,
@@ -475,7 +477,7 @@ permutations = function(MUVRclassObject,
               '" permutation ',
               p,
               ' of ',
-              nPerm,
+              n,
               '\n',
               sep = '')
 
@@ -536,9 +538,9 @@ permutations = function(MUVRclassObject,
 
           nowTime = proc.time()[3]
 
-          timePerRep = (nowTime - startTime) / ((s - 1) * nPerm + p)
+          timePerRep = (nowTime - startTime) / ((s - 1) * n + p)
 
-          timeLeft = (timePerRep * (nPerm * num - ((s - 1) * nPerm + p))) / 60
+          timeLeft = (timePerRep * (n * num - ((s - 1) * n + p))) / 60
 
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
@@ -549,16 +551,16 @@ permutations = function(MUVRclassObject,
 
       }
 
-      lst <- list(permutation_type,
-                  permutation_output)
-      names(lst) <- c("permutation_type",
-                      "permutation_output")
-      return(lst)
+     # lst <- list(permutation_type,
+    #              permutation_output)
+    #  names(lst) <- c("permutation_type",
+    #                  "permutation_output")
+      return(permutation_output)
 
-    }  ## end for realorsimulation is real
+    }  ## end for type is real
 
 
-    if (realorsimulation == "simulation") {
+    if (type == "resamplings") {
       if(ML){num=1
       }else{
 
@@ -567,8 +569,8 @@ permutations = function(MUVRclassObject,
                    ncol(MUVRclassObject$auc))
         }
       for (s in 1:num) {
-        for (p in 1:nPerm) {
-          ####these is to repeat random selection for nPerm times
+        for (p in 1:n) {
+          ####these is to repeat random selection for n times
           cat('\n"',
               "group",
               s,
@@ -576,7 +578,7 @@ permutations = function(MUVRclassObject,
               '" permutation ',
               p,
               ' of ',
-              nPerm,
+              n,
               '\n',
               sep = '')
 
@@ -656,9 +658,9 @@ permutations = function(MUVRclassObject,
 
           nowTime = proc.time()[3]
 
-          timePerRep = (nowTime - startTime) / ((s - 1) * nPerm + p)
+          timePerRep = (nowTime - startTime) / ((s - 1) * n + p)
 
-          timeLeft = (timePerRep * (nPerm * num - ((s -1) * nPerm + p))) / 60
+          timeLeft = (timePerRep * (n * num - ((s -1) * n + p))) / 60
 
           cat('\nEstimated time left:', timeLeft, 'mins\n\n')
         }
@@ -669,13 +671,13 @@ permutations = function(MUVRclassObject,
 
       }
 
-      lst <- list(permutation_type,
-                  permutation_output)
-      names(lst) <- c("permutation_type",
-                      "permutation_output")
-      return(lst)
+    #  lst <- list(permutation_type,
+    #              permutation_output)
+    #  names(lst) <- c("permutation_type",
+    #                  "permutation_output")
+      return(permutation_output)
 
-    } ## end for realorsimulation is simulation
+    } ## end for type is resamplings
 
   } ## end for AUROC
 

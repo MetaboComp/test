@@ -21,7 +21,7 @@ permutationPlot(
 \arguments{
 \item{MUVRclassObject}{A 'MUVR' class object}
 
-\item{permutation_result}{A permutation result. It is a list of 2 items: permutation_type and permutation_output}
+\item{permutation_result}{A permutation result. It is a list of 1 items:  permutation_output}
 
 \item{model}{'Min', 'Mid', or 'Max'}
 

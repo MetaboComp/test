@@ -70,7 +70,7 @@ if(!length(multiple_p_shown)>=2){
   #  xlim =c(0,max(h$density))
   #}
 
-  ran<-range(c(actual,distribution))
+    ran<-range(c(actual,distribution))
   from=ran[1]-diff(ran)*extend
   to=ran[2]+diff(ran)*extend
   if(missing(xlim)) {
@@ -112,10 +112,16 @@ if(!length(multiple_p_shown)>=2){
 
     if(type=="t"){
       #e = 1 * diff(range(distribution))
-      x_values <- seq(from, to, length = 1000)
-      y_values <- dt(x_values,df=length(distribution)-1)
-      #y_values <- y_values * diff(h$mids[1:2]) * length(distribution)
-      lines(x_values, y_values, lwd = 2,col = "red")
+
+      x_values<-distribution
+      x_values_sim <- seq(min(distribution), max(distribution), length = 1000)
+    #  curve(dt((x-mean(x_values))/(sd(x_values)/sqrt(length(x_values))),
+    #               df=length(x_values)-1))
+      y_values<-dt((x_values_sim-mean(x_values))/(sd(x_values)/sqrt(length(x_values))),
+                   df=length(x_values)-1)
+      #plot(x_values_sim, y_values*length(x_values))
+      lines(x_values_sim, y_values,#*length(x_values_sim),
+            lwd = 2,col = "red")
 
     }
   }
@@ -228,9 +234,21 @@ if(permutation_visual=="mean"){
 
     if("t"%in%multiple_p_shown&!"smooth"%in%multiple_p_shown){
       #e = 1 * diff(range(distribution))
-      x_values <- seq(from, to, length = 1000)
-      y_values <- dt(x_values,df=length(distribution)-1)
-      lines(x_values, y_values, lwd = 2,col = "green")
+
+
+      x_values<-distribution
+      x_values_sim <- seq(min(distribution), max(distribution), length = 1000)
+      y_values<-dt((x_values_sim-mean(x_values))/(sd(x_values)/sqrt(length(x_values))),
+                   df=length(x_values)-1)
+      #plot(x_values_sim, y_values*length(x_values))
+      lines(x_values_sim, y_values*length(x_values), lwd = 2,col = "green")
+      #
+      #  y_values <- dt(x_values,df=length(distribution)-1)
+      #y_values <- y_values * diff(h$mids[1:2]) * length(distribution)
+
+  #    x_values <- seq(from, to, length = 1000)
+   #   y_values <- dt(x_values,df=length(distribution)-1)
+
       legend('topright',
              legend=c("t"),
              lty=1,
@@ -254,9 +272,12 @@ if(permutation_visual=="mean"){
              bty='n')
     }
   if("smooth"%in%multiple_p_shown&"t"%in%multiple_p_shown){
-    x_values <- seq(from, to, length = 1000)
-    y_values <- dt(x_values,df=length(distribution)-1)
-    lines(x_values, y_values, lwd = 2,col = "green")
+    x_values<-distribution
+    x_values_sim <- seq(min(distribution), max(distribution), length = 1000)
+    y_values<-dt((x_values_sim-mean(x_values))/(sd(x_values)/sqrt(length(x_values))),
+                 df=length(x_values)-1)
+    #plot(x_values_sim, y_values*length(x_values))
+    lines(x_values_sim, y_values*length(x_values), lwd = 2,col = "green")
     lines(ppp[[which(multiple_p_shown=="smooth")]]$dens,lwd = 2, col = "red")
     legend('topright',
            legend=c("t","smooth"),
